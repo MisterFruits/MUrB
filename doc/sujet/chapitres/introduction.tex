@@ -1,0 +1,69 @@
+Le problème à $N$ corps (\textit{N-body} dans la littérature anglaise) est un problème assez classique de la mécanique de {\sc Newton}: il consiste en la résolution des équations du mouvement de {\sc Newton}. 
+Ce problème peut cependant être généralisé et on le rencontre assez fréquemment dans la simulation numérique: cela fait de lui un bon cas d'école.
+
+Au départ du problème (à l'instant $t$), pour chaque corps $i$, sa position $\vec{q_t}(i)$, sa masse $m_i$ et sa vitesse $\vec{v_t}(i)$ sont connus.
+La force exercée entre deux corps $i$ et $j$, à un instant $t$ donné, est définie comme suit:
+\begin{equation}
+\label{eq:force}
+\vec{F_t}(i,j) = G.\frac{m_i.m_j}{(D_{i,j})^2}.\vec{u},
+\end{equation}
+avec $G$ la constante gravitationnelle ($G = 6,67384\times10^{-11} m^3.kg^{-1}.s^{-2}$), $D_{i,j}$ la distance entre un corps $i$ et un corps $j$ et $\vec{u}$ le vecteur unitaire dirigé de $i$ vers $j$.
+La force résultante pour un corps $i$ donné, à un instant $t$ donné, est la suivante:
+\begin{equation}
+\label{eq:somForce}
+\vec{F_t}(i) = \sum_{j \ne i}^{N} \vec{F_t}(i,j),
+\end{equation}
+avec $N$ le nombre de corps présents dans l'espace.
+L'accélération pour un corps $i$, à un instant $t$ donné, est la suivante:
+\begin{equation}
+\label{eq:acceleration}
+\vec{a_t}(i) = \frac{\vec{F_t}(i)}{m_i}.
+\end{equation}
+La vitesse d'un corps $i$ à un instant $t + dt$ dépend de la vistesse et de l'accélération à l'instant $t$:
+\begin{equation}
+\label{eq:vitesse}
+\vec{v_{t+dt}}(i) = \vec{v_{t}}(i) + \vec{a_t}(i).dt.
+\end{equation}
+Enfin, la position $q$ d'un corps $i$ à l'instant $t + dt$ dépend de la position, de la vitesse et de l'accélération à l'instant $t$:
+\begin{equation}
+\label{eq:position}
+\vec{q_{t+dt}}(i) = \vec{q_{t}}(i) + \vec{v_{t}}(i).dt + \frac{\vec{a_t}(i).dt^2}{2}.
+\end{equation}
+Grâce aux équations \ref{eq:force}, \ref{eq:somForce}, \ref{eq:acceleration}, \ref{eq:vitesse} et \ref{eq:position} il est possible de calculer la nouvelle position et la nouvelle vitesse pour tous corps $i$ à l'instant $t + dt$.
+
+\subsection{Choix du pas de temps $dt$}
+Le plus simple est de choisir un pas de temps constant entre toutes les itérations cependant cela ne permet pas d'observer finement les intéractions surtout quand les corps se rapprochent de plus en plus.
+Nous avons donc fait le choix de calculer un nouveau pas de temps à chaque itération pour qu'il soit adapté à la simulation.
+Par soucis de simplicité ce pas de temps $dt$ sera commun à tout les corps du plan et devra respecter la condition suivante:
+\begin{equation}
+\label{eq:dt1}
+\|\vec{v_t}(i).dt + \frac{\vec{a_t}(i)}{2}.dt^2 \| \leq 0.1\times D_{i,j},
+\end{equation}
+avec $j$ le corps le plus proche de $i$.
+Pour chaque corps $i$, un pas de temps sera calculé et le plus petit de ces pas de temps sera choisi.
+L'équation~\ref{eq:dt1} traduit que la distance entre $i_t$ et $i_{t+dt}$ doit être inférieure à 10\% de la distance entre $i_t$ et $j_t$.
+Cela assure que deux masses quelconques ne se rapprochent pas plus de 20\% entre les instants $t$ et $t + dt$.
+Cependant, l'équation~\ref{eq:dt1} n'est pas directement utilisable, elle donne lieu à la résolution d'un polynôme de degré 4 en $dt$.
+C'est pour cela que nous utilisons l'inégalité triangulaire qui permet de déterminer une nouvelle condition:
+\begin{equation}
+\label{eq:dt2}
+\|\vec{v_t}(i)\|.dt + \frac{\|\vec{a_t}(i)\|}{2}.dt^2  \leq 0.1\times D_{i,j}.
+\end{equation}
+L'équation~\ref{eq:dt2} est de degré 2 ce qui est beaucoup plus raisonnable en de temps de calcul.
+
+\subsection{Traduction algorithmique}
+D'un point de vue algorithmique, on calcule chaque corps en fonction de tous les autres.
+Cela se résume en l'imbrication de deux boucles \texttt{for} allant de $0$ à $N$ corps.
+Dans un langage \texttt{C-like} on peut l'exprimer de la façon suivante:
+\begin{lstlisting}[caption={Pseudo code illustrant un algorithme de type $N$ corps},label={alg:ncorps}]
+body b1[N]; // array which contains all bodies (at t)
+body b2[N]; // empty array
+for(unsigned int iBody = 0; iBody < N; ++iBody)
+	for(unsigned int jBody = 0; jBody < N; ++jBody)
+		if(iBody != jBody)
+			b2[iBody] = compute(b1[jBody]);
+\end{lstlisting}
+L'algorithme \ref{alg:ncorps} montre une propriété très importante de cette classe de problème: pour $N$ corps donnés, la complexité en terme de calcul est de $O(N^2)$. 
+Il existe cependant une méthode permettant d'approximer et de résoudre le problème en $O(N \log{N} )$ mais nous ne l'utiliserons pas dans ce T.D. (voir simulation de {\sc Barnes-Hut}).
+%Cela permet théoriquement de recouvrir les temps de communications MPI par du calcul.
+

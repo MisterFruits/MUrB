@@ -1,0 +1,12 @@
+Dans ce T.D. il est question d'utiliser les bases MPI et OpenMP acquises lors des précédents travaux et de les combiner sur un cas physique réel.
+Plus précisément nous allons:
+\begin{enumerate}
+\item simuler le déplacement de $N$ corps dans le plan,
+\item paralléliser les traitements d'un n\oe ud avec OpenMP,
+\item mettre en place un anneau de communication MPI,
+\item paralléliser les traitements multi-n\oe uds avec MPI,
+\item recouvrir les temps de communication par du calcul.
+\end{enumerate}
+
+Nous allons effectuer une simulation dans le plan car il est relativement simple de la visionner sur un écran.
+Les corps seront réparties sur les processus MPI. Cela permet de traiter plus de corps que la limite mémoire d'un n\oe ud le permet.

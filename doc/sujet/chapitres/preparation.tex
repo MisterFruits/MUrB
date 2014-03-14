@@ -1,0 +1,95 @@
+Afin de ne pas perdre de temps, nous partirons d'un code séquentiel fonctionnel dans lequel toute la physique a déjà été implémentée.
+En premier lieu vous devez décompresser l'archive \textit{nbody.tar.gz} dans votre \textit{/home/\$USER}:
+\texttt{tar -xvvf nbody.tar.gz}.
+Vous possédez maintenant un dossier \textit{/home/\$USER/nbody/} contenant les fichiers/dossiers suivants:
+\begin{itemize}
+\item \textit{Makefile}: le \textit{Makefile} permettant de compiler le projet,
+\item \textit{bin/}: dossier contenant les exécutables,
+\item \textit{data/}: dossier contenant les cas de test,
+\item \textit{doc/}: dossier contenant des documents relatifs au projet (comme ce sujet),
+\item \textit{obj/}: dossier contenant les fichiers compilés avant l'édition de liens,
+\item \textit{objd/}: dossier contenant les fichiers compilés avant l'édition de liens (en mode debug),
+\item \textit{reader/}: fichier source du code de visualisation des résulats d'une simulation,
+\item \textit{src/}: dossier contenant le code source.
+\end{itemize}
+Pour compiler le code dans sa version séquentielle il suffit de taper la commande \texttt{make} et l'exécutable se construit dans \textit{bin/nbody}.
+Le code source est écrit en \texttt{C 99} qui permet un peu plus de souplesse que le \texttt{C} traditionnel.
+
+\subsection{Les sources}
+
+\subsubsection{Le point d'entrée: le \texttt{main}}
+Le point d'entrée du programme (fonction \texttt{main}) est contenu dans \textit{src/main.c}.
+C'est dans ce fichier que sont définies les trois grandes étapes autour de la boucle des itérations (cf. list.~\ref{alg:iterations}):
+\begin{enumerate}
+\item calculer l'accélération de tous les corps du plan \texttt{p},
+\item rechercher le plus petit pas de temps \texttt{dt} et le choisir pour tous les corps,
+\item mettre à jour la position et la vitesse de tous les corps du plan.
+\end{enumerate}
+\begin{lstlisting}[caption={Code simplifié du calcul par itération},label={alg:iterations}]
+void main()
+{
+	double dt;
+	plan *p = createPlan(); // p contains the bodies
+	for(unsigned long iIte = 1; iIte <= NIterations; ++iIte) 
+	{
+		computeAllLocalAcceleration(p);
+		dt = findLocalDt(p);
+		updateAllLocalPositionAndSpeed(p, dt);
+	}
+}
+\end{lstlisting}
+Les structures utilisées (ici \texttt{plan}) sont détaillées dans les sections suivantes.
+
+\subsubsection{Module \texttt{body}}
+Le module \texttt{body} (fichiers \textit{src/body.c} et \textit{src/body.h}) contient la structure \texttt{body}:
+\begin{lstlisting}[caption={Structure \texttt{body}},label={alg:strBody}]
+typedef struct 
+{
+	double mass; // body mass
+	double posX; // body position following x axis
+	double posY; // body position following y axis
+} body;
+\end{lstlisting}
+Ainsi que la structure \texttt{localBody}:
+\begin{lstlisting}[caption={Structure \texttt{localBody}},label={alg:strLocalBody}]
+typedef struct 
+{
+	body   *b;                 // body mass and body position
+	double speedX;             // body speed following x axis
+	double speedY;             // body speed following y axis
+	double accelerationX;      // body acceleration following x axis
+	double accelerationY;      // body acceleration following y axis
+	double closestNeighborLen; // contains the distance with the closest neighbor
+} localBody;
+\end{lstlisting}
+Nous avons choisi d'utiliser deux structures (\texttt{body} et \texttt{localBody}) afin de décrire complètement les propriétés d'un corps.
+La structure \texttt{body} (cf. list.~\ref{alg:strBody}) contient la masse et la position du corps et la structure \texttt{localBody} (cf. list.~\ref{alg:strLocalBody}) ajoute la vitesse et l'accélération.
+Cela est inutile pour le code séquentiel (on aurait pu mettre tous les champs dans une même structure) cependant quand vous implémenterez le code parallèle MPI, seules les propriétés de la structure \texttt{body} seront à communiquer aux autres n\oe uds.
+Les données supplémentaires de \texttt{localBody} sont uniquement nécessaires pour le calcul local à un processus.
+
+\subsubsection{Module \texttt{plan}}
+Le module \texttt{plan} (fichiers \textit{src/plan.c} et \textit{src/plan.h}) contient la structure \texttt{plan}:
+\begin{lstlisting}[caption={Structure \texttt{plan}},label={alg:strPlan}]
+typedef struct
+{
+	unsigned long nBody; // bodies number
+	localBody     *lb;   // local body array values
+} plan;
+\end{lstlisting}
+Un plan (cf. list.~\ref{alg:strPlan}) contient le nombre de corps \texttt{nBody} ainsi que les propriétés de chacun de ces corps dans le tableau \texttt{lb} (masse, position, vitesse et accélération).
+
+\subsubsection{Simuler un cas de test}
+Après avoir compilé le code (commande \texttt{make}), vous pouvez essayer de lancer un cas de test en exécutant le code comme suit:
+\begin{equation*}
+\texttt{> ./bin/nbody -f data/in/in.testcase.1.dat -i 100 -v -w}
+\end{equation*}
+L'option \texttt{-f} permet de spécifier un fichier d'entrée, l'option \texttt{-i} permet de choisir le nombre d'itérations à calculer, l'option \texttt{-v} active le mode verbose et enfin l'option \texttt{-w} permet d'écrire la solution à chaque itération dans \textit{data/out/out.*.dat} (\textit{*} correspond au numéro de l'itération).
+
+Pour visualiser les solutions il faut compiler le \texttt{reader} avec la commande \texttt{make reader} et pour l'exécuter vous pouvez utiliser la commande suivante:
+\begin{equation*}
+\texttt{> ./bin/reader 800 600 data/out/out}
+\end{equation*}
+Les deux premiers paramètres définissent la taille de la fenêtre de visualisation et le dernier paramètre permet de spécifier la racine des noms des fichiers à visualiser.
+Un fois la fenêtre de visualisation ouverte, appuyez sur la touche "flêche droite" pour lancer l'animation.
+
+Si vous voyez deux corps s'éloigner puis se rapprocher alors le code fonctionne correctement et vous pouvez passer aux exercices de la section suivante.
