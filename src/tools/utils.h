@@ -1,7 +1,7 @@
 /*
  * Do not remove.
  * MPI/OpenMP training courses
- * Adrien CASSAGNE, ASA - CINES, adrien.cassagne@cines.fr
+ * Adrien Cassagne, ASA - CINES, adrien.cassagne@cines.fr
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
