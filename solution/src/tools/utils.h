@@ -17,7 +17,7 @@
 
 void printIterationTimeAndPerformance(unsigned long iIte, struct timeval t1, struct timeval  t2, struct timeval t3)
 {
-	if(Verbose)
+	if(Verbose && !RankMPI)
 		printf("Processing step %ld takes %f ms (total time elapsed %f ms)\n", iIte,
 		                                                                       TIME_DIFF(t2, t3)/1000.0,
 		                                                                       TIME_DIFF(t1, t3)/1000.0);

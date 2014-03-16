@@ -19,7 +19,7 @@ EXT = c
 # Compilateur #################################################################
 #------------------------------------------------------------------------------
 # choix du compilateur
-CC = gcc
+CC = mpicc
 # options de compilation
 CFLAGS = -Wall -O3 -std=c99 -fopenmp
 # options de compilation en debug

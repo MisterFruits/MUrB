@@ -25,7 +25,10 @@ typedef struct
 	double closestNeighborLen; // contains the distance with the closest neighbor
 } localBody;
 
-/* Initialize body lb with mass, position and speed */
+/* Initialize body b with mass and position */
+void initBody(body* b, double mass, double posX, double posY);
+
+/* Initialize local body lb with mass, position and speed */
 void initLocalBody(localBody* lb, double mass, double posX, double posY, double speedX, double speedY);
 
 /* Allocate and return a localBody initialized with initial values (mass, position and speed) */

@@ -5,7 +5,7 @@
 		Ici, il n'est pas question d'utiliser des primitives très complexes, un simple \texttt{\#pragma omp parallel for schedule(runtime)} devrait suffir.
 		Vous pourrez ensuite définir, à l'exécution du code, les variables d'environnement \texttt{OMP\_NUM\_THREADS} et \texttt{OMP\_SCHEDULE} afin de trouver le meilleur compromis pour les performances. 
 	\end{solution}
-	\question Créer une structure MPI (\texttt{MPI\_BODY}) pour envoyer/recevoir des corps.
+	\question Créer une structure MPI (\texttt{bodyMPI}) pour envoyer/recevoir des corps.
 	\begin{solution}
 		La structure \texttt{body} qui est déclarée dans le fichier \textit{src/body.h} ne fait pas partie des types de base que connaît MPI.
 		Il faut donc déclarer une nouvelle structure MPI suivant les spécifications de la structure \texttt{body}.
@@ -27,7 +27,7 @@
 			\item l'initialisation: chaque processus envoie ses corps à son voisin de droite (et reçoit de son voisin de gauche),
 			\item ensuite il faut simplement que chaque processus envoie le \textit{buffer} qu'il reçoit de son voisin de gauche à son voisin de droite.
 		\end{itemize}
-		Au final, il y a autant d'envoi et de réception qu'il y a de processus MPI.
+		Au final, si il y a $np$ processus MPI, alors il y a $np-1$ communications.
 		La réception et l'envoi peuvent être réalisés de façon bloquante avec les routines \texttt{MPI\_Recv} et \texttt{MPI\_Send}.
 	\end{solution}
 	\question Trouver le plus petit pas de temps $dt$ parmi tout les processus MPI et le choisir.

@@ -25,8 +25,11 @@ plan* createPlanWithFile(const char *fileName);
 /* Deallocate and destroy a plan (and all bodies in the plan) */
 void destroyPlan(plan *p);
 
-/* Compute acceleration for all bodies in plan */
+/* Compute acceleration for all bodies in local plan with local bodies */
 void computeAllLocalAcceleration(plan *p);
+
+/* Compute acceleration for all bodies in plan with others bodies from others processes */
+void computeAllAcceleration(plan *p, body *b);
 
 /* Return the lowest dt between all bodies in plan */
 double findLocalDt(const plan *p);

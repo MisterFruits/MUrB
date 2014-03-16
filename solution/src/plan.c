@@ -15,6 +15,7 @@
 #include "plan.h"
 
 extern double G;
+extern int    RankMPI;
 
 #define MIN(a,b) (a<=b?a:b)
 
@@ -64,10 +65,23 @@ void destroyPlan(plan *p)
 	free(p);
 }
 
+
 // total flops ~= nBody^2 * 12
 void computeAllLocalAcceleration(plan *p)
 {
-	unsigned long blockSize = 4096;
+	// flops ~= nBody^2 * 12
+#pragma omp parallel for schedule(runtime)
+	for(unsigned long iBody = 0; iBody < p->nBody; ++iBody)
+		// flops ~= nBody * 12
+		for(unsigned long jBody = 0; jBody < p->nBody; ++jBody)
+			if(iBody != jBody)
+				computeAcceleration(&(p->lb[iBody]), p->lb[jBody].b); // 12 flops
+}
+
+/* cache blocking version
+void computeAllLocalAcceleration(plan *p)
+{
+	unsigned long blockSize = 128;
 	unsigned long nBlock    = ceil(p->nBody / (blockSize * 1.0));
 
 #pragma omp parallel for schedule(runtime)
@@ -80,6 +94,18 @@ void computeAllLocalAcceleration(plan *p)
 				if(iBody != jBody)
 					computeAcceleration(&(p->lb[iBody]), p->lb[jBody].b);
 	}
+}
+*/
+
+// total flops = nBody^2 * 12
+void computeAllAcceleration(plan *p, body *b)
+{
+	// flops = nBody^2 * 12
+#pragma omp parallel for schedule(runtime)
+	for(unsigned long iBody = 0; iBody < p->nBody; ++iBody)
+		// flops = nBody * 12
+		for(unsigned long jBody = 0; jBody < p->nBody; ++jBody)
+			computeAcceleration(&(p->lb[iBody]), &(b[jBody])); // 12 flops
 }
 
 // total flops = nBody * 12
@@ -107,7 +133,7 @@ void updateAllLocalPositionAndSpeed(plan *p, double dt)
 
 void fillRandom(plan *p)
 {
-	srand(123);
+	srand(123 * RankMPI);
 	for(unsigned long iBody = 0; iBody < p->nBody; ++iBody)
 	{
 		const double mass   = (rand() / (double) RAND_MAX) * 2000000;
