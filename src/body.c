@@ -36,20 +36,6 @@ void initLocalBody(localBody* lb, double mass, double posX, double posY, double 
 	initBody(lb->b, G * mass, posX, posY);
 }
 
-localBody* createLocalBody(double mass, double posX, double posY, double speedX, double speedY)
-{
-	localBody *lb = (localBody*)malloc(1 * sizeof(localBody));
-	initLocalBody(lb, mass, posX, posY, speedX, speedY);
-	return lb;
-}
-
-void destroyLocalBody(localBody *lb)
-{
-	assert(lb != NULL);
-	free(lb->b);
-	free(lb);
-}
-
 // total flops = 12
 void computeAcceleration(localBody *lb, const body *b)
 {

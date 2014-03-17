@@ -102,7 +102,7 @@ void updateAllLocalPositionAndSpeed(plan *p, double dt)
 
 void fillRandom(plan *p)
 {
-	srand(123);
+	srand(123 * RankMPI);
 	for(unsigned long iBody = 0; iBody < p->nBody; ++iBody)
 	{
 		const double mass   = (rand() / (double) RAND_MAX) * 2000000;

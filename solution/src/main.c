@@ -37,8 +37,6 @@ int main(int argc, char** argv)
 	MPI_Comm_size(MPI_COMM_WORLD, &SizeMPI);
 	MPI_Comm_rank(MPI_COMM_WORLD, &RankMPI);
 
-	assert(SizeMPI == 1 || SizeMPI % 2 == 0);
-
 	struct timeval t1, t2, t3;
 
 	// read arguments on command line
@@ -99,6 +97,13 @@ int main(int argc, char** argv)
 	bodyBufferMPI[0]     = (body*) malloc(p->nBody * sizeof(body));
 	bodyBufferMPI[1]     = (body*) malloc(p->nBody * sizeof(body));
 
+	// init persistant communications
+	MPI_Request requests[2][2];
+	MPI_Send_init(bodyBufferMPI[0], p->nBody, bodyMPI, nextRankMPI, 1234, MPI_COMM_WORLD, &requests[0][1]);
+	MPI_Send_init(bodyBufferMPI[1], p->nBody, bodyMPI, nextRankMPI, 1234, MPI_COMM_WORLD, &requests[1][1]);
+	MPI_Recv_init(bodyBufferMPI[1], p->nBody, bodyMPI, prevRankMPI, 1234, MPI_COMM_WORLD, &requests[0][0]);
+	MPI_Recv_init(bodyBufferMPI[0], p->nBody, bodyMPI, prevRankMPI, 1234, MPI_COMM_WORLD, &requests[1][0]);
+
 	double localDt, dt;
 	writeOuputFile(0, p);
 	gettimeofday(&t1,NULL);
@@ -114,13 +119,15 @@ int main(int argc, char** argv)
 		for(unsigned long iBody = 0; iBody < p->nBody; ++iBody)
 			initBody(&(bodyBufferMPI[0][iBody]), p->lb[iBody].b->mass, p->lb[iBody].b->posX, p->lb[iBody].b->posY);
 
+		MPI_Startall(2, requests[0]);
+
 		// compute local bodies acceleration with local bodies
 		computeAllLocalAcceleration(p);
 
 		// compute local bodies acceleration with all bodies from others processes
 		for(int iStep = 1; iStep < SizeMPI; ++iStep)
 		{
-			// double buffering
+			/* blocking communication implementation
 			if(RankMPI % 2)
 			{
 				MPI_Recv(bodyBufferMPI[iStep      %2], p->nBody, bodyMPI, prevRankMPI, 1234, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
@@ -131,7 +138,14 @@ int main(int argc, char** argv)
 				MPI_Send(bodyBufferMPI[(iStep +1) %2], p->nBody, bodyMPI, nextRankMPI, 1234, MPI_COMM_WORLD);
 				MPI_Recv(bodyBufferMPI[iStep      %2], p->nBody, bodyMPI, prevRankMPI, 1234, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
 			}
+			*/
+
+			MPI_Waitall(2, requests[(iStep -1) % 2], MPI_STATUSES_IGNORE);
+
 			computeAllAcceleration(p, bodyBufferMPI[iStep %2]);
+
+			if(iStep < SizeMPI -1)
+				MPI_Startall(2, requests[iStep % 2]);
 		}
 
 		localDt = findLocalDt(p);

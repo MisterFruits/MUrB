@@ -31,12 +31,6 @@ void initBody(body* b, double mass, double posX, double posY);
 /* Initialize local body lb with mass, position and speed */
 void initLocalBody(localBody* lb, double mass, double posX, double posY, double speedX, double speedY);
 
-/* Allocate and return a localBody initialized with initial values (mass, position and speed) */
-localBody* createLocalBody (double mass, double posX, double posY, double speedX, double speedY);
-
-/* Deallocate/destroy a localBody */
-void destroyLocalBody (localBody *lb);
-
 /* Compute acceleration of localBody lb with body b, update closestNeighborLen if necessary */
 void computeAcceleration (localBody *lb, const body *b);
 
