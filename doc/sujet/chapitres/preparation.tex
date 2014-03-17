@@ -1,14 +1,13 @@
 Afin de ne pas perdre de temps, nous partirons d'un code séquentiel fonctionnel dans lequel toute la physique a déjà été implémentée.
 En premier lieu vous devez décompresser l'archive \textit{nbody.tar.gz} dans votre \textit{/home/\$USER}:
-\texttt{tar -xvvf nbody.tar.gz}.
+créez un dossier \textit{nbody} (\texttt{mkdir nbody}) puis décompressez l'archive dedans avec la commande \texttt{tar -xvvf nbody.tar.gz -C nbody}.
 Vous possédez maintenant un dossier \textit{/home/\$USER/nbody/} contenant les fichiers/dossiers suivants:
 \begin{itemize}
 	\item \textit{Makefile}: le \textit{Makefile} permettant de compiler le projet,
 	\item \textit{bin/}: dossier contenant les exécutables,
 	\item \textit{data/}: dossier contenant les cas de test,
 	\item \textit{doc/}: dossier contenant des documents relatifs au projet (comme ce sujet),
-	\item \textit{obj/}: dossier contenant les fichiers compilés avant l'édition de liens,
-	\item \textit{objd/}: dossier contenant les fichiers compilés avant l'édition de liens (en mode debug),
+	\item \textit{obj/} et \textit{objd/}: dossiers contenant les fichiers compilés avant l'édition de lien,
 	\item \textit{reader/}: fichier source du code de visualisation des résulats d'une simulation,
 	\item \textit{src/}: dossier contenant le code source.
 \end{itemize}
