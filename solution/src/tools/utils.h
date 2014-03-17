@@ -29,7 +29,15 @@ void writeOuputFile(unsigned long iIte, const plan *p)
 	{
 		char outFileName[1024];
 		sprintf(outFileName, "data/out/out.%ld.dat", iIte);
-		writePlanIntoFile(p, outFileName);
+
+		for(int iRank = 0; iRank < SizeMPI; ++iRank)
+		{
+			if(iRank == RankMPI)
+				writePlanIntoFile(p, outFileName);
+#ifdef OPEN_MPI
+			MPI_Barrier(MPI_COMM_WORLD);
+#endif
+		}
 	}
 }
 
@@ -39,7 +47,7 @@ void argumentReader(int argc, char** argv)
 	{
 		printf("usage: %s -f fileName -i nIterations [-v] [-w]\n", argv[0]);
 		printf("usage: %s -n nBody    -i nIterations [-v] [-w]\n", argv[0]);
-		printf("       -f           name of body file to read.\n");
+		printf("       -f           root name of body file to read.\n");
 		printf("       -n           approximate number of bodies for random generation.\n");
 		printf("       -i           number of iterations to compute.\n");
 		printf("       -v           activate verbose mode.\n");

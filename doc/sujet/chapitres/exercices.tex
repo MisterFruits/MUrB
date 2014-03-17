@@ -5,6 +5,7 @@
 		Ici, il n'est pas question d'utiliser des primitives très complexes, un simple \texttt{\#pragma omp parallel for schedule(runtime)} devrait suffir.
 		Vous pourrez ensuite définir, à l'exécution du code, les variables d'environnement \texttt{OMP\_NUM\_THREADS} et \texttt{OMP\_SCHEDULE} afin de trouver le meilleur compromis pour les performances. 
 	\end{solution}
+
 	\question Créer une structure MPI (\texttt{bodyMPI}) pour envoyer/recevoir des corps.
 	\begin{solution}
 		La structure \texttt{body} qui est déclarée dans le fichier \textit{src/body.h} ne fait pas partie des types de base que connaît MPI.
@@ -13,6 +14,7 @@
 		Une fois la structure MPI créée il faut nécessairement la déclarer avec la routine \texttt{MPI\_Type\_commit}.
 		Avant de quitter le programme il faut penser à libérer la mémoire utilisée par la structure en appelant \texttt{MPI\_Type\_free}.
 	\end{solution}
+
 	\question Mettre en place un anneau de communication MPI (voir fig.~\ref{fig:anneau}).
 	\begin{figure}[htbp]
 		\centering
@@ -24,12 +26,17 @@
 		Une itération est complète quand tous les processus MPI ont reçu les corps de tous les autres processus.
 		Pour y parvenir il y a deux phases:
 		\begin{itemize}
-			\item l'initialisation: chaque processus envoie ses corps à son voisin de droite (et reçoit de son voisin de gauche),
-			\item ensuite il faut simplement que chaque processus envoie le \textit{buffer} qu'il reçoit de son voisin de gauche à son voisin de droite.
+			\item le calcul des accélérations des corps locaux entre eux (au sein d'un même processus),
+			\item le calcul des accélérations des corps locaux en fonction des corps des autres processus.
 		\end{itemize}
-		Au final, si il y a $np$ processus MPI, alors il y a $np-1$ communications.
+		Si il y a $np$ processus MPI, alors il y a $np-1$ communications.
+		Dans un premier temps, il faudra déterminer le rang des processus précédent et suivant dans l'anneau pour chaque n\oe ud MPI.
+		Ensuite, on utilisera un unique \texttt{buffer} pour envoyer et recevoir les corps.
+		Avant chaque envoie de corps il faudra bien penser à copier les corps locaux dans le \textit{buffer} MPI.
+		Comme il est impossible d'envoyer et de recevoir en même temps (\textit{buffer} MPI unique), il faudra déterminer qui envoie et qui reçoit en fonction du rang MPI.
 		La réception et l'envoi peuvent être réalisés de façon bloquante avec les routines \texttt{MPI\_Recv} et \texttt{MPI\_Send}.
 	\end{solution}
+
 	\question Trouver le plus petit pas de temps $dt$ parmi tout les processus MPI et le choisir.
 	\begin{solution}
 		À chaque itération, un nouveau pas de temps est calculé en fonction de la position des corps dans le plan.
@@ -41,9 +48,32 @@
 
 \section{Bonus}
 Si vous êtes arrivé ici c'est surement parce que vous êtes à l'aise et à partir de maintenant, le sujet sera volontairement moins précis.
-Si jamais vous rencontrez des difficultés n'hésitez pas à demander.\\
+Si jamais vous rencontrez des difficultés n'hésitez pas à demander.
+L'objectif de cette partie est de traiter le recouvrement des communications par du calcul.
+Ce recouvrement est théoriquement possible dans le cas du prolème à $N$ corps car il y a $O(N^2)$ calculs pour $N$ données à échanger.\\
 
 \begin{questions}
+	\question Implémenter le \textit{double buffering} pour permettre un recouvrement calculs-communications (cf. fig.~\ref{fig:anneauDB}).
+	\begin{solution}
+		Le problème de l'implémentation précédente est double, il n'est pas possible :
+		\begin{itemize}
+			\item d'envoyer et de recevoir des corps en même temps,
+			\item d'envoyer et de recevoir des corps pendant que l'on calcul l'accélération avec d'autres corps.
+		\end{itemize}
+		Le \textit{double buffering} permet d'éviter ce problème en utilisant deux \textit{buffers} MPI au lieu d'un seul.
+		Il est ainsi possible d'envoyer des corps à un processus même si ce dernier n'a pas terminé ses traitements.
+		Attention, il faudra bien penser à inverser les \textit{buffers} à chaque étape (au sein d'une même itération) pour que cela fonctionne: un coup on reçoit dans le \texttt{buffer0} et le coup d'après on reçoit dans le \texttt{buffer1}.
+		Cette implémentation devrait déjà grandement améliorer les performances en supprimant des recopies de mémoire inutiles.
+		Cependant le recouvrement calcul-communication n'est toujours pas possible à cause des communications bloquantes (\texttt{MPI\_Recv} et \texttt{MPI\_Send}).
+		L'exercice suivant permet de lever cette limitation.
+	\end{solution}
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.65\linewidth]{schemas/anneau_avec_buffering.pdf}
+		\caption{Anneau de communication pour 4 processus MPI avec \textit{double buffering}}
+		\label{fig:anneauDB}
+	\end{figure}
+
 	\question Utiliser les communications MPI non bloquantes.
 	\begin{solution}
 		Les communications non bloquantes permettent d'envoyer et de recevoir des \textit{buffers} pendant que l'on calcule.
@@ -65,19 +95,5 @@ Si jamais vous rencontrez des difficultés n'hésitez pas à demander.\\
 	\begin{solution}
 		Cela ne change pas grand chose en terme de performance mais permet de factoriser du code en fusionnant l'appel à l'envoi et à la réception des \textit{buffers}.
 		Voir les routines \texttt{MPI\_Startall} et \texttt{MPI\_Waitall}.
-	\end{solution}
-
-	\question Implémenter le \textit{double buffering} pour permettre un recouvrement calculs-communications (cf. fig.~\ref{fig:anneauDB}).\\
-	\begin{figure}[htbp]
-		\centering
-		\includegraphics[width=0.65\linewidth]{schemas/anneau_avec_buffering.pdf}
-		\caption{Anneau de communication pour 4 processus MPI avec \textit{double buffering}}
-		\label{fig:anneauDB}
-	\end{figure}
-	\begin{solution}
-		Le problème de l'implémentation précédente c'est que l'on ne peut pas envoyer/recevoir des corps tant que les calculs ne sont pas terminés sinon on risque d'écraser les corps en cours de traitement.
-		Le \textit{double buffering} permet d'éviter ce problème en utilisant deux \textit{buffers} MPI au lieu d'un seul.
-		Il est ainsi possible d'envoyer des corps à un processus même si ce dernier n'a pas terminé ses traitements.
-		Il faudra aussi penser à inverser les \textit{buffers} à chaque étape (au sein d'une même itération) pour que cela fonctionne.
 	\end{solution}
 \end{questions}

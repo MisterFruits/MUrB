@@ -19,8 +19,9 @@ typedef struct
 /* Allocate and return a plan with bodies randomly created */
 plan* createPlan(const unsigned long nBody);
 
-/* Allocate and return a plan with bodies from a file */
-plan* createPlanWithFile(const char *fileName);
+/* Allocate and return a plan with bodies from a file (if rootFileName="data/in/np1/in.testcase1", function read
+ * "data/in/np1/in.testcase1.O.dat" file */
+plan* createPlanWithFile(const char *rootFileName);
 
 /* Deallocate and destroy a plan (and all bodies in the plan) */
 void destroyPlan(plan *p);
@@ -38,6 +39,6 @@ void updateAllLocalPositionAndSpeed(plan *p, double dt);
 void fillRandom(plan *p);
 
 /* Write plan (and bodies) in file */
-void writePlanIntoFile(const plan *p, const char *fileName);
+void writePlanIntoFile(const plan *p, const char *z);
 
 #endif /* PLAN_H_ */

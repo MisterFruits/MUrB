@@ -15,6 +15,7 @@
 #include "plan.h"
 
 extern double G;
+extern int    RankMPI;
 
 plan* createPlan(const unsigned long nBody)
 {
@@ -24,13 +25,16 @@ plan* createPlan(const unsigned long nBody)
 	return p;
 }
 
-plan* createPlanWithFile(const char *fileName)
+plan* createPlanWithFile(const char *rootFileName)
 {
 	plan *p = NULL;
-	FILE *file = fopen(fileName, "r");
+
+	char intFileName[1024];
+	sprintf(intFileName, "%s.%d.dat", rootFileName, RankMPI);
+	FILE *file = fopen(intFileName, "r");
 
 	if(file == NULL)
-		printf("Can't open \"%s\" file (reading).\n", fileName);
+		printf("Can't open \"%s\" file (reading).\n", intFileName);
 
 	unsigned long nBody = 0;
 	double mass, posX, posY, speedX, speedY;
@@ -46,7 +50,7 @@ plan* createPlanWithFile(const char *fileName)
 			initLocalBody(&(p->lb[iBody++]), mass, posX, posY, speedX, speedY);
 	}
 	else
-		printf("Empty \"%s\" file (reading).\n", fileName);
+		printf("Empty \"%s\" file (reading).\n", intFileName);
 
 	fclose(file);
 
@@ -115,7 +119,11 @@ void writePlanIntoFile(const plan *p, const char *fileName)
 {
 	assert(p->nBody > 0);
 
-	FILE *file = fopen(fileName, "w");
+	FILE *file = NULL;
+	if(RankMPI == 0)
+		file = fopen(fileName, "w");
+	else
+		file = fopen(fileName, "a");
 
 	if(file == NULL)
 	{

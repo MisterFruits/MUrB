@@ -22,6 +22,10 @@ unsigned long  NIterations;
 unsigned short WriteToFiles = 1;
 unsigned short Verbose      = 0;
 
+// global MPI
+int SizeMPI = 1;
+int RankMPI = 0;
+
 #include "tools/utils.h"
 
 int main(int argc, char** argv)
@@ -45,19 +49,23 @@ int main(int argc, char** argv)
 	}
 
 	// display simulation config
-	printf("N body started !\n");
-	if(FileName[0] != '\0')
-		printf("  -> fileName    : %s\n", FileName);
-	printf("  -> nBody       : %ld\n", NBody);
-	printf("  -> nIterations : %ld\n", NIterations);
-	printf("  -> verbose     : %d\n", Verbose);
-	printf("  -> writeToFiles: %d\n\n", WriteToFiles);
+	if(!RankMPI)
+	{
+		printf("N body started !\n");
+		if(FileName[0] != '\0')
+			printf("  -> fileName    : %s.*.dat\n", FileName);
+		printf("  -> nBody       : %ld\n", NBody);
+		printf("  -> nIterations : %ld\n", NIterations);
+		printf("  -> verbose     : %d\n", Verbose);
+		printf("  -> writeToFiles: %d\n\n", WriteToFiles);
+	}
 
 	double dt;
 	writeOuputFile(0, p);
 	gettimeofday(&t1,NULL);
 
-	printf("Starting simulation...\n");
+	if(!RankMPI)
+		printf("Starting simulation...\n");
 	for(unsigned long iIte = 1; iIte <= NIterations; ++iIte) {
 		/*******************************/
 		/*** Simulation computations ***/
@@ -74,7 +82,8 @@ int main(int argc, char** argv)
 		printIterationTimeAndPerformance(iIte, t1, t2, t3);
 		writeOuputFile(iIte, p);
 	}
-	printf("Simulation end... exiting.\n");
+	if(!RankMPI)
+		printf("Simulation end... exiting.\n");
 
 	destroyPlan(p);
 

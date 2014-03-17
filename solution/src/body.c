@@ -17,9 +17,9 @@ double G = 6.67384e-11;
 
 void initBody(body* b, double mass, double posX, double posY)
 {
-	b->mass            = G * mass;
-	b->posX            = posX;
-	b->posY            = posY;
+	b->mass = mass;
+	b->posX = posX;
+	b->posY = posY;
 }
 
 void initLocalBody(localBody* lb, double mass, double posX, double posY, double speedX, double speedY)
@@ -33,7 +33,7 @@ void initLocalBody(localBody* lb, double mass, double posX, double posY, double 
 	lb->accelerationY      = 0;
 	lb->closestNeighborLen = DBL_MAX;
 	lb->b                  = (body*)malloc(1 * sizeof(body));
-	initBody(lb->b, mass, posX, posY);
+	initBody(lb->b, G * mass, posX, posY);
 }
 
 localBody* createLocalBody(double mass, double posX, double posY, double speedX, double speedY)

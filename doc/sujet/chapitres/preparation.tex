@@ -82,9 +82,9 @@ Un plan (cf. list.~\ref{alg:strPlan}) contient le nombre de corps \texttt{nBody}
 \subsubsection{Simuler un cas de test}
 Après avoir compilé le code (commande \texttt{make}), vous pouvez essayer de lancer un cas de test en exécutant le code comme suit:
 \begin{equation*}
-	\texttt{> ./bin/nbody -f data/in/in.testcase.1.dat -i 100 -v -w}
+	\texttt{> ./bin/nbody -f data/in/np1/in.testcase1 -i 100 -v -w}
 \end{equation*}
-L'option \texttt{-f} permet de spécifier un fichier d'entrée, l'option \texttt{-i} permet de choisir le nombre d'itérations à calculer, l'option \texttt{-v} active le mode verbose et enfin l'option \texttt{-w} permet d'écrire la solution à chaque itération dans \textit{data/out/out.*.dat} (\textit{*} correspond au numéro de l'itération).
+L'option \texttt{-f} permet de spécifier la racine d'un fichier d'entrée, l'option \texttt{-i} permet de choisir le nombre d'itérations à calculer, l'option \texttt{-v} active le mode verbose et enfin l'option \texttt{-w} permet d'écrire la solution à chaque itération dans \textit{data/out/out.*.dat} (\textit{*} correspond au numéro de l'itération).
 
 Pour visualiser les solutions il faut compiler le \texttt{reader} avec la commande \texttt{make reader} et pour l'exécuter vous pouvez utiliser la commande suivante:
 \begin{equation*}

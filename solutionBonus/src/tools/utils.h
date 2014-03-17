@@ -35,9 +35,7 @@ void writeOuputFile(unsigned long iIte, const plan *p)
 			if(iRank == RankMPI)
 				writePlanIntoFile(p, outFileName);
 
-#ifdef OPEN_MPI
 			MPI_Barrier(MPI_COMM_WORLD);
-#endif
 		}
 	}
 }
