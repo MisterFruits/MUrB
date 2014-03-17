@@ -94,8 +94,10 @@ int main(int argc, char** argv)
 	int prevRankMPI = (RankMPI == 0) ? SizeMPI -1 : RankMPI -1;
 	int nextRankMPI = (RankMPI +1) % SizeMPI;
 
-	// allocate MPI buffer which can contains all bodies of plan p
-	body *bodyBufferMPI = (body*) malloc(p->nBody * sizeof(body));
+	// allocate two MPI buffers which can contains all bodies of plan p
+	body **bodyBufferMPI = (body**)malloc(2 * sizeof(body*));
+	bodyBufferMPI[0]     = (body*) malloc(p->nBody * sizeof(body));
+	bodyBufferMPI[1]     = (body*) malloc(p->nBody * sizeof(body));
 
 	double localDt, dt;
 	writeOuputFile(0, p);
@@ -108,36 +110,28 @@ int main(int argc, char** argv)
 		/*** Simulation computations ***/
 		gettimeofday(&t2,NULL);
 
+		// copy plan bodies into MPI buffer
+		for(unsigned long iBody = 0; iBody < p->nBody; ++iBody)
+			initBody(&(bodyBufferMPI[0][iBody]), p->lb[iBody].b->mass, p->lb[iBody].b->posX, p->lb[iBody].b->posY);
+
 		// compute local bodies acceleration with local bodies
 		computeAllLocalAcceleration(p);
 
 		// compute local bodies acceleration with all bodies from others processes
 		for(int iStep = 1; iStep < SizeMPI; ++iStep)
 		{
+			// double buffering
 			if(RankMPI % 2)
 			{
-				// copy plan bodies into MPI buffer
-				for(unsigned long iBody = 0; iBody < p->nBody; ++iBody)
-					initBody(&(bodyBufferMPI[iBody]), p->lb[iBody].b->mass, p->lb[iBody].b->posX, p->lb[iBody].b->posY);
-
-				MPI_Send(bodyBufferMPI, p->nBody, bodyMPI, nextRankMPI, 1234, MPI_COMM_WORLD);
-
-				MPI_Recv(bodyBufferMPI, p->nBody, bodyMPI, prevRankMPI, 1234, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-
-				computeAllAcceleration(p, bodyBufferMPI);
+				MPI_Recv(bodyBufferMPI[iStep      %2], p->nBody, bodyMPI, prevRankMPI, 1234, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
+				MPI_Send(bodyBufferMPI[(iStep +1) %2], p->nBody, bodyMPI, nextRankMPI, 1234, MPI_COMM_WORLD);
 			}
 			else
 			{
-				MPI_Recv(bodyBufferMPI, p->nBody, bodyMPI, prevRankMPI, 1234, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
-
-				computeAllAcceleration(p, bodyBufferMPI);
-
-				// copy plan bodies into MPI buffer
-				for(unsigned long iBody = 0; iBody < p->nBody; ++iBody)
-					initBody(&(bodyBufferMPI[iBody]), p->lb[iBody].b->mass, p->lb[iBody].b->posX, p->lb[iBody].b->posY);
-
-				MPI_Send(bodyBufferMPI, p->nBody, bodyMPI, nextRankMPI, 1234, MPI_COMM_WORLD);
+				MPI_Send(bodyBufferMPI[(iStep +1) %2], p->nBody, bodyMPI, nextRankMPI, 1234, MPI_COMM_WORLD);
+				MPI_Recv(bodyBufferMPI[iStep      %2], p->nBody, bodyMPI, prevRankMPI, 1234, MPI_COMM_WORLD, MPI_STATUSES_IGNORE);
 			}
+			computeAllAcceleration(p, bodyBufferMPI[iStep %2]);
 		}
 
 		localDt = findLocalDt(p);
@@ -158,6 +152,8 @@ int main(int argc, char** argv)
 	MPI_Barrier(MPI_COMM_WORLD);
 
 	// release allocations
+	free(bodyBufferMPI[0]);
+	free(bodyBufferMPI[1]);
 	free(bodyBufferMPI);
 	destroyPlan(p);
 

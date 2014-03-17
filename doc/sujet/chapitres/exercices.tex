@@ -31,10 +31,35 @@
 		\end{itemize}
 		Si il y a $np$ processus MPI, alors il y a $np-1$ communications.
 		Dans un premier temps, il faudra déterminer le rang des processus précédent et suivant dans l'anneau pour chaque n\oe ud MPI.
-		Ensuite, on utilisera un unique \texttt{buffer} pour envoyer et recevoir les corps.
-		Avant chaque envoie de corps il faudra bien penser à copier les corps locaux dans le \textit{buffer} MPI.
-		Comme il est impossible d'envoyer et de recevoir en même temps (\textit{buffer} MPI unique), il faudra déterminer qui envoie et qui reçoit en fonction du rang MPI.
-		La réception et l'envoi peuvent être réalisés de façon bloquante avec les routines \texttt{MPI\_Recv} et \texttt{MPI\_Send}.
+		%Ensuite, on utilisera un unique \texttt{buffer} pour envoyer et recevoir les corps.
+		%Avant chaque envoie de corps il faudra bien penser à copier les corps locaux dans le \textit{buffer} MPI.
+		%Comme il est impossible d'envoyer et de recevoir en même temps (\textit{buffer} MPI unique), il faudra déterminer qui envoie et qui reçoit en fonction du rang MPI.
+		%La réception et l'envoi peuvent être réalisés de façon bloquante avec les routines \texttt{MPI\_Recv} et \texttt{MPI\_Send}.
+		Se référer à la question suivante pour plus de précision sur l'implémentation.
+	\end{solution}
+
+	\question Implémenter le \textit{double buffering} (cf. fig.~\ref{fig:anneauDB}).
+	\begin{figure}[htbp]
+		\centering
+		\includegraphics[width=0.65\linewidth]{schemas/anneau_avec_buffering.pdf}
+		\caption{Anneau de communication pour 4 processus MPI avec \textit{double buffering}}
+		\label{fig:anneauDB}
+	\end{figure}
+	\begin{solution}
+		Chaque processus possèdera deux \textit{buffers} MPI: un pour l'envoi et l'autre pour la réception.
+		À chaque étape d'une itération il faudra bien penser à intervertir ces deux \textit{buffers}: le \textit{buffer} d'envoi deviendra le \textit{buffer} de réception et vice versa.
+		Cette implémentation permet:
+		\begin{itemize}
+			\item d'envoyer et de recevoir des corps en même temps,
+			\item d'envoyer et de recevoir des corps pendant que l'on calcul l'accélération avec d'autres corps.
+		\end{itemize}
+		Dans un premier temps vous implémenterez le \textit{double buffering} avec les communications MPI bloquantes (voir les routines \texttt{MPI\_Recv} et \texttt{MPI\_Send}).
+		%Le \textit{double buffering} permet d'éviter ce problème en utilisant deux \textit{buffers} MPI au lieu d'un seul.
+		%Il est ainsi possible d'envoyer des corps à un processus même si ce dernier n'a pas terminé ses traitements.
+		%Attention, il faudra bien penser à inverser les \textit{buffers} à chaque étape (au sein d'une même itération) pour que cela fonctionne: un coup on reçoit dans le \texttt{buffer0} et le coup d'après on reçoit dans le \texttt{buffer1}.
+		%Cette implémentation devrait déjà grandement améliorer les performances en supprimant des recopies de mémoire inutiles.
+		%Cependant le recouvrement calcul-communication n'est toujours pas possible à cause des communications bloquantes (\texttt{MPI\_Recv} et \texttt{MPI\_Send}).
+		%L'exercice suivant permet de lever cette limitation.
 	\end{solution}
 
 	\question Trouver le plus petit pas de temps $dt$ parmi tout les processus MPI et le choisir.
@@ -53,27 +78,6 @@ L'objectif de cette partie est de traiter le recouvrement des communications par
 Ce recouvrement est théoriquement possible dans le cas du prolème à $N$ corps car il y a $O(N^2)$ calculs pour $N$ données à échanger.\\
 
 \begin{questions}
-	\question Implémenter le \textit{double buffering} pour permettre un recouvrement calculs-communications (cf. fig.~\ref{fig:anneauDB}).
-	\begin{solution}
-		Le problème de l'implémentation précédente est double, il n'est pas possible :
-		\begin{itemize}
-			\item d'envoyer et de recevoir des corps en même temps,
-			\item d'envoyer et de recevoir des corps pendant que l'on calcul l'accélération avec d'autres corps.
-		\end{itemize}
-		Le \textit{double buffering} permet d'éviter ce problème en utilisant deux \textit{buffers} MPI au lieu d'un seul.
-		Il est ainsi possible d'envoyer des corps à un processus même si ce dernier n'a pas terminé ses traitements.
-		Attention, il faudra bien penser à inverser les \textit{buffers} à chaque étape (au sein d'une même itération) pour que cela fonctionne: un coup on reçoit dans le \texttt{buffer0} et le coup d'après on reçoit dans le \texttt{buffer1}.
-		Cette implémentation devrait déjà grandement améliorer les performances en supprimant des recopies de mémoire inutiles.
-		Cependant le recouvrement calcul-communication n'est toujours pas possible à cause des communications bloquantes (\texttt{MPI\_Recv} et \texttt{MPI\_Send}).
-		L'exercice suivant permet de lever cette limitation.
-	\end{solution}
-	\begin{figure}[htbp]
-		\centering
-		\includegraphics[width=0.65\linewidth]{schemas/anneau_avec_buffering.pdf}
-		\caption{Anneau de communication pour 4 processus MPI avec \textit{double buffering}}
-		\label{fig:anneauDB}
-	\end{figure}
-
 	\question Utiliser les communications MPI non bloquantes.
 	\begin{solution}
 		Les communications non bloquantes permettent d'envoyer et de recevoir des \textit{buffers} pendant que l'on calcule.
