@@ -1,18 +1,18 @@
-all : nbody.pdf
+all : sujet.pdf
 
-nbody.pdf : nbody.tex                  \
+sujet.pdf : sujet.tex                  \
             chapitres/introduction.tex \
             chapitres/objectifs.tex    \
             chapitres/preparation.tex  \
-            chapitres/exercices.tex
-	pdflatex nbody.tex ; pdflatex nbody.tex
+            chapitres/exercice.tex
+	pdflatex sujet.tex ; pdflatex sujet.tex
 
-show : nbody.pdf
-	evince nbody.pdf&
+show : sujet.pdf
+	evince sujet.pdf&
 
 clean : 
 	rm -f *~ *.toc *.aux *.log *.lof *.bbl *.blg *.out 
 	rm -f chapitres/*.aux                     chapitres/*~
 
 mrproper : clean
-	rm -f nbody.pdf
+	rm -f sujet.pdf

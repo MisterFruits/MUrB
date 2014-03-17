@@ -131,6 +131,18 @@ folders:
 	mkdir $(SRC_DIR) $(BIN_DIR) $(OBJ_DIR) $(OBJD_DIR) $(DOC_DIR) $(SAVE_DIR)
 
 #------------------------------------------------------------------------------
+# création d'une archive du projet pour TD ------------------------------------
+#------------------------------------------------------------------------------
+td: mrproper
+	cp $(DOC_DIR)/sujet/sujet.pdf $(DOC_DIR)/
+	mv $(DOC_DIR)/sujet .
+	tar czvf $(PROG_NAME).tar.gz Makefile $(BIN_DIR)/ $(SRC_DIR)/ $(OBJ_DIR)/ \
+                                          $(OBJD_DIR)/ $(DOC_DIR)/ data/      \
+                                          reader/ --exclude .svn
+	mv sujet $(DOC_DIR)/
+	rm $(DOC_DIR)/sujet.pdf
+
+#------------------------------------------------------------------------------
 # création d'une archive du projet --------------------------------------------
 #------------------------------------------------------------------------------
 archive: mrproper
