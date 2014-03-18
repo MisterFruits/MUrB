@@ -121,6 +121,7 @@ clean :
 # suppression de tous les fichiers générés par le Makefile --------------------
 #------------------------------------------------------------------------------
 mrproper : clean
+	rm -rf data/out/*
 	rm -rf $(BIN_DIR)/*
 	rm -f $(PROG_NAME).tar.gz
 	
