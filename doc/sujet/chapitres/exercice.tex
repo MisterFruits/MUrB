@@ -13,6 +13,7 @@
 		La création de structure MPI est assurée par la routine \texttt{MPI\_Type\_struct}.
 		Une fois la structure MPI créée il faut nécessairement la déclarer avec la routine \texttt{MPI\_Type\_commit}.
 		Avant de quitter le programme il faut penser à libérer la mémoire utilisée par la structure en appelant \texttt{MPI\_Type\_free}.
+		Vous pouvez vous référer au code proposé dans \textit{src/help/stuctureMPI.c} si vous le souhaitez.
 	\end{solution}
 
 	\question Mettre en place un anneau de communication MPI (voir fig.~\ref{fig:anneau}).

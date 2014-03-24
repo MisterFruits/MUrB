@@ -87,7 +87,7 @@ int main(int argc, char** argv)
 
 	// commit MPI data structure
 	MPI_Type_commit(&bodyMPI);
-
+zz
 	// who is next or previous MPI process ?
 	int prevRankMPI = (RankMPI == 0) ? SizeMPI -1 : RankMPI -1;
 	int nextRankMPI = (RankMPI +1) % SizeMPI;
