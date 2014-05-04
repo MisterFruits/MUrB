@@ -21,7 +21,7 @@ EXT = c
 # choix du compilateur
 CC = mpicc
 # options de compilation
-CFLAGS = -Wall -O3 -std=c99 -fopenmp
+CFLAGS = -Wall -O3 -std=c99
 # options de compilation en debug
 DCFLAGS = -Wall -g -std=c99
 # flags de compilation
