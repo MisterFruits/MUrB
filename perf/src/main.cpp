@@ -199,7 +199,7 @@ int main(int argc, char** argv)
 	perfTotal.stop();
 	cout << "Simulation ended." << endl << endl;
 
-	unsigned long flops = NBodies * NBodies * 12 * NIterations;
+	unsigned long flops = NBodies * NBodies * 11 * NIterations;
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 	     << "(" << perfTotal.getGflops(flops) << " Gflop/s)" << endl;
 

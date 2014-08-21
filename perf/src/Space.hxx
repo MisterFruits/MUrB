@@ -173,24 +173,25 @@ void Space<T>::computeBodiesAcceleration()
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
 {
-	const T vecX   = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
-	const T vecY   = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
-	const T vecLen = sqrt((vecX * vecX) + (vecY * vecY));                 // 3 flops
+	const T vecX       = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
+	const T vecY       = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
+	const T vecLen     = (vecX * vecX) + (vecY * vecY);                       // 3 flops
+	const T sqrtVecLen = sqrt(vecLen);                                        
 
 	if(vecLen == 0)
 		std::cout << "Collision at {" << this->positions.x[jBody] << ", "
 		                              << this->positions.y[jBody] << "}" << std::endl;
 	assert(vecLen != 0);
 
-	const T acc  = this->masses[jBody] / (vecLen * vecLen * vecLen); // 3 flops
-	const T accX = acc * vecX;                                       // 1 flop
-	const T accY = acc * vecY;                                       // 1 flop
+	const T acc  = this->masses[jBody] / (vecLen * sqrtVecLen); // 2 flops
+	const T accX = acc * vecX;                                  // 1 flop
+	const T accY = acc * vecY;                                  // 1 flop
 
 	this->accelerations.x[iBody] += accX; // 1 flop
 	this->accelerations.y[iBody] += accY; // 1 flop
 
-	if(vecLen < this->closestNeighborLen[iBody])
-		this->closestNeighborLen[iBody] = vecLen;
+	if(sqrtVecLen < this->closestNeighborLen[iBody])
+		this->closestNeighborLen[iBody] = sqrtVecLen;
 }
 
 template <typename T>

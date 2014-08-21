@@ -21,7 +21,7 @@ EXT = c
 # choix du compilateur
 CC = gcc
 # options de compilation
-CFLAGS = -Wall -O3 -std=c99
+CFLAGS = -Wall -O3 -std=c99 -ftree-vectorizer-verbose=1
 # options de compilation en debug
 DCFLAGS = -Wall -g -std=c99
 # flags de compilation
