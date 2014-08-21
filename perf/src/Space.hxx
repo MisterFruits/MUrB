@@ -90,10 +90,12 @@ void Space<T>::initBodiesRandomly()
 		const T mass   = (rand() / (T) RAND_MAX) * 2000000;
 		const T posX   = (rand() / (T) RAND_MAX) * 800;
 		const T posY   = (rand() / (T) RAND_MAX) * 600;
+		const T posZ   = 0;
 		const T speedX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.02;
 		const T speedY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.02;
+		const T speedZ = 0;
 
-		this->initBody(iBody, mass, posX, posY, 0, speedX, speedY, 0);
+		this->initBody(iBody, mass, posX, posY, posZ, speedX, speedY, speedZ);
 	}
 }
 
@@ -116,16 +118,18 @@ void Space<T>::initBodiesWithFile(const std::string inputFileName)
 		exit(-1);
 	}
 
-	T mass, posX, posY, speedX, speedY;
+	T mass, posX, posY, posZ, speedX, speedY, speedZ;
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
 		bodiesFile >> mass;
 		bodiesFile >> posX;
 		bodiesFile >> posY;
+		bodiesFile >> posZ;
 		bodiesFile >> speedX;
 		bodiesFile >> speedY;
+		bodiesFile >> speedZ;
 
-		this->initBody(iBody, mass, posX, posY, 0, speedX, speedY, 0);
+		this->initBody(iBody, mass, posX, posY, posZ, speedX, speedY, speedZ);
 
 		if(!bodiesFile.good())
 		{
@@ -268,8 +272,10 @@ void Space<T>::write(std::ostream& stream)
 		stream << this->masses     [iBody] / G << " "
 		       << this->positions.x[iBody]     << " "
 		       << this->positions.y[iBody]     << " "
+		       << this->positions.z[iBody]     << " "
 		       << this->speeds.x   [iBody]     << " "
-		       << this->speeds.y   [iBody]     << std::endl;
+		       << this->speeds.y   [iBody]     << " "
+		       << this->speeds.z   [iBody]     << std::endl;
 }
 
 template <typename T>

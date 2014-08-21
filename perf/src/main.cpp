@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 		space = new Space<TYPE>(InputFileName);
 
 	// compute MB used for this simulation
-	float Mbytes = (8 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
+	float Mbytes = (11 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
 
 	// display simulation configuration
 	cout << "N-body simulation started !" << endl;

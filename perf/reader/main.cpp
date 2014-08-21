@@ -153,6 +153,8 @@ bool readVectorFile(vector<Point>& vect, string& prefixName)
 		vectorFile >> p.y;
 		vectorFile >> trash;
 		vectorFile >> trash;
+		vectorFile >> trash;
+		vectorFile >> trash;
 
 		p.mass = p.mass/1000.0;
 
