@@ -87,11 +87,11 @@ void Space<T>::initBodiesRandomly()
 	srand(123);
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
-		const double mass   = (rand() / (double) RAND_MAX) * 2000000;
-		const double posX   = (rand() / (double) RAND_MAX) * 800;
-		const double posY   = (rand() / (double) RAND_MAX) * 600;
-		const double speedX = ((rand() - RAND_MAX/2) / (double) (RAND_MAX/2)) * 0.02;
-		const double speedY = ((rand() - RAND_MAX/2) / (double) (RAND_MAX/2)) * 0.02;
+		const T mass   = (rand() / (T) RAND_MAX) * 2000000;
+		const T posX   = (rand() / (T) RAND_MAX) * 800;
+		const T posY   = (rand() / (T) RAND_MAX) * 600;
+		const T speedX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.02;
+		const T speedY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.02;
 
 		this->initBody(iBody, mass, posX, posY, 0, speedX, speedY, 0);
 	}
@@ -116,7 +116,7 @@ void Space<T>::initBodiesWithFile(const std::string inputFileName)
 		exit(-1);
 	}
 
-	double mass, posX, posY, speedX, speedY;
+	T mass, posX, posY, speedX, speedY;
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
 		bodiesFile >> mass;
@@ -156,7 +156,7 @@ void Space<T>::initBody(unsigned long iBody, T mass, T posX, T posY, T posZ, T s
 	this->accelerations.y[iBody] = 0;
 	this->accelerations.z[iBody] = 0;
 
-	this->closestNeighborLen[iBody] = std::numeric_limits<double>::infinity();
+	this->closestNeighborLen[iBody] = std::numeric_limits<T>::infinity();
 }
 
 template <typename T>
@@ -196,7 +196,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 template <typename T>
 void Space<T>::findTimeStep()
 {
-	this->dt = std::numeric_limits<double>::infinity();
+	this->dt = std::numeric_limits<T>::infinity();
 	// flops = nBody * 12
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
@@ -253,7 +253,7 @@ void Space<T>::updateBodiesPositionAndSpeed()
 		this->accelerations.x[iBody] = 0;
 		this->accelerations.y[iBody] = 0;
 
-		this->closestNeighborLen[iBody] = std::numeric_limits<double>::infinity();
+		this->closestNeighborLen[iBody] = std::numeric_limits<T>::infinity();
 	}
 }
 
