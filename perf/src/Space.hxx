@@ -12,7 +12,10 @@
 #include <fstream>
 #include <iostream>
 
+#include "immintrin.h"
 #include "Space.h"
+
+#define dim 4
 
 template <typename T>
 Space<T>::Space(const unsigned long nBodies)
@@ -62,21 +65,21 @@ Space<T>::~Space() {
 template <typename T>
 void Space<T>::initBuffers()
 {
-	this->masses = new T[this->nBodies];
+	this->masses = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 
-	this->positions.x = new T[this->nBodies];
-	this->positions.y = new T[this->nBodies];
-	this->positions.z = new T[this->nBodies];
+	this->positions.x = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->positions.y = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->positions.z = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 
-	this->speeds.x = new T[this->nBodies];
-	this->speeds.y = new T[this->nBodies];
-	this->speeds.z = new T[this->nBodies];
+	this->speeds.x = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->speeds.y = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->speeds.z = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 
-	this->accelerations.x = new T[this->nBodies];
-	this->accelerations.y = new T[this->nBodies];
-	this->accelerations.z = new T[this->nBodies];
+	this->accelerations.x = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->accelerations.y = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->accelerations.z = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 
-	this->closestNeighborLen = new T[this->nBodies];
+	this->closestNeighborLen = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 }
 
 template <typename T>
@@ -163,35 +166,110 @@ template <typename T>
 void Space<T>::computeBodiesAcceleration()
 {
 	// flops ~= nBody^2 * 12
-	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
+	for(unsigned long iBody = 0; iBody < this->nBodies; iBody+=dim)
+	{
+		//pos1 = this->positions.x[iBody];
 		// flops ~= nBody * 12
-		for(unsigned long jBody = 0; jBody < this->nBodies; jBody++)
+		for(unsigned long jBody = 0; jBody < this->nBodies; jBody+=dim)
 			if(iBody != jBody)
-				this->computeAccelerationBetweenTwoBodies(iBody, jBody); // 12 flops
+				//this->computeAccelerationBetweenTwoBodies(iBody, jBody, dim); // 12 flops
+				this->vectorComputeAccelerationBetweenBodies(iBody, jBody, dim); // 12 flops
+			else
+				this->selfVectorComputeAccelerationBetweenBodies(iBody, dim);
+	}
 }
 
 template <typename T>
-void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
+void Space<T>::selfVectorComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim)
 {
-	const T vecX       = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
-	const T vecY       = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
-	const T vecLen     = (vecX * vecX) + (vecY * vecY);                       // 3 flops
-	const T sqrtVecLen = sqrt(vecLen);                                        
+	T vecX[dim],vecY[dim], vecLen[dim], acc[dim], accX[dim], accY[dim], sqrtVecLen[dim];
+        for(int j=0; j<vecDim; j++)
+        {
+		for(int i=0; i<vecDim; i++)
+		{
+                vecX[i]       = this->positions.x[iBody+(iBody+j)%vecDim] - this->positions.x[iBody+i]; // 1 flop
+                vecY[i]       = this->positions.y[iBody+(iBody+j)%vecDim] - this->positions.y[iBody+i]; // 1 flop
+                vecLen[i]     = (vecX[i] * vecX[i]) + (vecY[i] * vecY[i]);                       // 3 flops
+                if(vecLen[i]!=0){
+			sqrtVecLen[i] = sqrt(vecLen[i]);    
 
-	if(vecLen == 0)
-		std::cout << "Collision at {" << this->positions.x[jBody] << ", "
-		                              << this->positions.y[jBody] << "}" << std::endl;
-	assert(vecLen != 0);
+			acc[i]  = this->masses[iBody+(iBody+j)%vecDim] / (vecLen[i] * sqrtVecLen[i]); // 2 flops
+			accX[i] = acc[i] * vecX[i];                                  // 1 flop
+			accY[i] = acc[i] * vecY[i];                                  // 1 flop
 
-	const T acc  = this->masses[jBody] / (vecLen * sqrtVecLen); // 2 flops
-	const T accX = acc * vecX;                                  // 1 flop
-	const T accY = acc * vecY;                                  // 1 flop
+			this->accelerations.x[iBody+i] += accX[i]; // 1 flop
+			this->accelerations.y[iBody+i] += accY[i]; // 1 flop
+			
+			if(sqrtVecLen[i] < this->closestNeighborLen[iBody+i])
+				this->closestNeighborLen[iBody+i] = sqrtVecLen[i];
+			}
+		}
+	}
+}
 
-	this->accelerations.x[iBody] += accX; // 1 flop
-	this->accelerations.y[iBody] += accY; // 1 flop
+template <typename T>
+void Space<T>::vectorComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim)
+{
+	T vecX[dim], vecY[dim], vecLen[dim], acc[dim], accX[dim], accY[dim], sqrtVecLen[dim];
+	
+	int jShuff[dim];
+        for(int j=0; j<vecDim; j++)
+        {
+		#pragma ivdep
+		for(int i=0; i<vecDim; i++)
+		{
+		jShuff[i]     = jBody+(j+i)%vecDim;
 
-	if(sqrtVecLen < this->closestNeighborLen[iBody])
-		this->closestNeighborLen[iBody] = sqrtVecLen;
+                vecX[i]       = this->positions.x[jShuff[i]] - this->positions.x[iBody+i]; // 1 flop
+                vecY[i]       = this->positions.y[jShuff[i]] - this->positions.y[iBody+i]; // 1 flop
+                vecLen[i]     = (vecX[i] * vecX[i]) + (vecY[i] * vecY[i]);                       // 3 flops
+		sqrtVecLen[i] = sqrt(vecLen[i]);    
+
+		acc[i]  = this->masses[jShuff[i]] / (vecLen[i] * sqrtVecLen[i]); // 2 flops
+		accX[i] = acc[i] * vecX[i];                                  // 1 flop
+		accY[i] = acc[i] * vecY[i];                                  // 1 flop
+
+		this->accelerations.x[iBody+i] += accX[i]; // 1 flop
+		this->accelerations.y[iBody+i] += accY[i]; // 1 flop
+		
+		this->closestNeighborLen[iBody+i] = std::min(sqrtVecLen[i],this->closestNeighborLen[iBody+i]);
+		}
+	}
+       /* for(int j=0; j<vecDim; j++)
+                for(int i=0; i<vecDim; i++)
+			if(sqrtVecLen[i] < this->closestNeighborLen[iBody+i])
+				this->closestNeighborLen[iBody+i] = sqrtVecLen[i];*/
+}
+
+template <typename T>
+void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim)
+{
+	T vecX[dim],vecY[dim], vecLen[dim], acc[dim], accX[dim], accY[dim], sqrtVecLen[dim];
+
+	for(int i=0; i<vecDim; i++)
+	{
+		vecX[i]       = this->positions.x[jBody+i] - this->positions.x[iBody]; // 1 flop
+		vecY[i]       = this->positions.y[jBody+i] - this->positions.y[iBody]; // 1 flop
+		vecLen[i]     = (vecX[i] * vecX[i]) + (vecY[i] * vecY[i]);                       // 3 flops
+		sqrtVecLen[i] = sqrt(vecLen[i]);                                        
+
+		//if(vecLen[i] != 0){
+		//	std::cout << "Collision at {" << this->positions.x[iBody] << ", "
+		//				      << this->positions.y[iBody] << "}" << std::endl;
+		//assert(vecLen[i] != 0);
+
+		acc[i]  = this->masses[jBody+i] / (vecLen[i] * sqrtVecLen[i]); // 2 flops
+		accX[i] = acc[i] * vecX[i];                                  // 1 flop
+		accY[i] = acc[i] * vecY[i];                                  // 1 flop
+
+		this->accelerations.x[iBody] += accX[i]; // 1 flop
+		this->accelerations.y[iBody] += accY[i]; // 1 flop
+
+		if(sqrtVecLen[i] < this->closestNeighborLen[iBody])
+			this->closestNeighborLen[iBody] = sqrtVecLen[i];
+		//this->closestNeighborLen[iBody] = std::min(sqrtVecLen[i],this->closestNeighborLen[iBody]);
+		//}
+	}
 }
 
 template <typename T>

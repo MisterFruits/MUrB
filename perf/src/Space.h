@@ -58,7 +58,9 @@ private:
 
 	inline void initBody(unsigned long iBody, T mass, T posX, T posY, T posZ, T speedX, T speedY, T speedZ);
 
-	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
+	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim);
+	inline void vectorComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim);
+	inline void selfVectorComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim);
 	inline T computeTimeStep(const unsigned long iBody);
 };
 

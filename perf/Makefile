@@ -21,7 +21,7 @@ EXT = cpp
 # choix du compilateur
 CC = g++
 # options de compilation
-CFLAGS = -Wall -O3 -std=c++11 -DTYPE=double
+CFLAGS = -Wall -O3 -std=c++11 -DTYPE=double -ftree-vectorizer-verbose=2
 # options de compilation en debug
 DCFLAGS = -Wall -g -std=c++11 -DTYPE=double
 # flags de compilation
