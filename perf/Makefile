@@ -21,9 +21,9 @@ EXT = cpp
 # choix du compilateur
 CC = g++
 # options de compilation
-CFLAGS = -Wall -O3 -std=c++11 -DTYPE=double -ftree-vectorizer-verbose=2
+CFLAGS = -Wall -O3 -march=native -fpermissive -std=c++11 -DTYPE=double -DNBODY_DOUBLE# -ftree-vectorizer-verbose=2
 # options de compilation en debug
-DCFLAGS = -Wall -g -std=c++11 -DTYPE=double
+DCFLAGS = -Wall -g -march=native -std=c++11 -DTYPE=double -DNBODY_DOUBLE
 # flags de compilation
 LDFLAGS =# -fopenmp
 # linkage des libs
@@ -75,7 +75,7 @@ debug : ofolders $(EXED)
 reader: $(BIN_DIR)/reader
 
 $(BIN_DIR)/reader: reader/main.cpp
-	g++ -O3 -march=native -o $@  $^ -lSDL
+	$(CC) -O3 -march=native -o $@  $^ -lSDL
 
 #------------------------------------------------------------------------------
 # Compilation classique -------------------------------------------------------

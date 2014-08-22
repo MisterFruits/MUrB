@@ -12,7 +12,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "immintrin.h"
+#include "./utils/myIntrinsics.h"
 #include "Space.h"
 
 #define dim 4
@@ -119,16 +119,18 @@ void Space<T>::initBodiesWithFile(const std::string inputFileName)
 		exit(-1);
 	}
 
-	T mass, posX, posY, speedX, speedY;
+	T mass, posX, posY, posZ, speedX, speedY, speedZ;
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
 		bodiesFile >> mass;
 		bodiesFile >> posX;
 		bodiesFile >> posY;
+		bodiesFile >> posZ;
 		bodiesFile >> speedX;
 		bodiesFile >> speedY;
+		bodiesFile >> speedZ;
 
-		this->initBody(iBody, mass, posX, posY, 0, speedX, speedY, 0);
+		this->initBody(iBody, mass, posX, posY, posZ, speedX, speedY, speedZ);
 
 		if(!bodiesFile.good())
 		{
@@ -172,8 +174,9 @@ void Space<T>::computeBodiesAcceleration()
 		// flops ~= nBody * 12
 		for(unsigned long jBody = 0; jBody < this->nBodies; jBody+=dim)
 			if(iBody != jBody)
-				//this->computeAccelerationBetweenTwoBodies(iBody, jBody, dim); // 12 flops
-				this->vectorComputeAccelerationBetweenBodies(iBody, jBody, dim); // 12 flops
+//				this->computeAccelerationBetweenTwoBodies(iBody, jBody, dim); // 12 flops
+				//this->vectorComputeAccelerationBetweenBodies(iBody, jBody, dim); // 12 flops
+				this->intrinComputeAccelerationBetweenBodies(iBody, jBody, dim); // 12 flops
 			else
 				this->selfVectorComputeAccelerationBetweenBodies(iBody, dim);
 	}
@@ -215,7 +218,6 @@ void Space<T>::vectorComputeAccelerationBetweenBodies(const unsigned long iBody,
 	int jShuff[dim];
         for(int j=0; j<vecDim; j++)
         {
-		#pragma ivdep
 		for(int i=0; i<vecDim; i++)
 		{
 		jShuff[i]     = jBody+(j+i)%vecDim;
@@ -235,10 +237,59 @@ void Space<T>::vectorComputeAccelerationBetweenBodies(const unsigned long iBody,
 		this->closestNeighborLen[iBody+i] = std::min(sqrtVecLen[i],this->closestNeighborLen[iBody+i]);
 		}
 	}
-       /* for(int j=0; j<vecDim; j++)
-                for(int i=0; i<vecDim; i++)
-			if(sqrtVecLen[i] < this->closestNeighborLen[iBody+i])
-				this->closestNeighborLen[iBody+i] = sqrtVecLen[i];*/
+}
+
+
+template <typename T>
+void Space<T>::intrinComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim)
+{
+	vec px, py, rpx, rpy, masses, accx, accy, closest;
+	vec vecX, vecY, vecLen, acc, sqrtVecLen;
+
+	px       =  vec_load(&(this->positions.x[iBody]));
+	py       =  vec_load(&(this->positions.y[iBody]));
+
+	rpx      =  vec_load(&(this->positions.x[jBody]));
+	rpy      =  vec_load(&(this->positions.y[jBody]));
+
+	masses   =  vec_load(&(this->masses[jBody]));
+
+	accx     =  vec_load(&(this->accelerations.x[iBody]));
+	accy     =  vec_load(&(this->accelerations.y[iBody]));
+
+	closest  =  vec_load(&(this->closestNeighborLen[iBody]));
+
+
+	for(int i=0; i<vecDim; i++)
+	{	
+
+	vecX       = vec_sub(rpx,px); // 1 flop
+	vecY       = vec_sub(rpy,py); // 1 flop
+	vecLen     = vec_add( vec_mul(vecX,vecX) , vec_mul(vecY,vecY) ); // 3 flops
+
+	sqrtVecLen = vec_sqrt(vecLen);    
+
+	acc  = vec_div( masses , vec_mul(vecLen,sqrtVecLen) ); // 2 flops
+
+	accx = vec_fmadd(acc, vecX, accx); // 2 flop
+	accy = vec_fmadd(acc, vecY, accy); // 2 flop
+	
+	closest = vec_min(sqrtVecLen,closest);
+
+	rpx = vec_permute(rpx,_MM_SHUFFLE(0,3,2,1));
+	rpy = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+
+	masses = vec_permute(masses,_MM_SHUFFLE(0,3,2,1));
+	}
+
+	vec_store(&(this->positions.x[iBody]), px);
+	vec_store(&(this->positions.y[iBody]), py);
+
+        vec_store(&(this->accelerations.x[iBody]), accx);
+        vec_store(&(this->accelerations.y[iBody]), accy);
+
+        vec_store(&(this->closestNeighborLen[iBody]), closest);
+
 }
 
 template <typename T>
@@ -347,8 +398,10 @@ void Space<T>::write(std::ostream& stream)
 		stream << this->masses     [iBody] / G << " "
 		       << this->positions.x[iBody]     << " "
 		       << this->positions.y[iBody]     << " "
+		       << this->positions.z[iBody]     << " "
 		       << this->speeds.x   [iBody]     << " "
-		       << this->speeds.y   [iBody]     << std::endl;
+		       << this->speeds.y   [iBody]     << " " 
+		       << this->speeds.z   [iBody]     << std::endl;
 }
 
 template <typename T>

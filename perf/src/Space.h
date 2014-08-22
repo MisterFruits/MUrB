@@ -60,6 +60,7 @@ private:
 
 	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim);
 	inline void vectorComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim);
+	inline void intrinComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim);
 	inline void selfVectorComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim);
 	inline T computeTimeStep(const unsigned long iBody);
 };
