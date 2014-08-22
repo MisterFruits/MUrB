@@ -59,7 +59,7 @@ bool argsReader1(int argc, char** argv)
 		}
 
 		InputFileName = argsReader.getArgument("f");
-		NIterations   = atoi(argsReader.getArgument("i").c_str());
+		NIterations   = stoi(argsReader.getArgument("i").c_str());
 
 		if(argsReader.existArgument("v"))
 			Verbose = true;
@@ -113,8 +113,8 @@ void argsReader2(int argc, char** argv)
 			exit(-1);
 		}
 
-		NBodies       = atoi(argsReader.getArgument("n").c_str());
-		NIterations   = atoi(argsReader.getArgument("i").c_str());
+		NBodies       = stoi(argsReader.getArgument("n").c_str());
+		NIterations   = stoi(argsReader.getArgument("i").c_str());
 		InputFileName = "";
 
 		if(argsReader.existArgument("v"))
@@ -174,17 +174,15 @@ int main(int argc, char** argv)
 	cout << "Simulation started..." << endl;
 	perfTotal.start();
 	for(unsigned long iIte = 1; iIte <= NIterations; iIte++) {
+		perfIte.start();
 		/*******************************/
 		/*** Simulation computations ***/
-		perfIte.start();
-
 		space->computeBodiesAcceleration();
 		space->findTimeStep();
 		space->updateBodiesPositionAndSpeed();
-
-		perfIte.stop();
 		/*** Simulation computations ***/
 		/*******************************/
+		perfIte.stop();
 
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms." << endl;
@@ -192,14 +190,14 @@ int main(int argc, char** argv)
 		// write iteration results into file
 		if(!OutputBaseName.empty())
 		{
-			std::string outputFileName = OutputBaseName + "." + std::to_string(iIte) + ".dat";
+			std::string outputFileName = OutputBaseName + "." + to_string(iIte) + ".dat";
 			space->writeIntoFile(outputFileName);
 		}
 	}
 	perfTotal.stop();
 	cout << "Simulation ended." << endl << endl;
 
-	unsigned long flops = NBodies * NBodies * 12 * NIterations;
+	unsigned long flops = NIterations * NBodies * ((NBodies * 17) + 16 + 18);
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 	     << "(" << perfTotal.getGflops(flops) << " Gflop/s)" << endl;
 

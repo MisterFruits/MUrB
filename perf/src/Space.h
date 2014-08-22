@@ -44,9 +44,9 @@ public:
 	void findTimeStep();
 	void updateBodiesPositionAndSpeed();
 
+	bool read(std::istream& stream);
 	void write(std::ostream& stream);
 	void writeIntoFile(const std::string outputFileName);
-	void read(const std::string inputFileName);
 
 private:
 	void allocateBuffers();
@@ -57,6 +57,9 @@ private:
 	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
 	inline T computeTimeStep(const unsigned long iBody);
 };
+
+template <typename T>
+std::ostream& operator<<(std::ostream &o, const Space<T>& s);
 
 #include "Space.hxx"
 
