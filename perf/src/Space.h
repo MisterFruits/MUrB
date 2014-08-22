@@ -38,10 +38,7 @@ public:
 
 	virtual ~Space();
 
-	inline unsigned long getNBodies()
-	{
-		return this->nBodies;
-	}
+	inline unsigned long getNBodies();
 
 	void computeBodiesAcceleration();
 	void findTimeStep();
@@ -52,11 +49,10 @@ public:
 	void read(const std::string inputFileName);
 
 private:
-	void initBuffers();
+	void allocateBuffers();
+
 	void initBodiesRandomly();
 	void initBodiesWithFile(const std::string inputFileName);
-
-	inline void initBody(unsigned long iBody, T mass, T posX, T posY, T posZ, T speedX, T speedY, T speedZ);
 
 	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
 	inline T computeTimeStep(const unsigned long iBody);

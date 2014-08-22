@@ -75,7 +75,7 @@ debug : ofolders $(EXED)
 reader: $(BIN_DIR)/reader
 
 $(BIN_DIR)/reader: reader/main.cpp
-	g++ -O3 -march=native -o $@  $^ -lSDL
+	$(CC) -O3 -march=native -o $@  $^ -lSDL
 
 #------------------------------------------------------------------------------
 # Compilation classique -------------------------------------------------------
