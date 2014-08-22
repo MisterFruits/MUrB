@@ -152,6 +152,7 @@ int main(int argc, char** argv)
 		space = new Space<TYPE>(NBodies);
 	else
 		space = new Space<TYPE>(InputFileName);
+	NBodies = space->getNBodies();
 
 	// compute MB used for this simulation
 	float Mbytes = (11 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
@@ -165,7 +166,7 @@ int main(int argc, char** argv)
 		cout << "  -> random mode      : on"                             << endl;
 	if(!OutputBaseName.empty())
 		cout << "  -> outputFileName(s): " << OutputBaseName << ".*.dat" << endl;
-	cout <<     "  -> nBodies          : " << space->getNBodies()        << endl;
+	cout <<     "  -> nBodies          : " << NBodies                    << endl;
 	cout <<     "  -> nIterations      : " << NIterations                << endl;
 	cout <<     "  -> verbose          : " << Verbose                    << endl;
 	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
