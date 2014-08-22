@@ -15,6 +15,12 @@
 
 #include "Space.h"
 
+#ifdef NBODY_FLOAT
+#define TYPE float
+#else
+#define TYPE double
+#endif
+
 using namespace std;
 
 string        InputFileName;
