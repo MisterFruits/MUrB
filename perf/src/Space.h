@@ -64,9 +64,9 @@ private:
 	inline void selfVectorComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim);
 
 	inline void intrinComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim, 
-								vec px, vec py, vec pz, vec accx, vec accy, vec accz, vec closest);
+								vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest);
 	inline void selfIntrinComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim,
-								vec px, vec py, vec pz, vec accx, vec accy, vec accz, vec closest);
+								vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest);
 
 	inline T computeTimeStep(const unsigned long iBody);
 };

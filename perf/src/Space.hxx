@@ -144,7 +144,6 @@ void Space<T>::computeBodiesAcceleration()
 			if(iBody != jBody)
 				this->computeAccelerationBetweenTwoBodies(iBody, jBody); // 17 flops
 }
-
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
 {
@@ -251,7 +250,6 @@ void Space<T>::vectorComputeAccelerationBetweenBodies(const unsigned long iBody,
 template <typename T>
 void Space<T>::intrinComputeBodiesAcceleration()
 {
-	T result[4];
         for(unsigned long iBody = 0; iBody < this->nBodies; iBody+=dim)
         {
 		vec px, py, pz, accx, accy, accz, closest;
@@ -269,32 +267,27 @@ void Space<T>::intrinComputeBodiesAcceleration()
 	         for(unsigned long jBody = 0; jBody < this->nBodies; jBody+=dim)
 		 {
                         if(iBody != jBody)
-                                this->intrinComputeAccelerationBetweenBodies(iBody, jBody, dim, px, py, pz, accx, accy, accz, closest);
+                                this->intrinComputeAccelerationBetweenBodies(iBody, jBody, dim, px, py, pz, &accx, &accy, &accz, &closest);
                         else
-                                this->selfIntrinComputeAccelerationBetweenBodies(iBody, dim, px, py, pz, accx, accy, accz, closest);
+                                this->selfIntrinComputeAccelerationBetweenBodies(iBody, dim, px, py, pz, &accx, &accy, &accz, &closest);
 		 }        
-		vec_store(&(this->positions.x[iBody]), px);
-        	vec_store(&(this->positions.y[iBody]), py);
-        	vec_store(&(this->positions.z[iBody]), pz);
 
-/*		vec_store(&(this->accelerations.x[iBody]), accx);
+		vec_store(&(this->accelerations.x[iBody]), accx);
 		vec_store(&(this->accelerations.y[iBody]), accy);
 		vec_store(&(this->accelerations.z[iBody]), accz);
 
 		vec_store(&(this->closestNeighborLen[iBody]), closest);
-*/
 
          }
 }
 
 template <typename T>
 void Space<T>::intrinComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim, 
-						           vec px, vec py, vec pz, vec accx, vec accy, vec accz, vec closest)
+						           vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest)
 {
 	vec rpx, rpy, rpz, masses;
         
 	vec vecX, vecY, vecZ, vecLen, acc, sqrtVecLen;
-
 
         rpx      =  vec_load(&(this->positions.x[jBody]));
         rpy      =  vec_load(&(this->positions.y[jBody]));
@@ -314,18 +307,22 @@ void Space<T>::intrinComputeAccelerationBetweenBodies(const unsigned long iBody,
 
         acc  = vec_div( masses , vec_mul(vecLen,sqrtVecLen) ); 
 
-        accx = vec_fmadd(acc, vecX, accx); 
-        accy = vec_fmadd(acc, vecY, accy); 
-        accz = vec_fmadd(acc, vecZ, accz); 
+        *accx = vec_fmadd(acc, vecX, *accx); 
+        *accy = vec_fmadd(acc, vecY, *accy); 
+        *accz = vec_fmadd(acc, vecZ, *accz); 
 
-        closest = vec_min(sqrtVecLen,closest);
+        *closest = vec_min(sqrtVecLen,*closest);
 
+
+		/*_MM_SHUFFLE(z, y, x, w)*/
+		/* expands to the following value */
+		/*(z<<6) | (y<<4) | (x<<2) | w*/
+        
 	//avant: [ a , b , c , d ]
         rpx = vec_permute(rpx,_MM_SHUFFLE(0,3,2,1));
 	//après: [ b , c , d , a ]
-        
         rpy = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
-        rpz = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+        rpz = vec_permute(rpz,_MM_SHUFFLE(0,3,2,1));
 
         masses = vec_permute(masses,_MM_SHUFFLE(0,3,2,1));
         }
@@ -333,13 +330,13 @@ void Space<T>::intrinComputeAccelerationBetweenBodies(const unsigned long iBody,
 
 template <typename T>
 void Space<T>::selfIntrinComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim, 
-						           vec px, vec py, vec pz, vec accx, vec accy, vec accz, vec closest)
+						           vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest)
 {
 	vec rpx, rpy, rpz, masses;
         
 	vec vecX, vecY, vecZ, vecLen, acc, sqrtVecLen;
 
-	T result[4];
+	T result[8];
 
         rpx      =  vec_load(&(this->positions.x[iBody]));
         rpy      =  vec_load(&(this->positions.y[iBody]));
@@ -349,7 +346,9 @@ void Space<T>::selfIntrinComputeAccelerationBetweenBodies(const unsigned long iB
 
         rpx = vec_permute(rpx,_MM_SHUFFLE(0,3,2,1));
 	rpy = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
-        rpz = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+        rpz = vec_permute(rpz,_MM_SHUFFLE(0,3,2,1));
+
+        masses = vec_permute(masses,_MM_SHUFFLE(0,3,2,1));
 
         for(int i=0; i<vecDim-1; i++)
         {
@@ -357,37 +356,29 @@ void Space<T>::selfIntrinComputeAccelerationBetweenBodies(const unsigned long iB
         
 	vecX       = vec_sub(rpx,px);
         vecY       = vec_sub(rpy,py); 
-        vecZ       = vec_sub(rpz,pz); 
+        vecZ       = vec_sub(rpz,pz);
+	//vecX[i] * vecX[i] + vecY[i] * vecY[i] + vecZ[i]*vecZ[i]  
         vecLen     = vec_add( vec_mul(vecZ,vecZ), vec_add( vec_mul(vecX,vecX) , vec_mul(vecY,vecY) )); 
         
-
         sqrtVecLen = vec_sqrt(vecLen);
 
         acc  = vec_div( masses , vec_mul(vecLen,sqrtVecLen) ); 
         
-        accx = vec_fmadd(acc, vecX, accx); 
-	vec_store(&(result[0]), accx);
-	std::cout << "accx:" << result[0]<<"," <<result[1]<<"," <<result[2]<<"," <<result[3] << std::endl;
-        accy = vec_fmadd(acc, vecY, accy); 
-        accz = vec_fmadd(acc, vecZ, accz); 
+        *accx = vec_fmadd(acc, vecX, *accx); 
+        *accy = vec_fmadd(acc, vecY, *accy); 
+        *accz = vec_fmadd(acc, vecZ, *accz); 
 
-        closest = vec_min(sqrtVecLen,closest);
+        *closest = vec_min(sqrtVecLen,*closest);
 
 	//avant: [ a , b , c , d ]
         rpx = vec_permute(rpx,_MM_SHUFFLE(0,3,2,1));
 	//après: [ b , c , d , a ]
         
 	rpy = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
-        rpz = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+        rpz = vec_permute(rpz,_MM_SHUFFLE(0,3,2,1));
 
         masses = vec_permute(masses,_MM_SHUFFLE(0,3,2,1));
         }
-		vec_store(&(this->accelerations.x[iBody]), accx);
-		vec_store(&(this->accelerations.y[iBody]), accy);
-		vec_store(&(this->accelerations.z[iBody]), accz);
-
-		vec_store(&(this->closestNeighborLen[iBody]), closest);
-
 }
 
 
