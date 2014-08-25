@@ -12,6 +12,9 @@
 #include <fstream>
 #include <iostream>
 
+#define dim 4
+
+
 #include "Space.h"
 
 template <typename T>
@@ -68,21 +71,21 @@ unsigned long Space<T>::getNBodies()
 template <typename T>
 void Space<T>::allocateBuffers()
 {
-	this->masses = new T[this->nBodies];
+	this->masses = (T*)_mm_malloc(this->nBodies*sizeof(T),64); 
 
-	this->positions.x = new T[this->nBodies];
-	this->positions.y = new T[this->nBodies];
-	this->positions.z = new T[this->nBodies];
+	this->positions.x = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->positions.y = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->positions.z = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 
-	this->speeds.x = new T[this->nBodies];
-	this->speeds.y = new T[this->nBodies];
-	this->speeds.z = new T[this->nBodies];
+	this->speeds.x = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->speeds.y = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->speeds.z = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 
-	this->accelerations.x = new T[this->nBodies];
-	this->accelerations.y = new T[this->nBodies];
-	this->accelerations.z = new T[this->nBodies];
+	this->accelerations.x = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->accelerations.y = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
+	this->accelerations.z = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 
-	this->closestNeighborLen = new T[this->nBodies];
+	this->closestNeighborLen = (T*)_mm_malloc(this->nBodies*sizeof(T),64);
 }
 
 template <typename T>
@@ -164,6 +167,229 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 	if(vecLen < this->closestNeighborLen[iBody])
 		this->closestNeighborLen[iBody] = vecLen;
 }
+
+
+template <typename T>
+void Space<T>::vectorComputeBodiesAcceleration()
+{
+	//nBodies²*16 flops
+        for(unsigned long iBody = 0; iBody < this->nBodies; iBody+=dim)
+        {
+                for(unsigned long jBody = 0; jBody < this->nBodies; jBody+=dim)
+			// 16 flops
+                        if(iBody != jBody)
+                                this->vectorComputeAccelerationBetweenBodies(iBody, jBody, dim);
+                        else
+                                this->selfVectorComputeAccelerationBetweenBodies(iBody, dim);
+        }   
+}
+
+template <typename T>
+void Space<T>::selfVectorComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim)
+{
+        T vecX[dim], vecY[dim], vecZ[dim];
+	T vecLen[dim], acc[dim], accX[dim], accY[dim], accZ[dim], sqrtVecLen[dim];
+        for(int j=0; j<vecDim; j++)
+        {   
+                for(int i=0; i<vecDim; i++)
+                {   
+                vecX[i]       = this->positions.x[iBody+(iBody+j)%vecDim] - this->positions.x[iBody+i]; 
+                vecY[i]       = this->positions.y[iBody+(iBody+j)%vecDim] - this->positions.y[iBody+i];
+                vecZ[i]       = this->positions.z[iBody+(iBody+j)%vecDim] - this->positions.z[iBody+i];
+                vecLen[i]     = vecX[i] * vecX[i] + vecY[i] * vecY[i] + vecZ[i]*vecZ[i];                       
+                if(vecLen[i]!=0){
+                        sqrtVecLen[i] = sqrt(vecLen[i]);    
+
+                        acc[i]  = this->masses[iBody+(iBody+j)%vecDim] / (vecLen[i] * sqrtVecLen[i]); 
+                        accX[i] = acc[i] * vecX[i];                                 
+                        accY[i] = acc[i] * vecY[i];                                  
+                        accZ[i] = acc[i] * vecZ[i];                                 
+
+                        this->accelerations.x[iBody+i] += accX[i]; 
+                        this->accelerations.y[iBody+i] += accY[i];
+                        this->accelerations.z[iBody+i] += accZ[i];
+    
+                        if(sqrtVecLen[i] < this->closestNeighborLen[iBody+i])
+                                this->closestNeighborLen[iBody+i] = sqrtVecLen[i];
+                        }   
+                }   
+        }   
+}
+
+template <typename T>
+void Space<T>::vectorComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim)
+{
+        T vecX[dim], vecY[dim], vecZ[dim], vecLen[dim], acc[dim], accX[dim], accY[dim], accZ[dim], sqrtVecLen[dim];
+
+        int jShuff[dim];
+        for(int j=0; j<vecDim; j++)
+        {
+                for(int i=0; i<vecDim; i++)
+                {
+                jShuff[i]     = jBody+(j+i)%vecDim;
+
+                vecX[i]       = this->positions.x[jShuff[i]] - this->positions.x[iBody+i]; // 1 flop
+                vecY[i]       = this->positions.y[jShuff[i]] - this->positions.y[iBody+i]; // 1 flop
+                vecZ[i]       = this->positions.z[jShuff[i]] - this->positions.z[iBody+i]; // 1 flop
+                vecLen[i]     = vecX[i] * vecX[i] + vecY[i] * vecY[i] + vecZ[i]*vecZ[i];   // 5 flop                    
+                sqrtVecLen[i] = sqrt(vecLen[i]);
+
+                acc[i]  = this->masses[jShuff[i]] / (vecLen[i] * sqrtVecLen[i]); // 2 flop
+                accX[i] = acc[i] * vecX[i];                                      // 1 flop
+                accY[i] = acc[i] * vecY[i];                                      // 1 flop
+                accZ[i] = acc[i] * vecZ[i];                                      // 1 flop
+
+                this->accelerations.x[iBody+i] += accX[i]; // 1 flop
+                this->accelerations.y[iBody+i] += accY[i]; // 1 flop
+                this->accelerations.z[iBody+i] += accZ[i]; // 1 flop
+
+                this->closestNeighborLen[iBody+i] = std::min(sqrtVecLen[i],this->closestNeighborLen[iBody+i]);
+                }
+        }
+}
+
+template <typename T>
+void Space<T>::intrinComputeBodiesAcceleration()
+{
+	T result[4];
+        for(unsigned long iBody = 0; iBody < this->nBodies; iBody+=dim)
+        {
+		vec px, py, pz, accx, accy, accz, closest;
+
+		px       =  vec_load(&(this->positions.x[iBody]));
+		py       =  vec_load(&(this->positions.y[iBody]));
+		pz       =  vec_load(&(this->positions.z[iBody]));
+
+		accx     =  vec_load(&(this->accelerations.x[iBody]));
+		accy     =  vec_load(&(this->accelerations.y[iBody]));
+		accz     =  vec_load(&(this->accelerations.z[iBody]));
+		
+		closest  =  vec_load(&(this->closestNeighborLen[iBody]));
+		
+	         for(unsigned long jBody = 0; jBody < this->nBodies; jBody+=dim)
+		 {
+                        if(iBody != jBody)
+                                this->intrinComputeAccelerationBetweenBodies(iBody, jBody, dim, px, py, pz, accx, accy, accz, closest);
+                        else
+                                this->selfIntrinComputeAccelerationBetweenBodies(iBody, dim, px, py, pz, accx, accy, accz, closest);
+		 }        
+		vec_store(&(this->positions.x[iBody]), px);
+        	vec_store(&(this->positions.y[iBody]), py);
+        	vec_store(&(this->positions.z[iBody]), pz);
+
+/*		vec_store(&(this->accelerations.x[iBody]), accx);
+		vec_store(&(this->accelerations.y[iBody]), accy);
+		vec_store(&(this->accelerations.z[iBody]), accz);
+
+		vec_store(&(this->closestNeighborLen[iBody]), closest);
+*/
+
+         }
+}
+
+template <typename T>
+void Space<T>::intrinComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim, 
+						           vec px, vec py, vec pz, vec accx, vec accy, vec accz, vec closest)
+{
+	vec rpx, rpy, rpz, masses;
+        
+	vec vecX, vecY, vecZ, vecLen, acc, sqrtVecLen;
+
+
+        rpx      =  vec_load(&(this->positions.x[jBody]));
+        rpy      =  vec_load(&(this->positions.y[jBody]));
+        rpz      =  vec_load(&(this->positions.z[jBody]));
+
+        masses   =  vec_load(&(this->masses[jBody]));
+
+        for(int i=0; i<vecDim; i++)
+        {
+
+        vecX       = vec_sub(rpx,px);
+        vecY       = vec_sub(rpy,py); 
+        vecZ       = vec_sub(rpz,pz); 
+        vecLen     = vec_add( vec_mul(vecZ,vecZ), vec_add( vec_mul(vecX,vecX) , vec_mul(vecY,vecY) )); 
+
+        sqrtVecLen = vec_sqrt(vecLen);
+
+        acc  = vec_div( masses , vec_mul(vecLen,sqrtVecLen) ); 
+
+        accx = vec_fmadd(acc, vecX, accx); 
+        accy = vec_fmadd(acc, vecY, accy); 
+        accz = vec_fmadd(acc, vecZ, accz); 
+
+        closest = vec_min(sqrtVecLen,closest);
+
+	//avant: [ a , b , c , d ]
+        rpx = vec_permute(rpx,_MM_SHUFFLE(0,3,2,1));
+	//après: [ b , c , d , a ]
+        
+        rpy = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+        rpz = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+
+        masses = vec_permute(masses,_MM_SHUFFLE(0,3,2,1));
+        }
+}
+
+template <typename T>
+void Space<T>::selfIntrinComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim, 
+						           vec px, vec py, vec pz, vec accx, vec accy, vec accz, vec closest)
+{
+	vec rpx, rpy, rpz, masses;
+        
+	vec vecX, vecY, vecZ, vecLen, acc, sqrtVecLen;
+
+	T result[4];
+
+        rpx      =  vec_load(&(this->positions.x[iBody]));
+        rpy      =  vec_load(&(this->positions.y[iBody]));
+        rpz      =  vec_load(&(this->positions.z[iBody]));
+
+        masses   =  vec_load(&(this->masses[iBody]));
+
+        rpx = vec_permute(rpx,_MM_SHUFFLE(0,3,2,1));
+	rpy = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+        rpz = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+
+        for(int i=0; i<vecDim-1; i++)
+        {
+
+        
+	vecX       = vec_sub(rpx,px);
+        vecY       = vec_sub(rpy,py); 
+        vecZ       = vec_sub(rpz,pz); 
+        vecLen     = vec_add( vec_mul(vecZ,vecZ), vec_add( vec_mul(vecX,vecX) , vec_mul(vecY,vecY) )); 
+        
+
+        sqrtVecLen = vec_sqrt(vecLen);
+
+        acc  = vec_div( masses , vec_mul(vecLen,sqrtVecLen) ); 
+        
+        accx = vec_fmadd(acc, vecX, accx); 
+	vec_store(&(result[0]), accx);
+	std::cout << "accx:" << result[0]<<"," <<result[1]<<"," <<result[2]<<"," <<result[3] << std::endl;
+        accy = vec_fmadd(acc, vecY, accy); 
+        accz = vec_fmadd(acc, vecZ, accz); 
+
+        closest = vec_min(sqrtVecLen,closest);
+
+	//avant: [ a , b , c , d ]
+        rpx = vec_permute(rpx,_MM_SHUFFLE(0,3,2,1));
+	//après: [ b , c , d , a ]
+        
+	rpy = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+        rpz = vec_permute(rpy,_MM_SHUFFLE(0,3,2,1));
+
+        masses = vec_permute(masses,_MM_SHUFFLE(0,3,2,1));
+        }
+		vec_store(&(this->accelerations.x[iBody]), accx);
+		vec_store(&(this->accelerations.y[iBody]), accy);
+		vec_store(&(this->accelerations.z[iBody]), accz);
+
+		vec_store(&(this->closestNeighborLen[iBody]), closest);
+
+}
+
 
 template <typename T>
 void Space<T>::findTimeStep()
