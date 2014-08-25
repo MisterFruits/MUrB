@@ -15,6 +15,12 @@
 
 #include "Space.h"
 
+#ifdef NBODY_FLOAT
+#define TYPE float
+#else
+#define TYPE double
+#endif
+
 using namespace std;
 
 string        InputFileName;
@@ -59,7 +65,7 @@ bool argsReader1(int argc, char** argv)
 		}
 
 		InputFileName = argsReader.getArgument("f");
-		NIterations   = atoi(argsReader.getArgument("i").c_str());
+		NIterations   = stoi(argsReader.getArgument("i").c_str());
 
 		if(argsReader.existArgument("v"))
 			Verbose = true;
@@ -113,8 +119,8 @@ void argsReader2(int argc, char** argv)
 			exit(-1);
 		}
 
-		NBodies       = atoi(argsReader.getArgument("n").c_str());
-		NIterations   = atoi(argsReader.getArgument("i").c_str());
+		NBodies       = stoi(argsReader.getArgument("n").c_str());
+		NIterations   = stoi(argsReader.getArgument("i").c_str());
 		InputFileName = "";
 
 		if(argsReader.existArgument("v"))
@@ -146,9 +152,10 @@ int main(int argc, char** argv)
 		space = new Space<TYPE>(NBodies);
 	else
 		space = new Space<TYPE>(InputFileName);
+	NBodies = space->getNBodies();
 
 	// compute MB used for this simulation
-	float Mbytes = (8 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
+	float Mbytes = (11 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
 
 	// display simulation configuration
 	cout << "N-body simulation started !" << endl;
@@ -159,7 +166,7 @@ int main(int argc, char** argv)
 		cout << "  -> random mode      : on"                             << endl;
 	if(!OutputBaseName.empty())
 		cout << "  -> outputFileName(s): " << OutputBaseName << ".*.dat" << endl;
-	cout <<     "  -> nBodies          : " << space->getNBodies()        << endl;
+	cout <<     "  -> nBodies          : " << NBodies                    << endl;
 	cout <<     "  -> nIterations      : " << NIterations                << endl;
 	cout <<     "  -> verbose          : " << Verbose                    << endl;
 	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
@@ -174,17 +181,15 @@ int main(int argc, char** argv)
 	cout << "Simulation started..." << endl;
 	perfTotal.start();
 	for(unsigned long iIte = 1; iIte <= NIterations; iIte++) {
+		perfIte.start();
 		/*******************************/
 		/*** Simulation computations ***/
-		perfIte.start();
-
 		space->computeBodiesAcceleration();
 		space->findTimeStep();
 		space->updateBodiesPositionAndSpeed();
-
-		perfIte.stop();
 		/*** Simulation computations ***/
 		/*******************************/
+		perfIte.stop();
 
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms." << endl;
@@ -192,14 +197,14 @@ int main(int argc, char** argv)
 		// write iteration results into file
 		if(!OutputBaseName.empty())
 		{
-			std::string outputFileName = OutputBaseName + "." + std::to_string(iIte) + ".dat";
+			std::string outputFileName = OutputBaseName + "." + to_string(iIte) + ".dat";
 			space->writeIntoFile(outputFileName);
 		}
 	}
 	perfTotal.stop();
 	cout << "Simulation ended." << endl << endl;
 
-	unsigned long flops = NBodies * NBodies * 11 * NIterations;
+	unsigned long flops = NIterations * NBodies * ((NBodies * 17) + 16 + 18);
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 	     << "(" << perfTotal.getGflops(flops) << " Gflop/s)" << endl;
 
