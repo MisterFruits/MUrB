@@ -357,9 +357,8 @@ void Space<T>::selfIntrinComputeAccelerationBetweenBodies(const unsigned long iB
 	vecX       = vec_sub(rpx,px);
         vecY       = vec_sub(rpy,py); 
         vecZ       = vec_sub(rpz,pz);
-	//vecX[i] * vecX[i] + vecY[i] * vecY[i] + vecZ[i]*vecZ[i]  
-        vecLen     = vec_add( vec_mul(vecZ,vecZ), vec_add( vec_mul(vecX,vecX) , vec_mul(vecY,vecY) )); 
         
+	vecLen     = vec_add( vec_mul(vecZ,vecZ), vec_add( vec_mul(vecX,vecX) , vec_mul(vecY,vecY) )); 
         sqrtVecLen = vec_sqrt(vecLen);
 
         acc  = vec_div( masses , vec_mul(vecLen,sqrtVecLen) ); 
