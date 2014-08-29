@@ -184,9 +184,7 @@ int main(int argc, char** argv)
 		perfIte.start();
 		/*******************************/
 		/*** Simulation computations ***/
-		space->intrinComputeBodiesAcceleration();
-		//space->vectorComputeBodiesAcceleration();
-		//space->computeBodiesAcceleration();
+		space->computeBodiesAcceleration();
 		space->findTimeStep();
 		space->updateBodiesPositionAndSpeed();
 		/*** Simulation computations ***/

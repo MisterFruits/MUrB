@@ -43,16 +43,16 @@
 #elif defined(__AVX__)
 #ifdef NBODY_DOUBLE /* AVX-256 double */
 	/* intrinsics AVX headers
-	__m256d _mm256_load_pd  (double const *mem_addr);
-	__m256d _mm256_set1_pd  (double a);
-	__m256d _mm256_add_pd   (__m256d a, __m256d b);
-	__m256d _mm256_sub_pd   (__m256d a, __m256d b);
-	__m256d _mm256_mul_pd   (__m256d a, __m256d b);
-	__m256d _mm256_div_pd   (__m256d a, __m256d b);
-        __m256d _mm256_min_pd (__m256d a, __m256d b)
-        __m256d _mm256_sqrt_pd  (__m256d a)
-	__m256d _mm256_fmadd_pd (__m256d a, __m256d b, __m256d c);
-        __m256d _mm256_permute4x64_pd (__m256d a, const int imm)
+	__m256d _mm256_load_pd        (double const *mem_addr);
+	__m256d _mm256_set1_pd        (double a);
+	__m256d _mm256_add_pd         (__m256d a, __m256d b);
+	__m256d _mm256_sub_pd         (__m256d a, __m256d b);
+	__m256d _mm256_mul_pd         (__m256d a, __m256d b);
+	__m256d _mm256_div_pd         (__m256d a, __m256d b);
+	__m256d _mm256_min_pd         (__m256d a, __m256d b)
+	__m256d _mm256_sqrt_pd        (__m256d a)
+	__m256d _mm256_fmadd_pd       (__m256d a, __m256d b, __m256d c);
+	__m256d _mm256_permute4x64_pd (__m256d a, const int imm)
 	void    _mm256_store_pd (double * mem_addr, __m256d a);
 	*/
 
@@ -64,7 +64,6 @@
 	#define vec_sub(a, b)          _mm256_sub_pd  (a, b)
 	#define vec_mul(a, b)          _mm256_mul_pd  (a, b)
 	#define vec_div(a, b)          _mm256_div_pd  (a, b)
-
 	#define vec_min(a, b)          _mm256_min_pd  (a, b)
 	#define vec_sqrt(a)            _mm256_sqrt_pd (a)
 
@@ -77,15 +76,16 @@
 
 #elif defined(NBODY_FLOAT) /* AVX-256 float */
 	/* intrinsics AVX headers
-	__m256 _mm256_load_ps  (float const *mem_addr);
-	__m256 _mm256_set1_ps  (float a);
-	__m256 _mm256_add_ps   (__m256 a, __m256 b);
-	__m256 _mm256_sub_ps   (__m256 a, __m256 b);
-	__m256 _mm256_mul_ps   (__m256 a, __m256 b);
-	__m256 _mm256_div_ps   (__m256 a, __m256 b);
-	__m256 _mm256_min_ps   (__m256 a, __m256 b);
-        __m256 _mm256_sqrt_ps  (__m256 a);
-	__m256 _mm256_fmadd_ps (__m256 a, __m256 b, __m256 c);
+	__m256 _mm256_load_ps        (float const *mem_addr);
+	__m256 _mm256_set1_ps        (float a);
+	__m256 _mm256_add_ps         (__m256 a, __m256 b);
+	__m256 _mm256_sub_ps         (__m256 a, __m256 b);
+	__m256 _mm256_mul_ps         (__m256 a, __m256 b);
+	__m256 _mm256_div_ps         (__m256 a, __m256 b);
+	__m256 _mm256_min_ps         (__m256 a, __m256 b);
+	__m256 _mm256_sqrt_ps        (__m256 a);
+	__m256 _mm256_fmadd_ps       (__m256 a, __m256 b, __m256 c);
+	__m256 _mm256_permute4x64_ps (__m256d a, const int imm)
 	void   _mm256_store_ps (float * mem_addr, __m256 a);
 	*/
 
@@ -97,12 +97,12 @@
 	#define vec_sub(a, b)          _mm256_sub_ps  (a, b)
 	#define vec_mul(a, b)          _mm256_mul_ps  (a, b)
 	#define vec_div(a, b)          _mm256_div_ps  (a, b)
-
 	#define vec_min(a, b)          _mm256_min_ps  (a, b)
-        #define vec_sqrt(a)            _mm256_sqrt_ps (a)
+	#define vec_sqrt(a)            _mm256_sqrt_ps (a)
 
 #ifdef __AVX2__
 	#define vec_fmadd(a, b, c)     _mm256_fmadd_ps(a, b, c)
+	#define vec_permute(a, b)      _mm256_permute4x64_ps(a, b)
 #endif
 
 	#define VECTOR_SIZE 8
