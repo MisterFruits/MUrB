@@ -184,7 +184,9 @@ int main(int argc, char** argv)
 		perfIte.start();
 		/*******************************/
 		/*** Simulation computations ***/
-		space->computeBodiesAcceleration();
+		space->intrinComputeBodiesAcceleration();
+		//space->vectorComputeBodiesAcceleration();
+		//space->computeBodiesAcceleration();
 		space->findTimeStep();
 		space->updateBodiesPositionAndSpeed();
 		/*** Simulation computations ***/
@@ -204,7 +206,7 @@ int main(int argc, char** argv)
 	perfTotal.stop();
 	cout << "Simulation ended." << endl << endl;
 
-	unsigned long flops = NIterations * NBodies * ((NBodies * 17) + 16 + 18);
+	unsigned long flops = NIterations * NBodies * ((NBodies * 16) + 16 + 18);
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 	     << "(" << perfTotal.getGflops(flops) << " Gflop/s)" << endl;
 
