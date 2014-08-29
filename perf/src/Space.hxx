@@ -48,7 +48,7 @@ void Space<T>::allocateBuffers()
 
 	this->closestNeighborLen = new T[this->nBodies];
 
-	/* TODO: if we want to use __mm_alloc you have to set properly free calls in the destructor routine
+	/* TODO: if we want to use __mm_alloc we have to set properly free calls in the destructor (~Space() method)
 	this->masses = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
 
 	this->positions.x = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
@@ -170,8 +170,8 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 
 	if(vecLen == 0)
 		std::cout << "Collision at {" << this->positions.x[jBody] << ", "
-		<< this->positions.y[jBody] << ", "
-		<< this->positions.z[jBody] << "}" << std::endl;
+		                              << this->positions.y[jBody] << ", "
+		                              << this->positions.z[jBody] << "}" << std::endl;
 	assert(vecLen != 0);
 
 	const T acc  = this->masses[jBody] / (vecLen * vecLen * vecLen); // 3 flops
@@ -205,20 +205,19 @@ T Space<T>::computeTimeStep(const unsigned long iBody)
 			(this->speeds.y[iBody] * this->speeds.y[iBody]) +
 			(this->speeds.z[iBody] * this->speeds.z[iBody])); // 5 flops
 
-			/* || lb.acceleration || */
+	/* || lb.acceleration || */
 	const T a = sqrt((this->accelerations.x[iBody] * this->accelerations.x[iBody]) +
-			(this->accelerations.y[iBody] * this->accelerations.y[iBody]) +
-			(this->accelerations.z[iBody] * this->accelerations.z[iBody])); // 5 flops
+	                 (this->accelerations.y[iBody] * this->accelerations.y[iBody]) +
+	                 (this->accelerations.z[iBody] * this->accelerations.z[iBody])); // 5 flops
 
-			/*
-			 * compute dt
-			 * solve:  (a/2)*dt^2 + s*dt + (-0.1)*ClosestNeighborLen = 0
-			 * <=>     dt = [ (-s) +/-  sqrt( s^2 - 4 * (a/2) * (-0.1)*ClosestNeighborLen ) ] / [ 2 (a/2) ]
-			 *
-			 * dt should be positive (+/- becomes + because result of sqrt is positive)
-			 * <=>     dt = [ -s + sqrt( s^2 + 0.2*ClosestNeighborLen*a) ] / a
-			 */
-
+	/*
+	 * compute dt
+	 * solve:  (a/2)*dt^2 + s*dt + (-0.1)*ClosestNeighborLen = 0
+	 * <=>     dt = [ (-s) +/-  sqrt( s^2 - 4 * (a/2) * (-0.1)*ClosestNeighborLen ) ] / [ 2 (a/2) ]
+	 *
+	 * dt should be positive (+/- becomes + because result of sqrt is positive)
+	 * <=>     dt = [ -s + sqrt( s^2 + 0.2*ClosestNeighborLen*a) ] / a
+	 */
 	T dt = (sqrt(s * s + 0.2 * a * this->closestNeighborLen[iBody]) - s) / a; // 6 flops
 
 	if(dt == 0)
@@ -297,12 +296,12 @@ void Space<T>::write(std::ostream& stream)
 
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 		stream << this->masses     [iBody] / G << " "
-		<< this->positions.x[iBody]     << " "
-		<< this->positions.y[iBody]     << " "
-		<< this->positions.z[iBody]     << " "
-		<< this->speeds.x   [iBody]     << " "
-		<< this->speeds.y   [iBody]     << " "
-		<< this->speeds.z   [iBody]     << std::endl;
+		       << this->positions.x[iBody]     << " "
+		       << this->positions.y[iBody]     << " "
+		       << this->positions.z[iBody]     << " "
+		       << this->speeds.x   [iBody]     << " "
+		       << this->speeds.y   [iBody]     << " "
+		       << this->speeds.z   [iBody]     << std::endl;
 }
 
 template <typename T>

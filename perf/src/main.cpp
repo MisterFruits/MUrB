@@ -178,8 +178,9 @@ int main(int argc, char** argv)
 		space->writeIntoFile(outputFileName);
 	}
 
+	unsigned long flopsPerIte = NBodies * ((NBodies * 16) + 16 + 18);
+
 	cout << "Simulation started..." << endl;
-	perfTotal.start();
 	for(unsigned long iIte = 1; iIte <= NIterations; iIte++) {
 		perfIte.start();
 		/*******************************/
@@ -190,9 +191,11 @@ int main(int argc, char** argv)
 		/*** Simulation computations ***/
 		/*******************************/
 		perfIte.stop();
+		perfTotal += perfIte;
 
 		if(Verbose)
-			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms." << endl;
+			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
+			     << "(" << perfIte.getGflops(flopsPerIte) << " Gflop/s)." << endl;
 
 		// write iteration results into file
 		if(!OutputBaseName.empty())
@@ -201,12 +204,10 @@ int main(int argc, char** argv)
 			space->writeIntoFile(outputFileName);
 		}
 	}
-	perfTotal.stop();
 	cout << "Simulation ended." << endl << endl;
 
-	unsigned long flops = NIterations * NBodies * ((NBodies * 16) + 16 + 18);
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
-	     << "(" << perfTotal.getGflops(flops) << " Gflop/s)" << endl;
+	     << "(" << perfTotal.getGflops(flopsPerIte * NIterations) << " Gflop/s)" << endl;
 
 	delete space;
 
