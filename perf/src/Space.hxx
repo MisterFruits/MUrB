@@ -12,8 +12,6 @@
 #include <fstream>
 #include <iostream>
 
-#include "./utils/myIntrinsics.h"
-
 #include "Space.h"
 
 template <typename T>
@@ -146,7 +144,7 @@ void Space<T>::initBodiesWithFile(const std::string inputFileName)
 	if(!isOk)
 	{
 		std::cout << "Something bad occurred during the reading of \"" << inputFileName
-				<< "\" file... exiting." << std::endl;
+		          << "\" file... exiting." << std::endl;
 		exit(-1);
 	}
 }
@@ -330,7 +328,7 @@ std::ostream& operator<<(std::ostream &o, const Space<T>& s)
 }
 
 // EXPERIMENTAL =======================================================================================================
-/* TODO: this code is commented because the code does not compile if we don't have AVX2 instructions
+/* TODO: this part is commented because the code does not compile if we don't have AVX2 instructions
 template <typename T>
 void Space<T>::vectorComputeBodiesAcceleration()
 {

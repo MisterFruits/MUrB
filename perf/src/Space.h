@@ -10,6 +10,9 @@
 
 #include <string>
 
+#include "utils/myIntrinsics.h" // needed for intrinsic prototypes describe below (see EXPERIMENTAL)
+
+
 template <typename T = double>
 struct vector3
 {
@@ -59,7 +62,7 @@ private:
 	inline T computeTimeStep(const unsigned long iBody);
 
 	// EXPERIMENTAL ===================================================================================================
-	/* TODO: this code is commented because the code does not compile if we don't have AVX2 instructions
+	/* TODO: this part is commented because the code does not compile if we don't have AVX2 instructions
 public:
 	void vectorComputeBodiesAcceleration();
 	void intrinComputeBodiesAcceleration();
