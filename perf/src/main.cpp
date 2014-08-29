@@ -65,7 +65,7 @@ bool argsReader1(int argc, char** argv)
 		}
 
 		InputFileName = argsReader.getArgument("f");
-		NIterations   = stoi(argsReader.getArgument("i").c_str());
+		NIterations   = stoi(argsReader.getArgument("i"));
 
 		if(argsReader.existArgument("v"))
 			Verbose = true;
@@ -119,8 +119,8 @@ void argsReader2(int argc, char** argv)
 			exit(-1);
 		}
 
-		NBodies       = stoi(argsReader.getArgument("n").c_str());
-		NIterations   = stoi(argsReader.getArgument("i").c_str());
+		NBodies       = stoi(argsReader.getArgument("n"));
+		NIterations   = stoi(argsReader.getArgument("i"));
 		InputFileName = "";
 
 		if(argsReader.existArgument("v"))
