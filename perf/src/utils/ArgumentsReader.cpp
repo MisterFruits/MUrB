@@ -29,7 +29,7 @@ ArgumentsReader::~ArgumentsReader()
 
 bool ArgumentsReader::parseArguments(map<string, string> requireArgs, map<string, string> facultativeArgs)
 {
-	assert(requireArgs.size() > 0);
+	//assert(requireArgs.size() > 0); // useless, it is possible to have no require arguments
 	unsigned short int nReqArg = 0;
 
 	this->m_requireArgs = requireArgs;

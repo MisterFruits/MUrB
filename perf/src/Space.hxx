@@ -111,11 +111,17 @@ void Space<T>::initBodiesRandomly()
 	srand(123);
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
-		this->masses[iBody] = ((rand() / (T) RAND_MAX) * 2000000) * G;
+		this->masses[iBody] = ((rand() / (T) RAND_MAX) * 100000000) * G;
 
+		/* old
 		this->positions.x[iBody] = (rand() / (T) RAND_MAX) * 800;
 		this->positions.y[iBody] = (rand() / (T) RAND_MAX) * 600;
 		this->positions.z[iBody] = 0;
+		*/
+
+		this->positions.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0f * 1.78f);
+		this->positions.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0f;
+		this->positions.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0f -10.0f;
 
 		this->speeds.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.02;
 		this->speeds.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.02;
@@ -152,6 +158,7 @@ void Space<T>::initBodiesWithFile(const std::string inputFileName)
 template <typename T>
 void Space<T>::computeBodiesAcceleration()
 {
+//#pragma omp parallel for //TODO: experimental
 	// flops ~= nBody^2 * 17
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 		// flops ~= nBody * 17
@@ -166,7 +173,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 	const T vecX   = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
 	const T vecY   = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
 	const T vecZ   = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
-	const T vecLen = sqrt((vecX * vecX) + (vecY * vecY) + (vecZ * vecZ)); // 5 flops
+	const T vecLen = std::sqrt((vecX * vecX) + (vecY * vecY) + (vecZ * vecZ)); // 5 flops
 
 	if(vecLen == 0)
 		std::cout << "Collision at {" << this->positions.x[jBody] << ", "
@@ -201,14 +208,14 @@ template <typename T>
 T Space<T>::computeTimeStep(const unsigned long iBody)
 {
 	/* || lb.speed ||        */
-	const T s = sqrt((this->speeds.x[iBody] * this->speeds.x[iBody]) +
-			(this->speeds.y[iBody] * this->speeds.y[iBody]) +
-			(this->speeds.z[iBody] * this->speeds.z[iBody])); // 5 flops
+	const T s = std::sqrt((this->speeds.x[iBody] * this->speeds.x[iBody]) +
+	                      (this->speeds.y[iBody] * this->speeds.y[iBody]) +
+	                      (this->speeds.z[iBody] * this->speeds.z[iBody])); // 5 flops
 
 	/* || lb.acceleration || */
-	const T a = sqrt((this->accelerations.x[iBody] * this->accelerations.x[iBody]) +
-	                 (this->accelerations.y[iBody] * this->accelerations.y[iBody]) +
-	                 (this->accelerations.z[iBody] * this->accelerations.z[iBody])); // 5 flops
+	const T a = std::sqrt((this->accelerations.x[iBody] * this->accelerations.x[iBody]) +
+	                      (this->accelerations.y[iBody] * this->accelerations.y[iBody]) +
+	                      (this->accelerations.z[iBody] * this->accelerations.z[iBody])); // 5 flops
 
 	/*
 	 * compute dt
@@ -218,7 +225,7 @@ T Space<T>::computeTimeStep(const unsigned long iBody)
 	 * dt should be positive (+/- becomes + because result of sqrt is positive)
 	 * <=>     dt = [ -s + sqrt( s^2 + 0.2*ClosestNeighborLen*a) ] / a
 	 */
-	T dt = (sqrt(s * s + 0.2 * a * this->closestNeighborLen[iBody]) - s) / a; // 6 flops
+	T dt = (std::sqrt(s * s + 0.2 * a * this->closestNeighborLen[iBody]) - s) / a; // 6 flops
 
 	if(dt == 0)
 		dt = std::numeric_limits<T>::epsilon() / a;
@@ -229,6 +236,7 @@ T Space<T>::computeTimeStep(const unsigned long iBody)
 template <typename T>
 void Space<T>::updateBodiesPositionAndSpeed()
 {
+	this->dt = 0.05; //TODO: delete this hack (useful for visualization)
 	// flops = nBodies * 18
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{

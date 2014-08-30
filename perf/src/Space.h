@@ -24,7 +24,7 @@ struct vector3
 template <typename T = double>
 class Space
 {
-private:
+public://TODO: public attributes is not a good idea...
 	const T G = 6.67384e-11;
 
 	unsigned long nBodies;

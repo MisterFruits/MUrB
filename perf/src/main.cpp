@@ -5,29 +5,48 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
-#include <cmath>
-#include <string>
-#include <cassert>
-#include <iostream>
-
-#include "utils/Perf.h"
-#include "utils/ArgumentsReader.h"
-
-#include "Space.h"
-
 #ifdef NBODY_FLOAT
 #define TYPE float
 #else
 #define TYPE double
 #endif
 
+#include <map>
+#include <cmath>
+#include <string>
+#include <chrono>
+#include <thread>
+#include <vector>
+#include <cassert>
+#include <iostream>
 using namespace std;
+
+#include <GL/glew.h>
+#include <GLFW/glfw3.h>
+
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/transform.hpp>
+using namespace glm;
+
+#include "ogl/OGLTools.h"
+#include "ogl/OGLControl.h"
+#include "ogl/OGLSpheresVisualization.h"
+
+#include "utils/Perf.h"
+#include "utils/ArgumentsReader.h"
+
+#include "Space.h"
 
 string        InputFileName;
 string        OutputBaseName;
 unsigned long NBodies;
 unsigned long NIterations;
 bool          Verbose = false;
+
+int WinWidth  = 1280;
+int WinHeight = 720;
 
 /*
  * read args from command line and set global variables
@@ -157,6 +176,9 @@ int main(int argc, char** argv)
 	// compute MB used for this simulation
 	float Mbytes = (11 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
 
+	// compute flops per iteration
+	unsigned long flopsPerIte = NBodies * ((NBodies * 16) + 16 + 18);
+
 	// display simulation configuration
 	cout << "N-body simulation started !" << endl;
 	cout << "---------------------------" << endl;
@@ -171,6 +193,28 @@ int main(int argc, char** argv)
 	cout <<     "  -> verbose          : " << Verbose                    << endl;
 	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
 
+
+	// draw up visualization window
+	TYPE *radius = new TYPE[NBodies]; //TODO: think to delete this buffer before exiting code
+	for(unsigned long iBody = 0; iBody < NBodies; iBody++)
+		radius[iBody] = space->masses[iBody] * 100.0f;
+
+	// initialize visualization of bodies (with spheres in space)
+	OGLSpheresVisualization<TYPE> visu("N-body", WinWidth, WinHeight,
+	                                   space->positions.x, space->positions.y, space->positions.z, radius,
+	                                   NBodies);
+
+	// specify shaders path and compile them
+	vector<GLenum> shadersType(3);
+	vector<string> shadersFiles(3);
+	shadersType[0] = GL_VERTEX_SHADER;   shadersFiles[0] = "src/ogl/shaders/vertex.glsl";
+	shadersType[1] = GL_GEOMETRY_SHADER; shadersFiles[1] = "src/ogl/shaders/geometry.glsl";
+	shadersType[2] = GL_FRAGMENT_SHADER; shadersFiles[2] = "src/ogl/shaders/fragment.glsl";
+
+	visu.compileShaders(shadersType, shadersFiles);
+
+	cout << endl << "Simulation started..." << endl;
+
 	// write initial bodies into file
 	if(!OutputBaseName.empty())
 	{
@@ -178,24 +222,26 @@ int main(int argc, char** argv)
 		space->writeIntoFile(outputFileName);
 	}
 
-	unsigned long flopsPerIte = NBodies * ((NBodies * 16) + 16 + 18);
+	unsigned long iIte;
+	for(iIte = 1; iIte <= NIterations && !visu.windowShouldClose(); iIte++)
+	{
+		// refresh display in OpenGL window
+		visu.refreshDisplay();
 
-	cout << "Simulation started..." << endl;
-	for(unsigned long iIte = 1; iIte <= NIterations; iIte++) {
 		perfIte.start();
-		/*******************************/
-		/*** Simulation computations ***/
+		//-----------------------------//
+		//-- Simulation computations --//
 		space->computeBodiesAcceleration();
 		space->findTimeStep();
 		space->updateBodiesPositionAndSpeed();
-		/*** Simulation computations ***/
-		/*******************************/
+		//-- Simulation computations --//
+		//-----------------------------//
 		perfIte.stop();
 		perfTotal += perfIte;
 
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
-			     << "(" << perfIte.getGflops(flopsPerIte) << " Gflop/s)." << endl;
+				 << "(" << perfIte.getGflops(flopsPerIte) << " Gflop/s)." << endl;
 
 		// write iteration results into file
 		if(!OutputBaseName.empty())
@@ -203,13 +249,16 @@ int main(int argc, char** argv)
 			std::string outputFileName = OutputBaseName + "." + to_string(iIte) + ".dat";
 			space->writeIntoFile(outputFileName);
 		}
+
+		iIte++;
 	}
 	cout << "Simulation ended." << endl << endl;
 
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
-	     << "(" << perfTotal.getGflops(flopsPerIte * NIterations) << " Gflop/s)" << endl;
+	     << "(" << perfTotal.getGflops(flopsPerIte * iIte) << " Gflop/s)" << endl;
 
-	delete space;
+	delete[] radius;
+	delete   space;
 
 	return EXIT_SUCCESS;
 }
