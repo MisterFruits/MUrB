@@ -109,7 +109,11 @@ OGLSpheresVisualization<T>::OGLSpheresVisualization(const string winName,
 		shadersType[1] = GL_GEOMETRY_SHADER; shadersFiles[1] = "src/ogl/shaders/geometry150.glsl";
 		shadersType[2] = GL_FRAGMENT_SHADER; shadersFiles[2] = "src/ogl/shaders/fragment150.glsl";
 
-		this->compileShaders(shadersType, shadersFiles);
+		if(!this->compileShaders(shadersType, shadersFiles))
+		{
+			glfwDestroyWindow(this->window);
+			this->window = 0;
+		}
 	}
 }
 
