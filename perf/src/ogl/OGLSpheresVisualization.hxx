@@ -101,6 +101,15 @@ OGLSpheresVisualization<T>::OGLSpheresVisualization(const string winName,
 
 		// Create a control object in order to use mouse and keyboard (move in space)
 		this->control = new OGLControl(this->window);
+
+		// specify shaders path and compile them
+		vector<GLenum> shadersType(3);
+		vector<string> shadersFiles(3);
+		shadersType[0] = GL_VERTEX_SHADER;   shadersFiles[0] = "src/ogl/shaders/vertex150.glsl";
+		shadersType[1] = GL_GEOMETRY_SHADER; shadersFiles[1] = "src/ogl/shaders/geometry150.glsl";
+		shadersType[2] = GL_FRAGMENT_SHADER; shadersFiles[2] = "src/ogl/shaders/fragment150.glsl";
+
+		this->compileShaders(shadersType, shadersFiles);
 	}
 }
 
@@ -126,41 +135,35 @@ OGLSpheresVisualization<T>::~OGLSpheresVisualization()
 	}
 }
 
+//TODO: use map in place of two vectors ;-)
 template <typename T>
 bool OGLSpheresVisualization<T>::compileShaders(const std::vector<GLenum> shadersType,
                                                 const std::vector<std::string> shadersFiles)
 {
 	assert(shadersType.size() == shadersFiles.size());
+
 	bool isFine = true;
+	std::vector<GLuint> shaders;
 
-	if(this->window)
+	// load and compile shader programs
+	for(int iShader = 0; iShader < shadersType.size(); iShader++)
 	{
-		std::vector<GLuint> shaders;
-
-		// load and compile shader programs
-		for(int iShader = 0; iShader < shadersType.size(); iShader++)
-		{
-			GLuint shader = OGLTools::loadShaderFromFile(shadersType[iShader], shadersFiles[iShader]);
-			if(shader == 0)
-				isFine = false;
-			shaders.push_back(shader);
-		}
-
-		// link shader program
-		if((unsigned) (this->shaderProgramRef = OGLTools::linkShaders(shaders)) == 0)
+		GLuint shader = OGLTools::loadShaderFromFile(shadersType[iShader], shadersFiles[iShader]);
+		if(shader == 0)
 			isFine = false;
-
-		// ProjectionMatrix * ViewMatrix * ModelMatrix => MVP pattern (Model = identity here)
-		// Get a handle for our "MVP" uniform
-		this->mvpRef = glGetUniformLocation(this->shaderProgramRef, "MVP");
-
-		for(int iShader = 0; iShader < shaders.size(); iShader++)
-			glDeleteShader(shaders[iShader]);
+		shaders.push_back(shader);
 	}
-	else
-	{
+
+	// link shader program
+	if((unsigned) (this->shaderProgramRef = OGLTools::linkShaders(shaders)) == 0)
 		isFine = false;
-	}
+
+	// ProjectionMatrix * ViewMatrix * ModelMatrix => MVP pattern (Model = identity here)
+	// Get a handle for our "MVP" uniform
+	this->mvpRef = glGetUniformLocation(this->shaderProgramRef, "MVP");
+
+	for(int iShader = 0; iShader < shaders.size(); iShader++)
+		glDeleteShader(shaders[iShader]);
 
 	return isFine;
 }

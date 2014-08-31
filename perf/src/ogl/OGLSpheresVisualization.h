@@ -56,11 +56,12 @@ public:
 
 	virtual ~OGLSpheresVisualization();
 
-	bool compileShaders(const std::vector<GLenum> shadersType, const std::vector<std::string> shadersFiles);
-
 	void refreshDisplay();
 
 	inline bool windowShouldClose();
+
+private:
+	bool compileShaders(const std::vector<GLenum> shadersType, const std::vector<std::string> shadersFiles);
 
 };
 

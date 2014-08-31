@@ -16,18 +16,18 @@
 
 template <typename T>
 Space<T>::Space(const unsigned long nBodies)
-: nBodies(nBodies), masses(NULL), closestNeighborLen(NULL), dt(std::numeric_limits<T>::infinity())
-  {
+	: nBodies(nBodies), masses(NULL), closestNeighborLen(NULL), dt(std::numeric_limits<T>::infinity())
+{
 	assert(nBodies > 0);
 	this->initBodiesRandomly();
-  }
+}
 
 template <typename T>
 Space<T>::Space(const std::string inputFileName)
-: nBodies(0), masses(NULL), closestNeighborLen(NULL), dt(std::numeric_limits<T>::infinity())
-  {
+	: nBodies(0), masses(NULL), closestNeighborLen(NULL), dt(std::numeric_limits<T>::infinity())
+{
 	this->initBodiesWithFile(inputFileName);
-  }
+}
 
 template <typename T>
 void Space<T>::allocateBuffers()
@@ -113,19 +113,13 @@ void Space<T>::initBodiesRandomly()
 	{
 		this->masses[iBody] = ((rand() / (T) RAND_MAX) * 100000000) * G;
 
-		/* old
-		this->positions.x[iBody] = (rand() / (T) RAND_MAX) * 800;
-		this->positions.y[iBody] = (rand() / (T) RAND_MAX) * 600;
-		this->positions.z[iBody] = 0;
-		*/
-
 		this->positions.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0f * 1.78f);
 		this->positions.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0f;
 		this->positions.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0f -10.0f;
 
-		this->speeds.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.02;
-		this->speeds.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.02;
-		this->speeds.z[iBody] = 0;
+		this->speeds.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.10;
+		this->speeds.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.10;
+		this->speeds.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.10;
 
 		this->accelerations.x[iBody] = 0;
 		this->accelerations.y[iBody] = 0;
@@ -142,7 +136,10 @@ void Space<T>::initBodiesWithFile(const std::string inputFileName)
 	bodiesFile.open(inputFileName.c_str(), std::ios::in);
 
 	if(!bodiesFile.is_open())
+	{
 		std::cout << "Can't open \"" << inputFileName << "\" file (reading)." << std::endl;
+		exit(-1);
+	}
 
 	bool isOk = this->read(bodiesFile);
 	bodiesFile.close();
@@ -158,7 +155,7 @@ void Space<T>::initBodiesWithFile(const std::string inputFileName)
 template <typename T>
 void Space<T>::computeBodiesAcceleration()
 {
-//#pragma omp parallel for //TODO: experimental
+#pragma omp parallel for //TODO: experimental
 	// flops ~= nBody^2 * 17
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 		// flops ~= nBody * 17
@@ -170,9 +167,11 @@ void Space<T>::computeBodiesAcceleration()
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
 {
-	const T vecX   = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
-	const T vecY   = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
-	const T vecZ   = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
+	assert(iBody != jBody);
+
+	const T vecX   = this->positions.x[jBody] - this->positions.x[iBody];      // 1 flop
+	const T vecY   = this->positions.y[jBody] - this->positions.y[iBody];      // 1 flop
+	const T vecZ   = this->positions.z[jBody] - this->positions.z[iBody];      // 1 flop
 	const T vecLen = std::sqrt((vecX * vecX) + (vecY * vecY) + (vecZ * vecZ)); // 5 flops
 
 	if(vecLen == 0)
@@ -187,7 +186,9 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 	this->accelerations.z[iBody] += acc * vecZ;                      // 2 flop
 
 	if(vecLen < this->closestNeighborLen[iBody])
-		this->closestNeighborLen[iBody] = vecLen;
+#pragma omp critical
+		if(vecLen < this->closestNeighborLen[iBody])
+			this->closestNeighborLen[iBody] = vecLen;
 }
 
 template <typename T>

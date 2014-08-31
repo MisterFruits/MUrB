@@ -5,33 +5,20 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
-#ifdef NBODY_FLOAT
-#define TYPE float
-#else
+#ifdef NBODY_DOUBLE
 #define TYPE double
+#else
+#define TYPE float
 #endif
 
 #include <map>
 #include <cmath>
 #include <string>
-#include <chrono>
-#include <thread>
 #include <vector>
 #include <cassert>
 #include <iostream>
 using namespace std;
 
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-
-#define GLM_FORCE_RADIANS
-#include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <glm/gtx/transform.hpp>
-using namespace glm;
-
-#include "ogl/OGLTools.h"
-#include "ogl/OGLControl.h"
 #include "ogl/OGLSpheresVisualization.h"
 
 #include "utils/Perf.h"
@@ -183,7 +170,7 @@ int main(int argc, char** argv)
 	cout << "N-body simulation started !" << endl;
 	cout << "---------------------------" << endl;
 	if(!InputFileName.empty())
-		cout << "  -> inputFileName(s) : " << InputFileName  << ".*.dat" << endl;
+		cout << "  -> inputFileName(s) : " << InputFileName              << endl;
 	else
 		cout << "  -> random mode      : on"                             << endl;
 	if(!OutputBaseName.empty())
@@ -191,9 +178,14 @@ int main(int argc, char** argv)
 	cout <<     "  -> nBodies          : " << NBodies                    << endl;
 	cout <<     "  -> nIterations      : " << NIterations                << endl;
 	cout <<     "  -> verbose          : " << Verbose                    << endl;
+#ifdef NBODY_DOUBLE
+	cout <<     "  -> precision        : double"                         << endl;
+#else
+	cout <<     "  -> precision        : simple"                         << endl;
+#endif
 	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
 
-	// draw up visualization window
+	// set up visualization window
 	TYPE *radius = new TYPE[NBodies]; //TODO: think to delete this buffer before exiting code
 	for(unsigned long iBody = 0; iBody < NBodies; iBody++)
 		radius[iBody] = space->masses[iBody] * 100.0f;
@@ -202,15 +194,6 @@ int main(int argc, char** argv)
 	OGLSpheresVisualization<TYPE> visu("N-body", WinWidth, WinHeight,
 	                                   space->positions.x, space->positions.y, space->positions.z, radius,
 	                                   NBodies);
-
-	// specify shaders path and compile them
-	vector<GLenum> shadersType(3);
-	vector<string> shadersFiles(3);
-	shadersType[0] = GL_VERTEX_SHADER;   shadersFiles[0] = "src/ogl/shaders/vertex.glsl";
-	shadersType[1] = GL_GEOMETRY_SHADER; shadersFiles[1] = "src/ogl/shaders/geometry.glsl";
-	shadersType[2] = GL_FRAGMENT_SHADER; shadersFiles[2] = "src/ogl/shaders/fragment.glsl";
-
-	visu.compileShaders(shadersType, shadersFiles);
 
 	cout << endl << "Simulation started..." << endl;
 
