@@ -19,7 +19,7 @@ Perf::Perf(const Perf &p)
 	: tStart(p.tStart), tStop(p.tStop) {
 }
 
-Perf::Perf(double ms)
+Perf::Perf(float ms)
 	: tStart(0), tStop(ms * 1000) {
 }
 
@@ -39,15 +39,15 @@ void Perf::reset() {
 	this->tStop  = 0;
 }
 
-double Perf::getElapsedTime() {
+float Perf::getElapsedTime() {
 	return (this->tStop - this->tStart) / 1000.f;
 }
 
-double Perf::getGflops(unsigned long flops) {
+float Perf::getGflops(float flops) {
 	return (flops * (1000 / this->getElapsedTime())) / 1024.0 / 1024.0 / 1024.0;
 }
 
-double Perf::getMemoryBandwidth(unsigned long memops, unsigned short nBytes) {
+float Perf::getMemoryBandwidth(unsigned long memops, unsigned short nBytes) {
 	return (memops * nBytes * (1000 / this->getElapsedTime())) / 1024.0 / 1024.0 / 1024.0;
 }
 

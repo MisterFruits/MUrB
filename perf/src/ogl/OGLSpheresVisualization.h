@@ -60,7 +60,7 @@ public:
 
 	void refreshDisplay();
 
-	inline int windowShouldClose();
+	inline bool windowShouldClose();
 
 };
 

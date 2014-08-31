@@ -177,7 +177,7 @@ int main(int argc, char** argv)
 	float Mbytes = (11 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
 
 	// compute flops per iteration
-	unsigned long flopsPerIte = NBodies * ((NBodies * 16) + 16 + 18);
+	float flopsPerIte = (float) NBodies * (float) ((NBodies * 16) + 16 + 18);
 
 	// display simulation configuration
 	cout << "N-body simulation started !" << endl;
@@ -192,7 +192,6 @@ int main(int argc, char** argv)
 	cout <<     "  -> nIterations      : " << NIterations                << endl;
 	cout <<     "  -> verbose          : " << Verbose                    << endl;
 	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
-
 
 	// draw up visualization window
 	TYPE *radius = new TYPE[NBodies]; //TODO: think to delete this buffer before exiting code
@@ -249,8 +248,6 @@ int main(int argc, char** argv)
 			std::string outputFileName = OutputBaseName + "." + to_string(iIte) + ".dat";
 			space->writeIntoFile(outputFileName);
 		}
-
-		iIte++;
 	}
 	cout << "Simulation ended." << endl << endl;
 

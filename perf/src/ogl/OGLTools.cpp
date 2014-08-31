@@ -22,7 +22,7 @@ GLFWwindow* OGLTools::initAndMakeWindow(const int winWidth, const int winHeight,
 	if (!glfwInit())
 	{
 		cerr << "Failed to initialize GLFW." << endl;
-		exit(-1);
+		return (GLFWwindow*) 0;
 	}
 
 	/* window conf */
@@ -34,6 +34,7 @@ GLFWwindow* OGLTools::initAndMakeWindow(const int winWidth, const int winHeight,
 
 	/* Create a windowed mode window and its OpenGL context */
 	window = glfwCreateWindow(winWidth, winHeight, winName.c_str(), NULL, NULL);
+
 	if (!window)
 	{
 		cerr << "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible." << endl;
