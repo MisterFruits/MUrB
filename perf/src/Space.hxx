@@ -133,7 +133,6 @@ void Space<T>::initBodiesRandomly()
 	srand(123);
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
-		//this->masses[iBody] = ((rand() / (T) RAND_MAX) * 100000000) * G;
 		this->masses[iBody] = ((rand() / (T) RAND_MAX) * 100000000);
 
 		this->positions.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0f * 1.33f);
