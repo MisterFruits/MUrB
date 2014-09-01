@@ -32,8 +32,9 @@ public://TODO: public attributes is not a good idea...
 	vector3<T>    positions;
 	vector3<T>    speeds;
 	vector3<T>    accelerations;
-	T            *closestNeighborLen;
+	T            *closestNeighborDist;
 	T             dt;
+	bool          dtConstant;
 
 public:
 	Space(const unsigned long nBodies);
@@ -42,6 +43,9 @@ public:
 	virtual ~Space();
 
 	inline unsigned long getNBodies();
+
+	inline void setDtConstant(T dtVal);
+	inline void setDtVariable();
 
 	void computeBodiesAcceleration();
 	void findTimeStep();
@@ -58,6 +62,7 @@ private:
 	void initBodiesWithFile(const std::string inputFileName);
 	
 	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
+	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
 
 	inline T computeTimeStep(const unsigned long iBody);
 
@@ -75,8 +80,8 @@ private:
 								vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest);
 	inline void selfIntrinComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim,
 								vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest);
-	// EXPERIMENTAL ===================================================================================================
 	*/
+	// EXPERIMENTAL ===================================================================================================
 };
 
 template <typename T>

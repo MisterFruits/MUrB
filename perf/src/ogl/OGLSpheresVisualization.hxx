@@ -135,7 +135,7 @@ OGLSpheresVisualization<T>::~OGLSpheresVisualization()
 	}
 }
 
-//TODO: use map in place of two vectors ;-)
+//TODO: use map instead of two vectors ;-)
 template <typename T>
 bool OGLSpheresVisualization<T>::compileShaders(const std::vector<GLenum> shadersType,
                                                 const std::vector<std::string> shadersFiles)

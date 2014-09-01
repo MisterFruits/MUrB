@@ -32,8 +32,8 @@ unsigned long NBodies;
 unsigned long NIterations;
 bool          Verbose = false;
 
-int WinWidth  = 1280;
-int WinHeight = 720;
+int WinWidth  = 800;
+int WinHeight = 600;
 
 /*
  * read args from command line and set global variables
@@ -164,13 +164,13 @@ int main(int argc, char** argv)
 	float Mbytes = (11 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
 
 	// compute flops per iteration
-	float flopsPerIte = (float) NBodies * (float) ((NBodies * 16) + 16 + 18);
+	float flopsPerIte = (float) NBodies * (float) (NBodies * 17);
 
 	// display simulation configuration
 	cout << "N-body simulation started !" << endl;
 	cout << "---------------------------" << endl;
 	if(!InputFileName.empty())
-		cout << "  -> inputFileName(s) : " << InputFileName              << endl;
+		cout << "  -> inputFileName    : " << InputFileName              << endl;
 	else
 		cout << "  -> random mode      : on"                             << endl;
 	if(!OutputBaseName.empty())
@@ -186,9 +186,9 @@ int main(int argc, char** argv)
 	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
 
 	// set up visualization window
-	TYPE *radius = new TYPE[NBodies]; //TODO: think to delete this buffer before exiting code
+	TYPE *radius = new TYPE[NBodies];
 	for(unsigned long iBody = 0; iBody < NBodies; iBody++)
-		radius[iBody] = space->masses[iBody] * 100.0f;
+		radius[iBody] = space->masses[iBody] / 200000000.0f;
 
 	// initialize visualization of bodies (with spheres in space)
 	OGLSpheresVisualization<TYPE> visu("N-body", WinWidth, WinHeight,
@@ -203,6 +203,9 @@ int main(int argc, char** argv)
 		std::string outputFileName = OutputBaseName + ".0.dat";
 		space->writeIntoFile(outputFileName);
 	}
+
+	// constant timestep (easier for the visualization)
+	space->setDtConstant(0.05);
 
 	unsigned long iIte;
 	for(iIte = 1; iIte <= NIterations && !visu.windowShouldClose(); iIte++)
