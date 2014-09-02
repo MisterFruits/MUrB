@@ -240,7 +240,7 @@ int main(int argc, char** argv)
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 	     << "(" << perfTotal.getGflops(flopsPerIte * iIte) << " Gflop/s)" << endl;
 
-	delete   space;
+	delete space;
 
 	return EXIT_SUCCESS;
 }
