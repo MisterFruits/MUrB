@@ -29,6 +29,7 @@ public://TODO: public attributes is not a good idea...
 
 	unsigned long nBodies;
 	T            *masses;
+	T            *radiuses;
 	vector3<T>    positions;
 	vector3<T>    speeds;
 	vector3<T>    accelerations;
@@ -46,6 +47,7 @@ public:
 
 	inline void setDtConstant(T dtVal);
 	inline void setDtVariable();
+	inline T getDt();
 
 	void computeBodiesAcceleration();
 	void findTimeStep();

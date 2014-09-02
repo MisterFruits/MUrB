@@ -185,14 +185,9 @@ int main(int argc, char** argv)
 #endif
 	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
 
-	// set up visualization window
-	TYPE *radius = new TYPE[NBodies];
-	for(unsigned long iBody = 0; iBody < NBodies; iBody++)
-		radius[iBody] = space->masses[iBody] / 200000000.0f;
-
 	// initialize visualization of bodies (with spheres in space)
 	OGLSpheresVisualization<TYPE> visu("N-body", WinWidth, WinHeight,
-	                                   space->positions.x, space->positions.y, space->positions.z, radius,
+	                                   space->positions.x, space->positions.y, space->positions.z, space->radiuses,
 	                                   NBodies);
 
 	cout << endl << "Simulation started..." << endl;
@@ -205,7 +200,9 @@ int main(int argc, char** argv)
 	}
 
 	// constant timestep (easier for the visualization)
-	space->setDtConstant(0.05);
+	space->setDtConstant(3600.0); // 1 hour
+
+	TYPE physicTime = 0.0;
 
 	unsigned long iIte;
 	for(iIte = 1; iIte <= NIterations && !visu.windowShouldClose(); iIte++)
@@ -224,9 +221,12 @@ int main(int argc, char** argv)
 		perfIte.stop();
 		perfTotal += perfIte;
 
+		physicTime += space->getDt();
+
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
-				 << "(" << perfIte.getGflops(flopsPerIte) << " Gflop/s)." << endl;
+				 << "(" << perfIte.getGflops(flopsPerIte)  << " Gflop/s), "
+				 << "physic time: " << physicTime          << " s." << endl;
 
 		// write iteration results into file
 		if(!OutputBaseName.empty())
@@ -240,7 +240,6 @@ int main(int argc, char** argv)
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 	     << "(" << perfTotal.getGflops(flopsPerIte * iIte) << " Gflop/s)" << endl;
 
-	delete[] radius;
 	delete   space;
 
 	return EXIT_SUCCESS;

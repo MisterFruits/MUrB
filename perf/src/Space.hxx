@@ -18,6 +18,7 @@ template <typename T>
 Space<T>::Space(const unsigned long nBodies)
 	: nBodies(nBodies),
 	  masses(NULL),
+	  radiuses(NULL),
 	  closestNeighborDist(NULL),
 	  dt(std::numeric_limits<T>::infinity()),
 	  dtConstant(false)
@@ -30,6 +31,7 @@ template <typename T>
 Space<T>::Space(const std::string inputFileName)
 	: nBodies(0),
 	  masses(NULL),
+	  radiuses(NULL),
 	  closestNeighborDist(NULL),
 	  dt(std::numeric_limits<T>::infinity()),
 	  dtConstant(false)
@@ -41,6 +43,8 @@ template <typename T>
 void Space<T>::allocateBuffers()
 {
 	this->masses = new T[this->nBodies];
+
+	this->radiuses = new T[this->nBodies];
 
 	this->positions.x = new T[this->nBodies];
 	this->positions.y = new T[this->nBodies];
@@ -79,6 +83,9 @@ template <typename T>
 Space<T>::~Space() {
 	if(this->masses)
 		delete[] this->masses;
+
+	if(this->radiuses)
+		delete[] this->radiuses;
 
 	if(this->positions.x)
 		delete[] this->positions.x;
@@ -126,6 +133,12 @@ void Space<T>::setDtVariable()
 }
 
 template <typename T>
+T Space<T>:: getDt()
+{
+	return this->dt;
+}
+
+template <typename T>
 void Space<T>::initBodiesRandomly()
 {
 	this->allocateBuffers();
@@ -133,15 +146,17 @@ void Space<T>::initBodiesRandomly()
 	srand(123);
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
-		this->masses[iBody] = ((rand() / (T) RAND_MAX) * 100000000);
+		this->masses[iBody] = ((rand() / (T) RAND_MAX) * 5.0e21);
 
-		this->positions.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0f * 1.33f);
-		this->positions.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0f;
-		this->positions.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0f -10.0f;
+		this->radiuses[iBody] = this->masses[iBody] * 0.6e-15;
 
-		this->speeds.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.10;
-		this->speeds.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.10;
-		this->speeds.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 0.10;
+		this->positions.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+		this->positions.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+		this->positions.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+
+		this->speeds.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		this->speeds.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		this->speeds.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
 		this->accelerations.x[iBody] = 0;
 		this->accelerations.y[iBody] = 0;
@@ -197,25 +212,20 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 	const T diffPosZ = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
 	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
 	const T dist = std::sqrt(squareDist);
-
-	if(dist == 0)
-	{
-		std::cout << "Collision at {" << this->positions.x[jBody] << ", "
-		                              << this->positions.y[jBody] << ", "
-		                              << this->positions.z[jBody] << "}" << std::endl;
-		assert(dist != 0);
-	}
+	assert(dist != 0);
 
 	const T acc = G * this->masses[jBody] / (squareDist * dist); // 3 flops
 	this->accelerations.x[iBody] += acc * diffPosX; // 2 flop
 	this->accelerations.y[iBody] += acc * diffPosY; // 2 flop
 	this->accelerations.z[iBody] += acc * diffPosZ; // 2 flop
 
+	/*
 	if(!this->dtConstant)
 		if(dist < this->closestNeighborDist[iBody])
 #pragma omp critical
 			if(dist < this->closestNeighborDist[iBody])
 				this->closestNeighborDist[iBody] = dist;
+	*/
 }
 
 template <typename T>
@@ -343,7 +353,8 @@ bool Space<T>::read(std::istream& stream)
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
 		stream >> this->masses[iBody];
-		//this->masses[iBody] *= G;
+
+		stream >> this->radiuses[iBody];
 
 		stream >> this->positions.x[iBody];
 		stream >> this->positions.y[iBody];
@@ -352,6 +363,10 @@ bool Space<T>::read(std::istream& stream)
 		stream >> this->speeds.x[iBody];
 		stream >> this->speeds.y[iBody];
 		stream >> this->speeds.z[iBody];
+
+		std::cout << "speed.x = " << this->speeds.x[iBody] << ", "
+		          << "speed.y = " << this->speeds.y[iBody] << ", "
+		          << "speed.z = " << this->speeds.z[iBody] << std::endl;
 
 		this->accelerations.x[iBody] = 0;
 		this->accelerations.y[iBody] = 0;
@@ -373,6 +388,7 @@ void Space<T>::write(std::ostream& stream)
 
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 		stream << this->masses     [iBody] << " "
+		       << this->radiuses   [iBody] << " "
 		       << this->positions.x[iBody] << " "
 		       << this->positions.y[iBody] << " "
 		       << this->positions.z[iBody] << " "

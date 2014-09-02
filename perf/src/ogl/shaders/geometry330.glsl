@@ -19,7 +19,12 @@ uniform mat4 MVP;
 void main() {
 	//fColor = gColor[0]; // Point has only one vertex
 
-	vec4 scale = vec4(gRadius[0]);
+	vec4 scale = vec4(gRadius[0] * 1.0e-7f);
+
+	vec4 screenPos = vec4(gl_in[0].gl_Position.x * 1.0e-8f,
+	                      gl_in[0].gl_Position.y * 1.0e-8f,
+	                      gl_in[0].gl_Position.z * 1.0e-8f,
+	                      1);
 	//scale = vec4(1);
 
 	// draw a empty sphere
@@ -35,29 +40,10 @@ void main() {
 			                           sin(verticalAngle),
 			                           cos(verticalAngle) * cos(horizontalAngle),
 			                           0.0);
-			gl_Position = MVP * (gl_in[0].gl_Position + offset);
+			gl_Position = MVP * (screenPos + offset);
 			EmitVertex();
 		}
 	}
-
-	/*
-	for (int j = 0; j <= (N_POINTS_PER_CIRCLE / 2); j++) {
-		float horizontalAngle = (PI * 2.0 / N_POINTS_PER_CIRCLE) * j;
-
-		for (int i = 0; i <= N_POINTS_PER_CIRCLE; i++) {
-			// Angle between each side in radiant
-			float verticalAngle = (PI * 2.0 / N_POINTS_PER_CIRCLE) * i + (3.14f / 2.0f);
-
-			// Offset from center of point
-			vec4 offset = vec4(cos(verticalAngle) * sin(horizontalAngle),
-			                           sin(verticalAngle),
-			                           cos(verticalAngle) * cos(horizontalAngle),
-			                           0.0);
-			gl_Position = MVP * (vec4(0,0,0,1) + offset);
-			EmitVertex();
-		}
-	}
-	*/
 
 	/*
 	// draw a plain sphere
@@ -74,7 +60,7 @@ void main() {
 			                      sin(verticalAngle),
 			                      cos(verticalAngle) * cos(horizontalAngle),
 			                      0.0);
-			gl_Position = MVP * (gl_in[0].gl_Position + offset);
+			gl_Position = MVP * (screenPos + offset);
 			EmitVertex();
 
 			verticalAngle = (PI * 2.0 / N_POINTS_PER_CIRCLE) * (i +1);
@@ -82,7 +68,7 @@ void main() {
 			                      sin(verticalAngle),
 			                      cos(verticalAngle) * cos(horizontalAngle),
 			                      0.0);
-			gl_Position = MVP * (gl_in[0].gl_Position + offset);
+			gl_Position = MVP * (screenPos + offset);
 			EmitVertex();
 
 			horizontalAngle = (PI * 2.0 / N_POINTS_PER_CIRCLE) * (j +1);
@@ -90,7 +76,7 @@ void main() {
 			                      sin(verticalAngle),
 			                      cos(verticalAngle) * cos(horizontalAngle),
 			                      0.0);
-			gl_Position = MVP * (gl_in[0].gl_Position + offset);
+			gl_Position = MVP * (screenPos + offset);
 			EmitVertex();
 
 			verticalAngle = (PI * 2.0 / N_POINTS_PER_CIRCLE) * (i +2);
@@ -98,7 +84,7 @@ void main() {
 			                      sin(verticalAngle),
 			                      cos(verticalAngle) * cos(horizontalAngle),
 			                      0.0);
-			gl_Position = MVP * (gl_in[0].gl_Position + offset);
+			gl_Position = MVP * (screenPos + offset);
 			EmitVertex();
 
 
@@ -108,7 +94,7 @@ void main() {
 			                      sin(verticalAngle),
 			                      cos(verticalAngle) * cos(horizontalAngle),
 			                      0.0);
-			gl_Position = MVP * (gl_in[0].gl_Position + offset);
+			gl_Position = MVP * (screenPos + offset);
 			EmitVertex();
 		}
 	}

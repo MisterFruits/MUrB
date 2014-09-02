@@ -16,7 +16,12 @@ in float gRadius[];
 uniform mat4 MVP;
 
 void main() {
-	vec4 scale = vec4(gRadius[0]);
+	vec4 scale = vec4(gRadius[0] * 1.0e-7f);
+
+	vec4 screenPos = vec4(gl_in[0].gl_Position.x * 1.0e-8f,
+	                      gl_in[0].gl_Position.y * 1.0e-8f,
+	                      gl_in[0].gl_Position.z * 1.0e-8f,
+	                      1);
 
 	// draw a empty sphere
 	for (int j = 0; j <= (N_POINTS_PER_CIRCLE / 2); j++) {
@@ -31,7 +36,7 @@ void main() {
 			                           sin(verticalAngle),
 			                           cos(verticalAngle) * cos(horizontalAngle),
 			                           0.0);
-			gl_Position = MVP * (gl_in[0].gl_Position + offset);
+			gl_Position = MVP * (screenPos + offset);
 			EmitVertex();
 		}
 	}
