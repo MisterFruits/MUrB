@@ -36,7 +36,7 @@ Space<T>::Space(const std::string inputFileName)
 	  dt(std::numeric_limits<T>::infinity()),
 	  dtConstant(false)
 {
-	this->initBodiesWithFile(inputFileName);
+	this->initBodiesFromFile(inputFileName);
 }
 
 template <typename T>
@@ -57,12 +57,6 @@ void Space<T>::allocateBuffers()
 	this->accelerations.x = new T[this->nBodies];
 	this->accelerations.y = new T[this->nBodies];
 	this->accelerations.z = new T[this->nBodies];
-
-	/*
-	this->tmpAccelerations.x = new T[this->nBodies];
-	this->tmpAccelerations.y = new T[this->nBodies];
-	this->tmpAccelerations.z = new T[this->nBodies];
-	*/
 
 	this->closestNeighborDist = new T[this->nBodies];
 
@@ -115,15 +109,6 @@ Space<T>::~Space() {
 		delete[] this->accelerations.y;
 	if(this->accelerations.z)
 		delete[] this->accelerations.z;
-
-	/*
-	if(this->tmpAccelerations.x)
-		delete[] this->tmpAccelerations.x;
-	if(this->tmpAccelerations.y)
-		delete[] this->tmpAccelerations.y;
-	if(this->tmpAccelerations.z)
-		delete[] this->tmpAccelerations.z;
-	*/
 
 	if(this->closestNeighborDist)
 		delete[] this->closestNeighborDist;
@@ -184,7 +169,7 @@ void Space<T>::initBodiesRandomly()
 }
 
 template <typename T>
-void Space<T>::initBodiesWithFile(const std::string inputFileName)
+void Space<T>::initBodiesFromFile(const std::string inputFileName)
 {
 	std::ifstream bodiesFile;
 	bodiesFile.open(inputFileName.c_str(), std::ios::in);
@@ -229,6 +214,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 	const T diffPosZ = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
 	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
 	const T dist = std::sqrt(squareDist);
+	//const T dist = squareDist;
 	assert(dist != 0);
 
 	const T acc = G * this->masses[jBody] / (squareDist * dist); // 3 flops

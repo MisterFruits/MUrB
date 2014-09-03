@@ -60,7 +60,7 @@ private:
 	void allocateBuffers();
 
 	void initBodiesRandomly();
-	void initBodiesWithFile(const std::string inputFileName);
+	void initBodiesFromFile(const std::string inputFileName);
 	
 	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
 	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
