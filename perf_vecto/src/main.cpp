@@ -33,8 +33,8 @@ unsigned long NIterations;
 bool          Verbose = false;
 TYPE          Dt      = 3600; //in sec, here 3600 sec = 1 hour
 
-int WinWidth  = 1600;
-int WinHeight = 1024;
+int WinWidth  = 800;
+int WinHeight = 600;
 
 /*
  * read args from command line and set global variables
