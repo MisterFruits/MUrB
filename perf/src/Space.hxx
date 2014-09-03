@@ -58,6 +58,12 @@ void Space<T>::allocateBuffers()
 	this->accelerations.y = new T[this->nBodies];
 	this->accelerations.z = new T[this->nBodies];
 
+	/*
+	this->tmpAccelerations.x = new T[this->nBodies];
+	this->tmpAccelerations.y = new T[this->nBodies];
+	this->tmpAccelerations.z = new T[this->nBodies];
+	*/
+
 	this->closestNeighborDist = new T[this->nBodies];
 
 	/* TODO: if we want to use __mm_alloc we have to set properly free calls in the destructor (~Space() method)
@@ -109,6 +115,15 @@ Space<T>::~Space() {
 		delete[] this->accelerations.y;
 	if(this->accelerations.z)
 		delete[] this->accelerations.z;
+
+	/*
+	if(this->tmpAccelerations.x)
+		delete[] this->tmpAccelerations.x;
+	if(this->tmpAccelerations.y)
+		delete[] this->tmpAccelerations.y;
+	if(this->tmpAccelerations.z)
+		delete[] this->tmpAccelerations.z;
+	*/
 
 	if(this->closestNeighborDist)
 		delete[] this->closestNeighborDist;
@@ -363,10 +378,6 @@ bool Space<T>::read(std::istream& stream)
 		stream >> this->speeds.x[iBody];
 		stream >> this->speeds.y[iBody];
 		stream >> this->speeds.z[iBody];
-
-		std::cout << "speed.x = " << this->speeds.x[iBody] << ", "
-		          << "speed.y = " << this->speeds.y[iBody] << ", "
-		          << "speed.z = " << this->speeds.z[iBody] << std::endl;
 
 		this->accelerations.x[iBody] = 0;
 		this->accelerations.y[iBody] = 0;

@@ -27,7 +27,7 @@ OGLControl::OGLControl(GLFWwindow* window)
 {
 	int winWidth, winHeight;
 	glfwGetWindowSize(this->window, &winWidth, &winHeight);
-	this->projectionMatrix = glm::perspective(this->initialFoV, (winWidth * 1.0f) / (winHeight * 1.0f), 0.1f, 100.0f);
+	this->projectionMatrix = glm::perspective(this->initialFoV, (winWidth * 1.0f) / (winHeight * 1.0f), 0.1f, 5000.0f);
 }
 
 OGLControl::~OGLControl()

@@ -31,9 +31,10 @@ string        OutputBaseName;
 unsigned long NBodies;
 unsigned long NIterations;
 bool          Verbose = false;
+TYPE          Dt      = 3600; //in sec, here 3600 sec = 1 hour
 
-int WinWidth  = 800;
-int WinHeight = 600;
+int WinWidth  = 1600;
+int WinHeight = 1024;
 
 /*
  * read args from command line and set global variables
@@ -58,6 +59,8 @@ bool argsReader1(int argc, char** argv)
 	docArgs  ["h"]     = "display this help.";
 	faculArgs["-help"] = "";
 	docArgs  ["-help"] = "display this help.";
+	faculArgs["-dt"]   = "timeStep";
+	docArgs  ["-dt"]   = "select a fixed time step in second.";
 
 	if(argsReader.parseArguments(reqArgs, faculArgs))
 	{
@@ -77,6 +80,8 @@ bool argsReader1(int argc, char** argv)
 			Verbose = true;
 		if(argsReader.existArgument("w"))
 			OutputBaseName = argsReader.getArgument("w");
+		if(argsReader.existArgument("-dt"))
+			Dt = stof(argsReader.getArgument("-dt"));
 	}
 	else
 	{
@@ -113,6 +118,8 @@ void argsReader2(int argc, char** argv)
 	docArgs  ["h"]     = "display this help.";
 	faculArgs["-help"] = "";
 	docArgs  ["-help"] = "display this help.";
+	faculArgs["-dt"]   = "timeStep";
+	docArgs  ["-dt"]   = "select a fixed time step in second.";
 
 	if(argsReader.parseArguments(reqArgs, faculArgs))
 	{
@@ -133,6 +140,8 @@ void argsReader2(int argc, char** argv)
 			Verbose = true;
 		if(argsReader.existArgument("w"))
 			OutputBaseName = argsReader.getArgument("w");
+		if(argsReader.existArgument("-dt"))
+			Dt = stof(argsReader.getArgument("-dt"));
 	}
 	else
 	{
@@ -222,10 +231,9 @@ int main(int argc, char** argv)
 	}
 
 	// constant timestep (easier for the visualization)
-	space->setDtConstant(3600.0); // time step is set as 1 hour
+	space->setDtConstant(Dt);
 
 	TYPE physicTime = 0.0;
-
 	unsigned long iIte;
 	for(iIte = 1; iIte <= NIterations && !visu.windowShouldClose(); iIte++)
 	{
