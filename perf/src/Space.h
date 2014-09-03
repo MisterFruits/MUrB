@@ -12,7 +12,6 @@
 
 #include "utils/myIntrinsics.h" // needed for intrinsic prototypes describe below (see EXPERIMENTAL)
 
-
 template <typename T = double>
 struct vector3
 {

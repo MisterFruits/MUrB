@@ -144,6 +144,28 @@ void argsReader2(int argc, char** argv)
 	}
 }
 
+string strDate(TYPE timestamp)
+{
+	unsigned int days;
+	unsigned int hours;
+	unsigned int minutes;
+	TYPE rest;
+
+	days = timestamp / (24 * 60 * 60);
+	rest = timestamp - (days * 24 * 60 * 60);
+
+	hours = rest / (60 * 60);
+	rest = rest - (hours * 60 * 60);
+
+	minutes = rest / 60;
+	rest = rest - (minutes * 60);
+
+	return to_string(days)    + "d " +
+	       to_string(hours)   + "h " +
+	       to_string(minutes) + "m " +
+	       to_string(rest)    + "s";
+}
+
 int main(int argc, char** argv)
 {
 	Perf perfIte, perfTotal;
@@ -200,7 +222,7 @@ int main(int argc, char** argv)
 	}
 
 	// constant timestep (easier for the visualization)
-	space->setDtConstant(3600.0); // 1 hour
+	space->setDtConstant(3600.0); // time step is set as 1 hour
 
 	TYPE physicTime = 0.0;
 
@@ -226,7 +248,7 @@ int main(int argc, char** argv)
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
 				 << "(" << perfIte.getGflops(flopsPerIte)  << " Gflop/s), "
-				 << "physic time: " << physicTime          << " s." << endl;
+				 << "physic time: " << strDate(physicTime) << endl;
 
 		// write iteration results into file
 		if(!OutputBaseName.empty())

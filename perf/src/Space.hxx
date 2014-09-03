@@ -61,22 +61,24 @@ void Space<T>::allocateBuffers()
 	this->closestNeighborDist = new T[this->nBodies];
 
 	/* TODO: if we want to use __mm_alloc we have to set properly free calls in the destructor (~Space() method)
-	this->masses = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
+	this->masses = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
 
-	this->positions.x = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
-	this->positions.y = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
-	this->positions.z = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
+	this->radiuses = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
 
-	this->speeds.x = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
-	this->speeds.y = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
-	this->speeds.z = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
+	this->positions.x = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
+	this->positions.y = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
+	this->positions.z = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
 
-	this->accelerations.x = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
-	this->accelerations.y = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
-	this->accelerations.z = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
+	this->speeds.x = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
+	this->speeds.y = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
+	this->speeds.z = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
 
-	this->closestNeighborDist = (T*)_mm_malloc(this->nBodies * sizeof(T), 64);
-	 */
+	this->accelerations.x = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
+	this->accelerations.y = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
+	this->accelerations.z = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
+
+	this->closestNeighborDist = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
+	*/
 }
 
 template <typename T>
@@ -219,13 +221,11 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 	this->accelerations.y[iBody] += acc * diffPosY; // 2 flop
 	this->accelerations.z[iBody] += acc * diffPosZ; // 2 flop
 
-	/*
 	if(!this->dtConstant)
 		if(dist < this->closestNeighborDist[iBody])
 #pragma omp critical
 			if(dist < this->closestNeighborDist[iBody])
 				this->closestNeighborDist[iBody] = dist;
-	*/
 }
 
 template <typename T>
