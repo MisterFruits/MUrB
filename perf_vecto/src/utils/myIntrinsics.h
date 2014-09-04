@@ -156,6 +156,10 @@
 		#define REQUIRED_ALIGNEMENT 16
 
 	#endif
+#else
+	// just for compilation
+	#define VECTOR_SIZE 4
+	#define REQUIRED_ALIGNEMENT 16
 #endif
 
 #endif /* MY_INTRINSICS_H */

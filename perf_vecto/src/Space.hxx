@@ -61,26 +61,6 @@ void Space<T>::allocateBuffers()
 	this->accelerations.z = new vec_t<T>[this->nVecs];
 
 	this->closestNeighborDist = new vec_t<T>[this->nVecs];
-
-	/* TODO: if we want to use __mm_alloc we have to set properly free calls in the destructor (~Space() method)
-	this->masses = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-
-	this->radiuses = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-
-	this->positions.x = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-	this->positions.y = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-	this->positions.z = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-
-	this->speeds.x = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-	this->speeds.y = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-	this->speeds.z = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-
-	this->accelerations.x = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-	this->accelerations.y = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-	this->accelerations.z = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-
-	this->closestNeighborDist = (T*)_mm_malloc(this->nBodies * sizeof(T), REQUIRED_ALIGNEMENT);
-	*/
 }
 
 template <typename T>
@@ -204,101 +184,98 @@ void Space<T>::initBodiesFromFile(const std::string inputFileName)
 template <typename T>
 void Space<T>::computeBodiesAcceleration()
 {
-#pragma omp parallel for //TODO: experimental
+#pragma omp parallel for
 	// flops ~= nBody^2 * 17
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		// flops ~= nBody * 17
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 			if(iVec != jVec)
 			{
-				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
-					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
-						this->computeAccelerationBetweenTwoBodies(iVec, jVec, iBody, jBody); // 17 flops
-						//this->computeAccelerationBetweenTwoBodiesNaive(iVec, jVec, iBody, jBody); // 22 flops
+				this->computeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
+				                                                  this->positions.y        [iVec].vec_data,
+				                                                  this->positions.z        [iVec].vec_data,
+				                                                  this->accelerations.x    [iVec].vec_data,
+				                                                  this->accelerations.y    [iVec].vec_data,
+				                                                  this->accelerations.z    [iVec].vec_data,
+				                                                  this->closestNeighborDist[iVec].vec_data,
+				                                                  this->masses             [jVec].vec_data,
+				                                                  this->positions.x        [jVec].vec_data,
+				                                                  this->positions.y        [jVec].vec_data,
+				                                                  this->positions.z        [jVec].vec_data); // 17 flops
 			}
 			else
 			{
 				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
 						if(iBody != jBody)
-							this->computeAccelerationBetweenTwoBodies(iVec, jVec, iBody, jBody); // 17 flops
-							//this->computeAccelerationBetweenTwoBodiesNaive(iVec, jVec, iBody, jBody); // 22 flops
+							this->computeAccelerationBetweenTwoBodies(this->positions.x        [iVec].vec_data[iBody],
+							                                          this->positions.y        [iVec].vec_data[iBody],
+							                                          this->positions.z        [iVec].vec_data[iBody],
+							                                          this->accelerations.x    [iVec].vec_data[iBody],
+							                                          this->accelerations.y    [iVec].vec_data[iBody],
+							                                          this->accelerations.z    [iVec].vec_data[iBody],
+							                                          this->closestNeighborDist[iVec].vec_data[iBody],
+							                                          this->masses             [jVec].vec_data[jBody],
+							                                          this->positions.x        [jVec].vec_data[jBody],
+							                                          this->positions.y        [jVec].vec_data[jBody],
+							                                          this->positions.z        [jVec].vec_data[jBody]); // 17 flops
 			}
 }
 
 template <typename T>
-void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long  iVec,
-                                                   const unsigned long  jVec,
-                                                   const unsigned short iBody,
-                                                   const unsigned short jBody)
+void Space<T>::computeAccelerationBetweenTwoVectorOfBodies(const T* __restrict iVecPosX,
+                                                           const T* __restrict iVecPosY,
+                                                           const T* __restrict iVecPosZ,
+                                                                 T* __restrict iVecAccsX,
+                                                                 T* __restrict iVecAccsY,
+                                                                 T* __restrict iVecAccsZ,
+                                                                 T* __restrict iClosNeiDist,
+                                                           const T* __restrict jVecMasses,
+                                                           const T* __restrict jVecPosX,
+                                                           const T* __restrict jVecPosY,
+                                                           const T* __restrict jVecPosZ)
 {
-	assert(iVec != jVec || iBody != jBody);
-
-	const T diffPosX = this->positions.x[jVec].vec_data[jBody] - this->positions.x[iVec].vec_data[iBody]; // 1 flop
-	const T diffPosY = this->positions.y[jVec].vec_data[jBody] - this->positions.y[iVec].vec_data[iBody]; // 1 flop
-	const T diffPosZ = this->positions.z[jVec].vec_data[jBody] - this->positions.z[iVec].vec_data[iBody]; // 1 flop
-	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
-	//const T dist = squareDist;
-	const T dist = std::sqrt(squareDist);
-	assert(dist != 0);
-
-	const T acc = G * this->masses[jVec].vec_data[jBody] / (squareDist * dist); // 3 flops
-	this->accelerations.x[iVec].vec_data[iBody] += acc * diffPosX; // 2 flop
-	this->accelerations.y[iVec].vec_data[iBody] += acc * diffPosY; // 2 flop
-	this->accelerations.z[iVec].vec_data[iBody] += acc * diffPosZ; // 2 flop
-
-	/*
-	std::cout << "dist = " << dist << std::endl;
-	std::cout << "acc  = " << acc  << std::endl << std::endl;
-	*/
-
-	if(!this->dtConstant)
-		if(dist < this->closestNeighborDist[iVec].vec_data[iBody])
-#pragma omp critical
-			if(dist < this->closestNeighborDist[iVec].vec_data[iBody])
-				this->closestNeighborDist[iVec].vec_data[iBody] = dist;
+	for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+		for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
+			this->computeAccelerationBetweenTwoBodies(iVecPosX    [iBody],
+			                                          iVecPosY    [iBody],
+			                                          iVecPosZ    [iBody],
+			                                          iVecAccsX   [iBody],
+			                                          iVecAccsY   [iBody],
+			                                          iVecAccsZ   [iBody],
+			                                          iClosNeiDist[iBody],
+			                                          jVecMasses  [jBody],
+			                                          jVecPosX    [jBody],
+			                                          jVecPosY    [jBody],
+			                                          jVecPosZ    [jBody]);
 }
 
+
 template <typename T>
-void Space<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long  iVec,
-                                                        const unsigned long  jVec,
-                                                        const unsigned short iBody,
-                                                        const unsigned short jBody)
+void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
+                                                         T &iAccsX,      T &iAccsY,      T &iAccsZ,
+                                                         T &iClosNeiDist,
+                                                   const T &jMasses,
+                                                   const T &jPosX, const T &jPosY, const T &jPosZ)
 {
-	assert(iVec != jVec || iBody != jBody);
+	const T diffPosX = jPosX - iPosX; // 1 flop
+	const T diffPosY = jPosY - iPosY; // 1 flop
+	const T diffPosZ = jPosZ - iPosZ; // 1 flop
+	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
+	const T dist = std::sqrt(squareDist);
+	//const T dist = squareDist;
+	assert(dist != 0);
 
-	const T diffPosX = this->positions.x[jVec].vec_data[jBody] - this->positions.x[iVec].vec_data[iBody]; // 1 flop
-	const T diffPosY = this->positions.y[jVec].vec_data[jBody] - this->positions.y[iVec].vec_data[iBody]; // 1 flop
-	const T diffPosZ = this->positions.z[jVec].vec_data[jBody] - this->positions.z[iVec].vec_data[iBody]; // 1 flop
-
-	// compute distance between iBody and jBody: Dij
-	const T dist = std::sqrt((diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ)); // 5 flops
-
-	// compute the force value between iBody and jBody: || F || = G.mi.mj / Dij²
-	const T force = G * this->masses[iVec].vec_data[iBody] * this->masses[jVec].vec_data[jBody] / (dist * dist); // 4 flops
-
-	// compute the acceleration value: || a || = || F || / mi
-	const T acc = force / this->masses[iVec].vec_data[iBody]; // 1 flop
-
-	// we cannot divide by 0
-	if(dist == 0)
-	{
-		std::cout << "Collision at {" << this->positions.x[jVec].vec_data[jBody] << ", "
-		                              << this->positions.y[jVec].vec_data[jBody] << ", "
-		                              << this->positions.z[jVec].vec_data[jBody] << "}" << std::endl;
-		assert(dist != 0);
-	}
-
-	// normalize and add acceleration value into acceleration vector: a += || a ||.u
-	this->accelerations.x[iVec].vec_data[iBody] += acc * (diffPosX / dist); // 3 flops
-	this->accelerations.y[iVec].vec_data[iBody] += acc * (diffPosY / dist); // 3 flops
-	this->accelerations.z[iVec].vec_data[iBody] += acc * (diffPosZ / dist); // 3 flops
+	const T acc = G * jMasses / (squareDist * dist); // 3 flops
+	iAccsX += acc * diffPosX; // 2 flop
+	iAccsY += acc * diffPosY; // 2 flop
+	iAccsZ += acc * diffPosZ; // 2 flop
 
 	if(!this->dtConstant)
-		if(dist < this->closestNeighborDist[iVec].vec_data[iBody])
+		if(dist < iClosNeiDist)
 #pragma omp critical
-			if(dist < this->closestNeighborDist[iVec].vec_data[iBody])
-				this->closestNeighborDist[iVec].vec_data[iBody] = dist;
+			if(dist < iClosNeiDist)
+				iClosNeiDist = dist;
 }
 
 template <typename T>

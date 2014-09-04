@@ -63,7 +63,7 @@ private:
 	void initBodiesFromFile(const std::string inputFileName);
 	
 	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
-	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
+	void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
 
 	inline T computeTimeStep(const unsigned long iBody);
 
