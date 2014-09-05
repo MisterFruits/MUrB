@@ -174,7 +174,7 @@ void Space<T>::initBodiesFromFile(const std::string inputFileName)
 template <typename T>
 void Space<T>::computeBodiesAcceleration()
 {
-#pragma omp parallel for //TODO: experimental
+#pragma omp parallel for schedule(runtime)
 	// flops ~= nBody^2 * 17
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 		// flops ~= nBody * 17
@@ -203,9 +203,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 
 	if(!this->dtConstant)
 		if(dist < this->closestNeighborDist[iBody])
-#pragma omp critical
-			if(dist < this->closestNeighborDist[iBody])
-				this->closestNeighborDist[iBody] = dist;
+			this->closestNeighborDist[iBody] = dist;
 }
 
 template <typename T>
@@ -242,9 +240,7 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBod
 
 	if(!this->dtConstant)
 		if(dist < this->closestNeighborDist[iBody])
-#pragma omp critical
-			if(dist < this->closestNeighborDist[iBody])
-				this->closestNeighborDist[iBody] = dist;
+			this->closestNeighborDist[iBody] = dist;
 }
 
 template <typename T>

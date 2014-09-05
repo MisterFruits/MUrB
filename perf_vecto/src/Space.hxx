@@ -236,17 +236,12 @@ void Space<T>::initBodiesFromFile(const std::string inputFileName)
 template <typename T>
 void Space<T>::computeBodiesAcceleration()
 {
-#pragma omp parallel for
+#pragma omp parallel for schedule(runtime)
 	// flops ~= nBody^2 * 17
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		// flops ~= nBody * 17
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 			if(iVec != jVec)
-			{
-				/*
-				std::cout << "iVec = " << iVec << std::endl;
-				std::cout << "jVec = " << jVec << std::endl;
-				*/
 				this->iComputeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
 				                                                   this->positions.y        [iVec].vec_data,
 				                                                   this->positions.z        [iVec].vec_data,
@@ -258,9 +253,7 @@ void Space<T>::computeBodiesAcceleration()
 				                                                   this->positions.x        [jVec].vec_data,
 				                                                   this->positions.y        [jVec].vec_data,
 				                                                   this->positions.z        [jVec].vec_data); // 17 flops
-			}
 			else
-			{
 				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
 						if(iBody != jBody)
@@ -275,7 +268,6 @@ void Space<T>::computeBodiesAcceleration()
 							                                          this->positions.x        [jVec].vec_data[jBody],
 							                                          this->positions.y        [jVec].vec_data[jBody],
 							                                          this->positions.z        [jVec].vec_data[jBody]); // 17 flops
-			}
 }
 
 template <typename T>
@@ -389,8 +381,8 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 
 		//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
 		vec rSquareDist = vec_add(vec_mul(rDiffPosZ, rDiffPosZ),
-								  vec_add(vec_mul(rDiffPosY, rDiffPosY),
-										  vec_mul(rDiffPosX, rDiffPosX)));
+		                          vec_add(vec_mul(rDiffPosY, rDiffPosY),
+		                                  vec_mul(rDiffPosX, rDiffPosX)));
 
 		//const T dist = std::sqrt(squareDist);
 		vec rDist = vec_sqrt(rSquareDist);
