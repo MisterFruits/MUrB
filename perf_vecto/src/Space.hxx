@@ -393,7 +393,7 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 										  vec_mul(rDiffPosX, rDiffPosX)));
 
 		//const T dist = std::sqrt(squareDist);
-		 vec rDist = vec_sqrt(rSquareDist);
+		vec rDist = vec_sqrt(rSquareDist);
 
 		//const T acc = G * jMasses / (squareDist * dist); // 3 flops
 		vec rAcc = vec_div(vec_mul(rG, rJMass), vec_mul(rDist, rSquareDist));
@@ -568,13 +568,6 @@ bool Space<T>::read(std::istream& stream)
 			this->accelerations.z[iVec].vec_data[iBody] = 0;
 
 			this->closestNeighborDist[iVec].vec_data[iBody] = std::numeric_limits<T>::infinity();
-
-			/*
-			std::cout << "this->masses     [" << realBody << "] = " << this->masses[iVec].vec_data[iBody] << std::endl;
-			std::cout << "this->positions.x[" << realBody << "] = " << this->positions.x[iVec].vec_data[iBody] << std::endl;
-			std::cout << "this->positions.y[" << realBody << "] = " << this->positions.y[iVec].vec_data[iBody] << std::endl;
-			std::cout << "this->positions.z[" << realBody << "] = " << this->positions.z[iVec].vec_data[iBody] << std::endl << std::endl;
-			*/
 
 			if(!stream.good())
 				return false;

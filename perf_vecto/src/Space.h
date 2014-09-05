@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "utils/myIntrinsics.h" // needed for intrinsic prototypes describe below (see EXPERIMENTAL)
+#include "utils/myIntrinsics.h"
 #include "utils/typeVector.h"
 
 template <typename T = double>

@@ -10,8 +10,6 @@
 
 #include <string>
 
-#include "utils/myIntrinsics.h" // needed for intrinsic prototypes describe below (see EXPERIMENTAL)
-
 template <typename T = double>
 struct vector3
 {
@@ -66,23 +64,6 @@ private:
 	void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
 
 	inline T computeTimeStep(const unsigned long iBody);
-
-	// EXPERIMENTAL ===================================================================================================
-	/* TODO: this part is commented because the code does not compile if we don't have AVX2 instructions
-public:
-	void vectorComputeBodiesAcceleration();
-	void intrinComputeBodiesAcceleration();
-
-private:
-	inline void vectorComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim);
-	inline void selfVectorComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim);
-
-	inline void intrinComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim, 
-								vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest);
-	inline void selfIntrinComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim,
-								vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest);
-	*/
-	// EXPERIMENTAL ===================================================================================================
 };
 
 template <typename T>
