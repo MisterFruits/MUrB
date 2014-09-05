@@ -29,12 +29,12 @@ public://TODO: public attributes is not a good idea...
 
 	unsigned long nBodies;
 	unsigned long nVecs;
-	vec_t<T>* __restrict masses;
-	vec_t<T>* __restrict radiuses;
+	vec_t<T>*     masses;
+	vec_t<T>*     radiuses;
 	vector3<T>    positions;
 	vector3<T>    speeds;
 	vector3<T>    accelerations;
-	vec_t<T>* __restrict closestNeighborDist;
+	vec_t<T>*     closestNeighborDist;
 	T             dt;
 	bool          dtConstant;
 
@@ -81,6 +81,18 @@ private:
 	                                                      T &iClosNeiDist,
 	                                                const T &jMasses,
 	                                                const T &jPosX, const T &jPosY, const T &jPosZ);
+
+	inline void iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict iVecPosX,
+	                                                         const T* __restrict iVecPosY,
+	                                                         const T* __restrict iVecPosZ,
+	                                                               T* __restrict iVecAccsX,
+	                                                               T* __restrict iVecAccsY,
+	                                                               T* __restrict iVecAccsZ,
+	                                                               T* __restrict iClosNeiDist,
+	                                                         const T* __restrict jVecMasses,
+	                                                         const T* __restrict jVecPosX,
+	                                                         const T* __restrict jVecPosY,
+	                                                         const T* __restrict jVecPosZ);
 
 	inline T computeTimeStep(const unsigned long iVec);
 

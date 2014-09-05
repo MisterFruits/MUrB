@@ -191,17 +191,21 @@ void Space<T>::computeBodiesAcceleration()
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 			if(iVec != jVec)
 			{
-				this->computeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
-				                                                  this->positions.y        [iVec].vec_data,
-				                                                  this->positions.z        [iVec].vec_data,
-				                                                  this->accelerations.x    [iVec].vec_data,
-				                                                  this->accelerations.y    [iVec].vec_data,
-				                                                  this->accelerations.z    [iVec].vec_data,
-				                                                  this->closestNeighborDist[iVec].vec_data,
-				                                                  this->masses             [jVec].vec_data,
-				                                                  this->positions.x        [jVec].vec_data,
-				                                                  this->positions.y        [jVec].vec_data,
-				                                                  this->positions.z        [jVec].vec_data); // 17 flops
+				/*
+				std::cout << "iVec = " << iVec << std::endl;
+				std::cout << "jVec = " << jVec << std::endl;
+				*/
+				this->iComputeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
+				                                                   this->positions.y        [iVec].vec_data,
+				                                                   this->positions.z        [iVec].vec_data,
+				                                                   this->accelerations.x    [iVec].vec_data,
+				                                                   this->accelerations.y    [iVec].vec_data,
+				                                                   this->accelerations.z    [iVec].vec_data,
+				                                                   this->closestNeighborDist[iVec].vec_data,
+				                                                   this->masses             [jVec].vec_data,
+				                                                   this->positions.x        [jVec].vec_data,
+				                                                   this->positions.y        [jVec].vec_data,
+				                                                   this->positions.z        [jVec].vec_data); // 17 flops
 			}
 			else
 			{
@@ -276,6 +280,113 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPos
 #pragma omp critical
 			if(dist < iClosNeiDist)
 				iClosNeiDist = dist;
+}
+
+template <typename T>
+void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict iVecPosX,
+                                                            const T* __restrict iVecPosY,
+                                                            const T* __restrict iVecPosZ,
+                                                                  T* __restrict iVecAccsX,
+                                                                  T* __restrict iVecAccsY,
+                                                                  T* __restrict iVecAccsZ,
+                                                                  T* __restrict iClosNeiDist,
+                                                            const T* __restrict jVecMasses,
+                                                            const T* __restrict jVecPosX,
+                                                            const T* __restrict jVecPosY,
+                                                            const T* __restrict jVecPosZ)
+{
+	// 12 load
+	vec rIPosX = vec_load(iVecPosX);
+	vec rIPosY = vec_load(iVecPosY);
+	vec rIPosZ = vec_load(iVecPosZ);
+
+	vec rJPosX = vec_load(jVecPosX);
+	vec rJPosY = vec_load(jVecPosY);
+	vec rJPosZ = vec_load(jVecPosZ);
+
+	vec rG     = vec_set1(G);
+	vec rJMass = vec_load(jVecMasses);
+
+	vec rIAccX = vec_load(iVecAccsX);
+	vec rIAccY = vec_load(iVecAccsY);
+	vec rIAccZ = vec_load(iVecAccsZ);
+
+	vec rIClosNeiDist = vec_load(iClosNeiDist);
+
+	/*
+	vec_t<T> debugX;
+	vec_t<T> debugY;
+	vec_t<T> debugZ;
+	*/
+
+	// 17 * VECTOR_SIZE flops
+	for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+	{
+		/*
+		vec_store(debugX.vec_data, rJPosX);
+		vec_store(debugY.vec_data, rJPosY);
+		vec_store(debugZ.vec_data, rJPosZ);
+
+		std::cout << "iBody     = " << iBody              << std::endl;
+		std::cout << "rJPosX    = " << debugX.vec_data[0] << ", "
+		                            << debugX.vec_data[1] << ", "
+		                            << debugX.vec_data[2] << ", "
+		                            << debugX.vec_data[3] << std::endl;
+		std::cout << "rJPosY    = " << debugY.vec_data[0] << ", "
+		                            << debugY.vec_data[1] << ", "
+		                            << debugY.vec_data[2] << ", "
+		                            << debugY.vec_data[3] << std::endl;
+		std::cout << "rJPosZ    = " << debugZ.vec_data[0] << ", "
+		                            << debugZ.vec_data[1] << ", "
+		                            << debugZ.vec_data[2] << ", "
+		                            << debugZ.vec_data[3] << std::endl << std::endl;
+		*/
+
+		//const T diffPosX = jPosX - iPosX; // 1 flop
+		//const T diffPosY = jPosY - iPosY; // 1 flop
+		//const T diffPosZ = jPosZ - iPosZ; // 1 flop
+		vec rDiffPosX = vec_sub(rJPosX, rIPosX);
+		vec rDiffPosY = vec_sub(rJPosY, rIPosY);
+		vec rDiffPosZ = vec_sub(rJPosZ, rIPosZ);
+
+		//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
+		vec rSquareDist = vec_add(vec_mul(rDiffPosZ, rDiffPosZ),
+								  vec_add(vec_mul(rDiffPosY, rDiffPosY),
+										  vec_mul(rDiffPosX, rDiffPosX)));
+
+		//const T dist = std::sqrt(squareDist);
+		vec rDist = vec_sqrt(rSquareDist);
+
+		//const T acc = G * jMasses / (squareDist * dist); // 3 flops
+		vec rAcc = vec_div(vec_mul(rG, rJMass), vec_mul(rDist, rSquareDist));
+
+		//iAccsX += acc * diffPosX; // 2 flop
+		//iAccsY += acc * diffPosY; // 2 flop
+		//iAccsZ += acc * diffPosZ; // 2 flop
+		rIAccX = vec_fmadd(rAcc, rDiffPosX, rIAccX);
+		rIAccY = vec_fmadd(rAcc, rDiffPosY, rIAccY);
+		rIAccZ = vec_fmadd(rAcc, rDiffPosZ, rIAccZ);
+
+		//if(!this->dtConstant)
+		//	if(dist < iClosNeiDist)
+//#pragma omp critical
+		//		if(dist < iClosNeiDist)
+		//			iClosNeiDist = dist;
+		rIClosNeiDist = vec_min(rDist, rIClosNeiDist);
+
+		// we make one useless rotate...
+		rJPosX = vec_rot(rJPosX);
+		rJPosY = vec_rot(rJPosY);
+		rJPosZ = vec_rot(rJPosZ);
+		rJMass = vec_rot(rJMass);
+	}
+
+	// 4 stores
+	vec_store(iVecAccsX, rIAccX);
+	vec_store(iVecAccsY, rIAccY);
+	vec_store(iVecAccsZ, rIAccZ);
+
+	vec_store(iClosNeiDist, rIClosNeiDist);
 }
 
 template <typename T>

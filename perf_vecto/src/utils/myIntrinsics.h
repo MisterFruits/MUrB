@@ -37,6 +37,7 @@
 		#define vec_add(a, b)          vaddq_f32   (a, b)
 		#define vec_sub(a, b)          vsubq_f32   (a, b)
 		#define vec_mul(a, b)          vmulq_f32   (a, b)
+		#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
 
 		#define VECTOR_SIZE 4
 		#define REQUIRED_ALIGNEMENT 16
@@ -55,7 +56,7 @@
 		__m256d _mm256_sqrt_pd        (__m256d a)
 		__m256d _mm256_fmadd_pd       (__m256d a, __m256d b, __m256d c);
 		__m256d _mm256_permute4x64_pd (__m256d a, const int imm)
-		void    _mm256_store_pd (double * mem_addr, __m256d a);
+		  void  _mm256_store_pd       (double * mem_addr, __m256d a);
 		*/
 
 		#define vec                    __m256d
@@ -71,7 +72,16 @@
 
 		#ifdef __AVX2__
 			#define vec_fmadd(a, b, c)     _mm256_fmadd_pd(a, b, c)
-			#define vec_permute(a, b)      _mm256_permute4x64_pd(a, b)
+			// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
+			#define vec_rot(a)             _mm256_permute4x64_pd (a, _MM_SHUFFLE(0, 3, 2, 1))
+		#else
+			#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
+			// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
+			// see http://stackoverflow.com/questions/11906814/how-to-rotate-an-sse-avx-vector
+			#define vec_rot(a)             _mm256_blend_pd(_mm256_permute_pd(a, _MM_SHUFFLE (0, 3, 2, 1)),                            \
+			                                               _mm256_permute2f128_pd(_mm256_permute_pd(a, _MM_SHUFFLE (0, 3, 2, 1)),     \
+			                                                                      _mm256_permute_pd(a, _MM_SHUFFLE (0, 3, 2, 1)), 1 ),\
+			                                               136)
 		#endif
 	
 		#define VECTOR_SIZE 4
@@ -89,7 +99,7 @@
 		__m256 _mm256_sqrt_ps        (__m256 a);
 		__m256 _mm256_fmadd_ps       (__m256 a, __m256 b, __m256 c);
 		__m256 _mm256_permute4x64_ps (__m256d a, const int imm)
-		void   _mm256_store_ps (float * mem_addr, __m256 a);
+		  void _mm256_store_ps       (float * mem_addr, __m256 a);
 		*/
 
 		#define vec                    __m256
@@ -105,7 +115,16 @@
 
 		#ifdef __AVX2__
 			#define vec_fmadd(a, b, c)     _mm256_fmadd_ps(a, b, c)
-			#define vec_permute(a, b)      _mm256_permute4x64_ps(a, b)
+			// make a rotation in:[7, 6, 5, 4, 3, 2 , 1, 0] => out:[0, 7, 6, 5, 4, 3, 2, 1]
+			#define vec_rot(a)             _mm256_permute8x32_ps (a, _mm256_setr_epi32(0, 7, 6, 5, 4, 3, 2, 1))
+		#else
+			#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
+			// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
+			// see http://stackoverflow.com/questions/11906814/how-to-rotate-an-sse-avx-vector
+			#define vec_rot(a)             _mm256_blend_ps(_mm256_permute_ps(a, _MM_SHUFFLE (0, 3, 2, 1)),                            \
+			                                               _mm256_permute2f128_ps(_mm256_permute_ps(a, _MM_SHUFFLE (0, 3, 2, 1)),     \
+			                                                                      _mm256_permute_ps(a, _MM_SHUFFLE (0, 3, 2, 1)), 1 ),\
+			                                               136)
 		#endif
 
 		#define VECTOR_SIZE 8
@@ -120,7 +139,7 @@
 		__m128d _mm_add_pd   (__m128d a, __m128d b);
 		__m128d _mm_sub_pd   (__m128d a, __m128d b);
 		__m128d _mm_mul_pd   (__m128d a, __m128d b);
-		void    _mm_store_pd (double * mem_addr, __m128d a);
+		  void  _mm_store_pd (double * mem_addr, __m128d a);
 		*/
 
 		#define vec                    __m128d
@@ -130,18 +149,25 @@
 		#define vec_add(a, b)          _mm_add_pd  (a, b)
 		#define vec_sub(a, b)          _mm_sub_pd  (a, b)
 		#define vec_mul(a, b)          _mm_mul_pd  (a, b)
+		#define vec_div(a, b)          _mm_div_pd  (a, b)
+		#define vec_min(a, b)          _mm_min_pd  (a, b)
+		#define vec_sqrt(a)            _mm_sqrt_pd (a)
+		#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
+		// make a rotation in:[1, 0] => out:[0, 1]
+		#define vec_rot(a)             (__m128d) _mm_shuffle_epi32 ((__m128i) a, _MM_SHUFFLE(1, 0, 3, 2))
 
 		#define VECTOR_SIZE 2
 		#define REQUIRED_ALIGNEMENT 16
 
 	#elif defined(NBODY_FLOAT) /* SSE-128 float */
 		/* intrinsics SSE headers
-		__m128 _mm_load_ps  (float const *mem_addr);
-		__m128 _mm_set1_ps  (float a);
-		__m128 _mm_add_ps   (__m128 a, __m128 b);
-		__m128 _mm_sub_ps   (__m128 a, __m128 b);
-		__m128 _mm_mul_ps   (__m128 a, __m128 b);
-		void   _mm_store_ps (float * mem_addr, __m128 a);
+		__m128  _mm_load_ps  (float const *mem_addr);
+		__m128  _mm_set1_ps  (float a);
+		__m128  _mm_add_ps   (__m128 a, __m128 b);
+		__m128  _mm_sub_ps   (__m128 a, __m128 b);
+		__m128  _mm_mul_ps   (__m128 a, __m128 b);
+		  void  _mm_store_ps (float * mem_addr, __m128 a);
+		__m128i _mm_shuffle_epi32 (__m128i a, int imm);
 		*/
 
 		#define vec                    __m128
@@ -151,15 +177,17 @@
 		#define vec_add(a, b)          _mm_add_ps  (a, b)
 		#define vec_sub(a, b)          _mm_sub_ps  (a, b)
 		#define vec_mul(a, b)          _mm_mul_ps  (a, b)
+		#define vec_div(a, b)          _mm_div_ps  (a, b)
+		#define vec_min(a, b)          _mm_min_ps  (a, b)
+		#define vec_sqrt(a)            _mm_sqrt_ps (a)
+		#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
+		// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
+		#define vec_rot(a)             (__m128) _mm_shuffle_epi32 ((__m128i) a, _MM_SHUFFLE(0, 3, 2, 1))
 
 		#define VECTOR_SIZE 4
 		#define REQUIRED_ALIGNEMENT 16
 
 	#endif
-#else
-	// just for compilation
-	#define VECTOR_SIZE 4
-	#define REQUIRED_ALIGNEMENT 16
 #endif
 
 #endif /* MY_INTRINSICS_H */
