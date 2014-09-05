@@ -44,6 +44,7 @@ Space<T>::Space(const std::string inputFileName)
 template <typename T>
 void Space<T>::allocateBuffers()
 {
+	/* TODO: those allocations should work with intrinsics but they don't...
 	this->masses = new vec_t<T>[this->nVecs];
 
 	this->radiuses = new vec_t<T>[this->nVecs];
@@ -61,10 +62,30 @@ void Space<T>::allocateBuffers()
 	this->accelerations.z = new vec_t<T>[this->nVecs];
 
 	this->closestNeighborDist = new vec_t<T>[this->nVecs];
+	*/
+
+	this->masses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+
+	this->radiuses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+
+	this->positions.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->positions.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->positions.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+
+	this->speeds.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->speeds.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->speeds.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+
+	this->accelerations.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->accelerations.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->accelerations.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+
+	this->closestNeighborDist = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
 }
 
 template <typename T>
 Space<T>::~Space() {
+	/*
 	if(this->masses)
 		delete[] this->masses;
 
@@ -94,6 +115,37 @@ Space<T>::~Space() {
 
 	if(this->closestNeighborDist)
 		delete[] this->closestNeighborDist;
+	*/
+
+	if(this->masses)
+		_mm_free(this->masses);
+
+	if(this->radiuses)
+		_mm_free(this->radiuses);
+
+	if(this->positions.x)
+		_mm_free(this->positions.x);
+	if(this->positions.y)
+		_mm_free(this->positions.y);
+	if(this->positions.z)
+		_mm_free(this->positions.z);
+
+	if(this->speeds.x)
+		_mm_free(this->speeds.x);
+	if(this->speeds.y)
+		_mm_free(this->speeds.y);
+	if(this->speeds.z)
+		_mm_free(this->speeds.z);
+
+	if(this->accelerations.x)
+		_mm_free(this->accelerations.x);
+	if(this->accelerations.y)
+		_mm_free(this->accelerations.y);
+	if(this->accelerations.z)
+		_mm_free(this->accelerations.z);
+
+	if(this->closestNeighborDist)
+		_mm_free(this->closestNeighborDist);
 }
 
 template <typename T>
@@ -295,6 +347,18 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
                                                             const T* __restrict jVecPosY,
                                                             const T* __restrict jVecPosZ)
 {
+	assert(alignof(iVecPosX)     == REQUIRED_ALIGNEMENT);
+	assert(alignof(iVecPosY)     == REQUIRED_ALIGNEMENT);
+	assert(alignof(iVecPosZ)     == REQUIRED_ALIGNEMENT);
+	assert(alignof(iVecAccsX)    == REQUIRED_ALIGNEMENT);
+	assert(alignof(iVecAccsY)    == REQUIRED_ALIGNEMENT);
+	assert(alignof(iVecAccsZ)    == REQUIRED_ALIGNEMENT);
+	assert(alignof(iClosNeiDist) == REQUIRED_ALIGNEMENT);
+	assert(alignof(jVecMasses)   == REQUIRED_ALIGNEMENT);
+	assert(alignof(jVecPosX)     == REQUIRED_ALIGNEMENT);
+	assert(alignof(jVecPosY)     == REQUIRED_ALIGNEMENT);
+	assert(alignof(jVecPosZ)     == REQUIRED_ALIGNEMENT);
+
 	// 12 load
 	vec rIPosX = vec_load(iVecPosX);
 	vec rIPosY = vec_load(iVecPosY);
@@ -313,35 +377,9 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 
 	vec rIClosNeiDist = vec_load(iClosNeiDist);
 
-	/*
-	vec_t<T> debugX;
-	vec_t<T> debugY;
-	vec_t<T> debugZ;
-	*/
-
 	// 17 * VECTOR_SIZE flops
 	for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 	{
-		/*
-		vec_store(debugX.vec_data, rJPosX);
-		vec_store(debugY.vec_data, rJPosY);
-		vec_store(debugZ.vec_data, rJPosZ);
-
-		std::cout << "iBody     = " << iBody              << std::endl;
-		std::cout << "rJPosX    = " << debugX.vec_data[0] << ", "
-		                            << debugX.vec_data[1] << ", "
-		                            << debugX.vec_data[2] << ", "
-		                            << debugX.vec_data[3] << std::endl;
-		std::cout << "rJPosY    = " << debugY.vec_data[0] << ", "
-		                            << debugY.vec_data[1] << ", "
-		                            << debugY.vec_data[2] << ", "
-		                            << debugY.vec_data[3] << std::endl;
-		std::cout << "rJPosZ    = " << debugZ.vec_data[0] << ", "
-		                            << debugZ.vec_data[1] << ", "
-		                            << debugZ.vec_data[2] << ", "
-		                            << debugZ.vec_data[3] << std::endl << std::endl;
-		*/
-
 		//const T diffPosX = jPosX - iPosX; // 1 flop
 		//const T diffPosY = jPosY - iPosY; // 1 flop
 		//const T diffPosZ = jPosZ - iPosZ; // 1 flop
@@ -355,7 +393,7 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 										  vec_mul(rDiffPosX, rDiffPosX)));
 
 		//const T dist = std::sqrt(squareDist);
-		vec rDist = vec_sqrt(rSquareDist);
+		 vec rDist = vec_sqrt(rSquareDist);
 
 		//const T acc = G * jMasses / (squareDist * dist); // 3 flops
 		vec rAcc = vec_div(vec_mul(rG, rJMass), vec_mul(rDist, rSquareDist));
@@ -369,12 +407,10 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 
 		//if(!this->dtConstant)
 		//	if(dist < iClosNeiDist)
-//#pragma omp critical
-		//		if(dist < iClosNeiDist)
-		//			iClosNeiDist = dist;
+		//		iClosNeiDist = dist;
 		rIClosNeiDist = vec_min(rDist, rIClosNeiDist);
 
-		// we make one useless rotate...
+		// we make one useless rotate at the last iteration...
 		rJPosX = vec_rot(rJPosX);
 		rJPosY = vec_rot(rJPosY);
 		rJPosZ = vec_rot(rJPosZ);
@@ -382,10 +418,9 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 	}
 
 	// 4 stores
-	vec_store(iVecAccsX, rIAccX);
-	vec_store(iVecAccsY, rIAccY);
-	vec_store(iVecAccsZ, rIAccZ);
-
+	vec_store(iVecAccsX,    rIAccX);
+	vec_store(iVecAccsY,    rIAccY);
+	vec_store(iVecAccsZ,    rIAccZ);
 	vec_store(iClosNeiDist, rIClosNeiDist);
 }
 

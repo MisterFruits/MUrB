@@ -200,8 +200,8 @@ void Space<T>::computeBodiesAcceleration()
 		// flops ~= nBody * 17
 		for(unsigned long jBody = 0; jBody < this->nBodies; jBody++)
 			if(iBody != jBody)
-				//this->computeAccelerationBetweenTwoBodies(iBody, jBody); // 17 flops
-				this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody); // 22 flops
+				this->computeAccelerationBetweenTwoBodies(iBody, jBody); // 17 flops
+				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody); // 22 flops
 }
 
 template <typename T>

@@ -268,7 +268,7 @@ int main(int argc, char** argv)
 	cout << "Simulation ended." << endl << endl;
 
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
-	     << "(" << perfTotal.getGflops(flopsPerIte * iIte) << " Gflop/s)" << endl;
+	     << "(" << perfTotal.getGflops(flopsPerIte * (iIte -1)) << " Gflop/s)" << endl;
 
 	delete space;
 

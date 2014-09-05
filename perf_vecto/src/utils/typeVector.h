@@ -6,7 +6,7 @@
 template <typename T = double>
 struct alignas(REQUIRED_ALIGNEMENT) vec_t
 {
-  T vec_data[VECTOR_SIZE];
+  T vec_data[VECTOR_SIZE] __attribute__ ((aligned (REQUIRED_ALIGNEMENT)));
 };
 
 #endif /* TYPE_VECTOR_H_ */

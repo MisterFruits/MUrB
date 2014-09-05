@@ -71,17 +71,29 @@
 		#define vec_sqrt(a)            _mm256_sqrt_pd (a)
 
 		#ifdef __AVX2__
-			#define vec_fmadd(a, b, c)     _mm256_fmadd_pd(a, b, c)
+			#define vec_fmadd(a, b, c) _mm256_fmadd_pd(a, b, c)
 			// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
-			#define vec_rot(a)             _mm256_permute4x64_pd (a, _MM_SHUFFLE(0, 3, 2, 1))
+			#define vec_rot(a)         _mm256_permute4x64_pd (a, _MM_SHUFFLE(0, 3, 2, 1))
 		#else
-			#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
+			#define vec_fmadd(a, b, c) vec_add(c, vec_mul(a, b))
 			// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
-			// see http://stackoverflow.com/questions/11906814/how-to-rotate-an-sse-avx-vector
-			#define vec_rot(a)             _mm256_blend_pd(_mm256_permute_pd(a, _MM_SHUFFLE (0, 3, 2, 1)),                            \
-			                                               _mm256_permute2f128_pd(_mm256_permute_pd(a, _MM_SHUFFLE (0, 3, 2, 1)),     \
-			                                                                      _mm256_permute_pd(a, _MM_SHUFFLE (0, 3, 2, 1)), 1 ),\
-			                                               136)
+			//
+			//   -> _mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)) # rotation per lane of 128 bits
+			//          l0      l1           l0      l1
+			//      in[3, 2, | 1, 0] => out[2, 3, | 0, 1]
+			//
+			//   -> _mm256_permute2f128_pd(a, a, _MM_SHUFFLE(0, 0, 0, 1)) # switch lanes
+			//          l0     l1             l0     l1
+ 			//      in[3, 2, | 1, 0] => out[1, 0, | 3, 2]
+			//
+			//   -> _mm256_blend_pd(a, b, _MM_SHUFFLE(0, 0, 2, 2))
+			//      ina[3a, 2a, 1a, 0a] and inb[3b, 2b, 1b, 0b] =>
+			//		out[3b, 2a, 1b, 0a]
+			#define vec_rot(a)         _mm256_blend_pd(_mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)),                        \
+			                                           _mm256_permute2f128_pd(_mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)), \
+			                                                                  _mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)), \
+			                                                                  _MM_SHUFFLE(0, 0, 0, 1)),                      \
+			                                           _MM_SHUFFLE(0, 0, 2, 2))
 		#endif
 	
 		#define VECTOR_SIZE 4
@@ -114,17 +126,29 @@
 		#define vec_sqrt(a)            _mm256_sqrt_ps (a)
 
 		#ifdef __AVX2__
-			#define vec_fmadd(a, b, c)     _mm256_fmadd_ps(a, b, c)
+			#define vec_fmadd(a, b, c) _mm256_fmadd_ps(a, b, c)
 			// make a rotation in:[7, 6, 5, 4, 3, 2 , 1, 0] => out:[0, 7, 6, 5, 4, 3, 2, 1]
-			#define vec_rot(a)             _mm256_permute8x32_ps (a, _mm256_setr_epi32(0, 7, 6, 5, 4, 3, 2, 1))
+			#define vec_rot(a)         _mm256_permute8x32_ps (a, _mm256_setr_epi32(0, 7, 6, 5, 4, 3, 2, 1))
 		#else
-			#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
-			// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
-			// see http://stackoverflow.com/questions/11906814/how-to-rotate-an-sse-avx-vector
-			#define vec_rot(a)             _mm256_blend_ps(_mm256_permute_ps(a, _MM_SHUFFLE (0, 3, 2, 1)),                            \
-			                                               _mm256_permute2f128_ps(_mm256_permute_ps(a, _MM_SHUFFLE (0, 3, 2, 1)),     \
-			                                                                      _mm256_permute_ps(a, _MM_SHUFFLE (0, 3, 2, 1)), 1 ),\
-			                                               136)
+			#define vec_fmadd(a, b, c) vec_add(c, vec_mul(a, b))
+			// make a rotation in:[7, 6, 5, 4, 3, 2 , 1, 0] => out:[0, 7, 6, 5, 4, 3, 2, 1]
+			//
+			//   -> _mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)) # rotation per lane of 128 bits
+			//           lane 0        lane 1             lane 0        lane 1
+			//      in[7, 6, 5, 4, | 3, 2, 1, 0] => out[4, 5, 6, 7, | 0, 3, 2, 1]
+			//
+			//   -> _mm256_permute2f128_ps(a, a, _MM_SHUFFLE(0, 0, 0, 1)) # switch lanes
+			//           lane 0        lane 1             lane 0        lane 1
+ 			//      in[7, 6, 5, 4, | 3, 2, 1, 0] => out[3, 2, 1, 0, | 7, 6, 5, 4]
+			//
+			//   -> _mm256_blend_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0))
+			//      ina[7a, 6a, 5a, 4a, 3a, 2a, 1a, 0a] and inb[7b, 6b, 5b, 4b, 3b, 2b, 1b, 0b] =>
+			//		out[7b, 6a, 5a, 4a, 3b, 2a, 1a, 0a]
+			#define vec_rot(a)         _mm256_blend_ps(_mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)),                        \
+			                                           _mm256_permute2f128_ps(_mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)), \
+			                                                                  _mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)), \
+			                                                                  _MM_SHUFFLE(0, 0, 0, 1)),                      \
+			                                           _MM_SHUFFLE(2, 0, 2, 0))
 		#endif
 
 		#define VECTOR_SIZE 8
