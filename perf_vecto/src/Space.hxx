@@ -187,7 +187,7 @@ void Space<T>::initBodiesRandomly()
 			unsigned long realBody = iBody + iVec * VECTOR_SIZE;
 			if(realBody < this->nBodies)
 				this->masses[iVec].vec_data[iBody] = ((rand() / (T) RAND_MAX) * 5.0e21);
-			else // fake body just for fit into the last vector
+			else // fake body just to fit into the last vector
 				this->masses[iVec].vec_data[iBody] = 0;
 
 			this->radiuses[iVec].vec_data[iBody] = this->masses[iVec].vec_data[iBody] * 0.6e-15;
@@ -242,6 +242,7 @@ void Space<T>::computeBodiesAcceleration()
 		// flops ~= nBody * 17
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 			if(iVec != jVec)
+				// 17 flops
 				this->iComputeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
 				                                                   this->positions.y        [iVec].vec_data,
 				                                                   this->positions.z        [iVec].vec_data,
@@ -252,11 +253,12 @@ void Space<T>::computeBodiesAcceleration()
 				                                                   this->masses             [jVec].vec_data,
 				                                                   this->positions.x        [jVec].vec_data,
 				                                                   this->positions.y        [jVec].vec_data,
-				                                                   this->positions.z        [jVec].vec_data); // 17 flops
+				                                                   this->positions.z        [jVec].vec_data);
 			else
 				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
 						if(iBody != jBody)
+							// 17 flops
 							this->computeAccelerationBetweenTwoBodies(this->positions.x        [iVec].vec_data[iBody],
 							                                          this->positions.y        [iVec].vec_data[iBody],
 							                                          this->positions.z        [iVec].vec_data[iBody],
@@ -267,7 +269,7 @@ void Space<T>::computeBodiesAcceleration()
 							                                          this->masses             [jVec].vec_data[jBody],
 							                                          this->positions.x        [jVec].vec_data[jBody],
 							                                          this->positions.y        [jVec].vec_data[jBody],
-							                                          this->positions.z        [jVec].vec_data[jBody]); // 17 flops
+							                                          this->positions.z        [jVec].vec_data[jBody]);
 }
 
 template <typename T>
@@ -311,7 +313,6 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPos
 	const T diffPosZ = jPosZ - iPosZ; // 1 flop
 	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
 	const T dist = std::sqrt(squareDist);
-	//const T dist = squareDist;
 	assert(dist != 0);
 
 	const T acc = G * jMasses / (squareDist * dist); // 3 flops
@@ -321,9 +322,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPos
 
 	if(!this->dtConstant)
 		if(dist < iClosNeiDist)
-#pragma omp critical
-			if(dist < iClosNeiDist)
-				iClosNeiDist = dist;
+			iClosNeiDist = dist;
 }
 
 template <typename T>
@@ -402,7 +401,7 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 		//		iClosNeiDist = dist;
 		rIClosNeiDist = vec_min(rDist, rIClosNeiDist);
 
-		// we make one useless rotate at the last iteration...
+		// we make one useless rotate in the last iteration...
 		rJPosX = vec_rot(rJPosX);
 		rJPosY = vec_rot(rJPosY);
 		rJPosZ = vec_rot(rJPosZ);
@@ -419,9 +418,12 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 template <typename T>
 void Space<T>::findTimeStep()
 {
+	// TODO: be careful, with fake bodies added at the end of the last vector, the dynamic time step is broken.
+	//       It is necessary to launch the simulation with a number of bodies multiple of VECTOR_SIZE!
 	if(!this->dtConstant)
 	{
 		this->dt = std::numeric_limits<T>::infinity();
+
 		// flops = nBodies * 16
 		for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		{
@@ -519,8 +521,6 @@ bool Space<T>::read(std::istream& stream)
 	else
 		return false;
 
-	//std::cout << "nVecs = " << this->nVecs << std::endl;
-
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 	{
 		for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
@@ -540,7 +540,7 @@ bool Space<T>::read(std::istream& stream)
 				stream >> this->speeds.y[iVec].vec_data[iBody];
 				stream >> this->speeds.z[iVec].vec_data[iBody];
 			}
-			else // fake body just for fit into the last vector
+			else // fake body just to fit into the last vector
 			{
 				this->masses[iVec].vec_data[iBody] = 0;
 

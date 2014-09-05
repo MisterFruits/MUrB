@@ -10,7 +10,7 @@
 
 #ifdef __ARM_NEON__
 #include "arm_neon.h"
-#else
+#else // we assume that in this case we use an x86 processor with SSE or AVX instructions :-)
 #include "immintrin.h"
 #endif
 
@@ -87,13 +87,13 @@
  			//      in[3, 2, | 1, 0] => out[1, 0, | 3, 2]
 			//
 			//   -> _mm256_blend_pd(a, b, _MM_SHUFFLE(0, 0, 2, 2))
-			//      ina[3a, 2a, 1a, 0a] and inb[3b, 2b, 1b, 0b] =>
-			//		out[3b, 2a, 1b, 0a]
-			#define vec_rot(a)         _mm256_blend_pd(_mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)),                        \
-			                                           _mm256_permute2f128_pd(_mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)), \
-			                                                                  _mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)), \
-			                                                                  _MM_SHUFFLE(0, 0, 0, 1)),                      \
-			                                           _MM_SHUFFLE(0, 0, 2, 2))
+			//      ina[3a, 2a, 1a, 0a] and inb[3b, 2b, 1b, 0b] => out[3b, 2a, 1b, 0a]
+			#define vec_rot(a)         _mm256_blend_pd(                                                               \
+			                                    _mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)),                        \
+			                                    _mm256_permute2f128_pd(_mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)), \
+			                                                           _mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)), \
+			                                                           _MM_SHUFFLE(0, 0, 0, 1)),                      \
+			                                    _MM_SHUFFLE(0, 0, 2, 2))
 		#endif
 	
 		#define VECTOR_SIZE 4
@@ -142,13 +142,13 @@
  			//      in[7, 6, 5, 4, | 3, 2, 1, 0] => out[3, 2, 1, 0, | 7, 6, 5, 4]
 			//
 			//   -> _mm256_blend_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0))
-			//      ina[7a, 6a, 5a, 4a, 3a, 2a, 1a, 0a] and inb[7b, 6b, 5b, 4b, 3b, 2b, 1b, 0b] =>
-			//		out[7b, 6a, 5a, 4a, 3b, 2a, 1a, 0a]
-			#define vec_rot(a)         _mm256_blend_ps(_mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)),                        \
-			                                           _mm256_permute2f128_ps(_mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)), \
-			                                                                  _mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)), \
-			                                                                  _MM_SHUFFLE(0, 0, 0, 1)),                      \
-			                                           _MM_SHUFFLE(2, 0, 2, 0))
+			//      ina[7a, 6a, 5a, 4a, 3a, 2a, 1a, 0a] and inb[7b, 6b, 5b, 4b, 3b, 2b, 1b, 0b] => out[7b, 6a, 5a, 4a, 3b, 2a, 1a, 0a]
+			#define vec_rot(a)         _mm256_blend_ps(                                                               \
+			                                    _mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)),                        \
+			                                    _mm256_permute2f128_ps(_mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)), \
+			                                                           _mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)), \
+			                                                           _MM_SHUFFLE(0, 0, 0, 1)),                      \
+			                                     _MM_SHUFFLE(2, 0, 2, 0))
 		#endif
 
 		#define VECTOR_SIZE 8
