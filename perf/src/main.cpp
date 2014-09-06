@@ -20,6 +20,7 @@
 using namespace std;
 
 #include "ogl/OGLSpheresVisuInst.h"
+#include "ogl/OGLSpheresVisuGS.h"
 
 #include "utils/Perf.h"
 #include "utils/ArgumentsReader.h"
@@ -31,6 +32,7 @@ string        OutputBaseName;
 unsigned long NBodies;
 unsigned long NIterations;
 bool          Verbose = false;
+bool          EnableGS = false;
 TYPE          Dt      = 3600; //in sec, here 3600 sec = 1 hour
 
 int WinWidth  = 800;
@@ -61,6 +63,9 @@ bool argsReader1(int argc, char** argv)
 	docArgs  ["-help"] = "display this help.";
 	faculArgs["-dt"]   = "timeStep";
 	docArgs  ["-dt"]   = "select a fixed time step in second.";
+	faculArgs["-gs"]   = "";
+	docArgs  ["-gs"]   = "Enable geometry shader for visu, "
+	                     "this is faster than the standard way but not all GPU can support it.";
 
 	if(argsReader.parseArguments(reqArgs, faculArgs))
 	{
@@ -82,6 +87,8 @@ bool argsReader1(int argc, char** argv)
 			OutputBaseName = argsReader.getArgument("w");
 		if(argsReader.existArgument("-dt"))
 			Dt = stof(argsReader.getArgument("-dt"));
+		if(argsReader.existArgument("-gs"))
+			EnableGS = true;
 	}
 	else
 	{
@@ -120,6 +127,9 @@ void argsReader2(int argc, char** argv)
 	docArgs  ["-help"] = "display this help.";
 	faculArgs["-dt"]   = "timeStep";
 	docArgs  ["-dt"]   = "select a fixed time step in second.";
+	faculArgs["-gs"]   = "";
+	docArgs  ["-gs"]   = "Enable geometry shader for visu, "
+	                     "this is faster than the standard way but not all GPU can support it.";
 
 	if(argsReader.parseArguments(reqArgs, faculArgs))
 	{
@@ -142,6 +152,8 @@ void argsReader2(int argc, char** argv)
 			OutputBaseName = argsReader.getArgument("w");
 		if(argsReader.existArgument("-dt"))
 			Dt = stof(argsReader.getArgument("-dt"));
+		if(argsReader.existArgument("-gs"))
+			EnableGS = true;
 	}
 	else
 	{
@@ -201,25 +213,34 @@ int main(int argc, char** argv)
 	cout << "N-body simulation started !" << endl;
 	cout << "---------------------------" << endl;
 	if(!InputFileName.empty())
-		cout << "  -> inputFileName    : " << InputFileName              << endl;
+		cout << "  -> inputFileName    : " << InputFileName                       << endl;
 	else
-		cout << "  -> random mode      : on"                             << endl;
+		cout << "  -> random mode      : enable"                                  << endl;
 	if(!OutputBaseName.empty())
-		cout << "  -> outputFileName(s): " << OutputBaseName << ".*.dat" << endl;
-	cout <<     "  -> nBodies          : " << NBodies                    << endl;
-	cout <<     "  -> nIterations      : " << NIterations                << endl;
-	cout <<     "  -> verbose          : " << Verbose                    << endl;
+		cout << "  -> outputFileName(s): " << OutputBaseName << ".*.dat"          << endl;
+	cout <<     "  -> nBodies          : " << NBodies                             << endl;
+	cout <<     "  -> nIterations      : " << NIterations                         << endl;
+	cout <<     "  -> verbose          : " << Verbose                             << endl;
 #ifdef NBODY_DOUBLE
-	cout <<     "  -> precision        : double"                         << endl;
+	cout <<     "  -> precision        : double"                                  << endl;
 #else
-	cout <<     "  -> precision        : simple"                         << endl;
+	cout <<     "  -> precision        : simple"                                  << endl;
 #endif
-	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
+	cout <<     "  -> mem. used        : " << Mbytes << " MB"                     << endl;
+	cout <<     "  -> geometry shader  : " << ((EnableGS) ? "enable" : "disable") << endl << endl;
 
 	// initialize visualization of bodies (with spheres in space)
-	OGLSpheresVisuInst<TYPE> visu("N-body", WinWidth, WinHeight,
-	                              space->positions.x, space->positions.y, space->positions.z, space->radiuses,
-	                              NBodies);
+	OGLSpheresVisu<TYPE> *visu;
+	if(EnableGS) // geometry shader = better performances on dedicated GPUs
+		visu = new OGLSpheresVisuGS<TYPE>("N-body", WinWidth, WinHeight,
+		                                  space->positions.x, space->positions.y, space->positions.z,
+		                                  space->radiuses,
+		                                  NBodies);
+	else
+		visu = new OGLSpheresVisuInst<TYPE>("N-body", WinWidth, WinHeight,
+		                                    space->positions.x, space->positions.y, space->positions.z,
+		                                    space->radiuses,
+		                                    NBodies);
 
 	cout << endl << "Simulation started..." << endl;
 
@@ -235,10 +256,10 @@ int main(int argc, char** argv)
 
 	TYPE physicTime = 0.0;
 	unsigned long iIte;
-	for(iIte = 1; iIte <= NIterations && !visu.windowShouldClose(); iIte++)
+	for(iIte = 1; iIte <= NIterations && !visu->windowShouldClose(); iIte++)
 	{
 		// refresh display in OpenGL window
-		visu.refreshDisplay();
+		visu->refreshDisplay();
 
 		perfIte.start();
 		//-----------------------------//
@@ -270,6 +291,7 @@ int main(int argc, char** argv)
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 	     << "(" << perfTotal.getGflops(flopsPerIte * (iIte -1)) << " Gflop/s)" << endl;
 
+	delete visu;
 	delete space;
 
 	return EXIT_SUCCESS;

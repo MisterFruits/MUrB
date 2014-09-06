@@ -44,7 +44,7 @@ protected:
 
 	OGLControl *control;
 
-public:
+protected:
 	OGLSpheresVisu(const std::string winName,
 	               const int winWidth,
 	               const int winHeight,
@@ -54,17 +54,14 @@ public:
 	               const T *radius,
 	               const unsigned long nSpheres);
 
+public:
 	virtual ~OGLSpheresVisu();
-
 	virtual void refreshDisplay() = 0;
-
 	inline bool windowShouldClose();
 
 protected:
 	bool compileShaders(const std::vector<GLenum> shadersType, const std::vector<std::string> shadersFiles);
-
 	void updatePositions();
-
 };
 
 #include "OGLSpheresVisu.hxx"

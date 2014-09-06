@@ -38,7 +38,6 @@ public:
 	                   const unsigned long nSpheres);
 
 	virtual ~OGLSpheresVisuInst();
-
 	void refreshDisplay();
 };
 
