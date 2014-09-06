@@ -19,7 +19,7 @@
 #include <iostream>
 using namespace std;
 
-#include "ogl/OGLSpheresVisualization.h"
+#include "ogl/OGLSpheresVisuInst.h"
 
 #include "utils/Perf.h"
 #include "utils/ArgumentsReader.h"
@@ -217,9 +217,9 @@ int main(int argc, char** argv)
 	cout <<     "  -> mem. used        : " << Mbytes         << " MB"    << endl << endl;
 
 	// initialize visualization of bodies (with spheres in space)
-	OGLSpheresVisualization<TYPE> visu("N-body", WinWidth, WinHeight,
-	                                   space->positions.x, space->positions.y, space->positions.z, space->radiuses,
-	                                   NBodies);
+	OGLSpheresVisuInst<TYPE> visu("N-body", WinWidth, WinHeight,
+	                              space->positions.x, space->positions.y, space->positions.z, space->radiuses,
+	                              NBodies);
 
 	cout << endl << "Simulation started..." << endl;
 
