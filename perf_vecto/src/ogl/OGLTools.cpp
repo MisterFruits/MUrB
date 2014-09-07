@@ -27,9 +27,11 @@ GLFWwindow* OGLTools::initAndMakeWindow(const int winWidth, const int winHeight,
 
 	/* window conf */
 	glfwWindowHint( GLFW_SAMPLES, 8 ); // anti-aliasing x8
+	/*
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MAJOR, 3 );
 	glfwWindowHint( GLFW_CONTEXT_VERSION_MINOR, 3 );
 	glfwWindowHint( GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE );
+	*/
 	glfwWindowHint( GLFW_RESIZABLE, 0 ); // user can't resize window
 
 	/* Create a windowed mode window and its OpenGL context */
