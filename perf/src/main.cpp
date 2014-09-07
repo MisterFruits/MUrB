@@ -40,83 +40,24 @@ int WinHeight = 600;
 
 /*
  * read args from command line and set global variables
- * usage: ./nbody -f fileName -i nIterations [-v] [-w]
+ * usage: ./nbody -n nBodies  -i nIterations [-v] [-w] ...
+ * usage: ./nbody -f fileName -i nIterations [-v] [-w] ...
  * */
-bool argsReader1(int argc, char** argv)
+void argsReader(int argc, char** argv)
 {
-	map<string, string> reqArgs, faculArgs, docArgs;
+	map<string, string> reqArgs1, reqArgs2, faculArgs, docArgs;
 	ArgumentsReader argsReader(argc, argv);
 
-	reqArgs  ["f"]     = "inputFileName";
-	docArgs  ["f"]     = "bodies file name to read (you can put 'data/in/np1/in.testcase1.0.dat').";
-	reqArgs  ["i"]     = "nIterations";
-	docArgs  ["i"]     = "number of iterations to compute.";
-	faculArgs["n"]     = "nBodies";
-	docArgs  ["n"]     = "approximate number of bodies randomly generated (do not use with -f).";
-	faculArgs["v"]     = "";
-	docArgs  ["v"]     = "activate verbose mode.";
-	faculArgs["w"]     = "outputFileName";
-	docArgs  ["w"]     = "base name of body file(s) to write (you can put 'data/out/out').";
-	faculArgs["h"]     = "";
-	docArgs  ["h"]     = "display this help.";
-	faculArgs["-help"] = "";
-	docArgs  ["-help"] = "display this help.";
-	faculArgs["-dt"]   = "timeStep";
-	docArgs  ["-dt"]   = "select a fixed time step in second.";
-	faculArgs["-gs"]   = "";
-	docArgs  ["-gs"]   = "Enable geometry shader for visu, "
-	                     "this is faster than the standard way but not all GPU can support it.";
-
-	if(argsReader.parseArguments(reqArgs, faculArgs))
-	{
-		if(argsReader.existArgument("h") || argsReader.existArgument("-help"))
-		{
-			if(argsReader.parseDocArgs(docArgs))
-				argsReader.printUsage();
-			else
-				cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
-			exit(-1);
-		}
-
-		InputFileName = argsReader.getArgument("f");
-		NIterations   = stoi(argsReader.getArgument("i"));
-
-		if(argsReader.existArgument("v"))
-			Verbose = true;
-		if(argsReader.existArgument("w"))
-			OutputBaseName = argsReader.getArgument("w");
-		if(argsReader.existArgument("-dt"))
-			Dt = stof(argsReader.getArgument("-dt"));
-		if(argsReader.existArgument("-gs"))
-			GSEnable = true;
-	}
-	else
-	{
-		if(argsReader.parseDocArgs(docArgs))
-			return false;
-		else
-			cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
-		exit(-1);
-	}
-
-	return true;
-}
-
-/*
- * read args from command line and set global variables
- * usage: ./nbody -n nBodies -i nIterations [-v] [-w]
- * */
-void argsReader2(int argc, char** argv)
-{
-	map<string, string> reqArgs, faculArgs, docArgs;
-	ArgumentsReader argsReader(argc, argv);
-
-	reqArgs  ["n"]     = "nBodies";
+	reqArgs1 ["n"]     = "nBodies";
 	docArgs  ["n"]     = "approximate number of bodies randomly generated.";
-	reqArgs  ["i"]     = "nIterations";
+	reqArgs1 ["i"]     = "nIterations";
 	docArgs  ["i"]     = "number of iterations to compute.";
-	faculArgs["f"]     = "inputFileName";
-	docArgs  ["f"]     = "bodies file name to read (do not use with -n).";
+
+	reqArgs2 ["f"]     = "inputFileName";
+	docArgs  ["f"]     = "bodies file name to read, do not use with -n "
+	                     "(you can put 'data/in/np1/in.testcase1.0.dat').";
+	reqArgs2 ["i"]     = "nIterations";
+
 	faculArgs["v"]     = "";
 	docArgs  ["v"]     = "activate verbose mode.";
 	faculArgs["w"]     = "outputFileName";
@@ -131,29 +72,16 @@ void argsReader2(int argc, char** argv)
 	docArgs  ["-gs"]   = "Enable geometry shader for visu, "
 	                     "this is faster than the standard way but not all GPU can support it.";
 
-	if(argsReader.parseArguments(reqArgs, faculArgs))
+	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
-		if(argsReader.existArgument("h") || argsReader.existArgument("-help"))
-		{
-			if(argsReader.parseDocArgs(docArgs))
-				argsReader.printUsage();
-			else
-				cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
-			exit(-1);
-		}
-
 		NBodies       = stoi(argsReader.getArgument("n"));
 		NIterations   = stoi(argsReader.getArgument("i"));
 		InputFileName = "";
-
-		if(argsReader.existArgument("v"))
-			Verbose = true;
-		if(argsReader.existArgument("w"))
-			OutputBaseName = argsReader.getArgument("w");
-		if(argsReader.existArgument("-dt"))
-			Dt = stof(argsReader.getArgument("-dt"));
-		if(argsReader.existArgument("-gs"))
-			GSEnable = true;
+	}
+	else if(argsReader.parseArguments(reqArgs2, faculArgs))
+	{
+		InputFileName = argsReader.getArgument("f");
+		NIterations   = stoi(argsReader.getArgument("i"));
 	}
 	else
 	{
@@ -163,6 +91,24 @@ void argsReader2(int argc, char** argv)
 			cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
 		exit(-1);
 	}
+
+	if(argsReader.existArgument("h") || argsReader.existArgument("-help"))
+	{
+		if(argsReader.parseDocArgs(docArgs))
+			argsReader.printUsage();
+		else
+			cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
+		exit(-1);
+	}
+
+	if(argsReader.existArgument("v"))
+		Verbose = true;
+	if(argsReader.existArgument("w"))
+		OutputBaseName = argsReader.getArgument("w");
+	if(argsReader.existArgument("-dt"))
+		Dt = stof(argsReader.getArgument("-dt"));
+	if(argsReader.existArgument("-gs"))
+		GSEnable = true;
 }
 
 string strDate(TYPE timestamp)
@@ -192,8 +138,9 @@ int main(int argc, char** argv)
 	Perf perfIte, perfTotal;
 
 	// read arguments from command line
-	if(!argsReader1(argc, argv)) // usage: ./nbody -f fileName -i nIterations [-v] [-w]
-		argsReader2(argc, argv); // usage: ./nbody -n nBodies  -i nIterations [-v] [-w]
+	// usage: ./nbody -f fileName -i nIterations [-v] [-w] ...
+	// usage: ./nbody -n nBodies  -i nIterations [-v] [-w] ...
+	argsReader(argc, argv);
 
 	// create plan by reading file or generate bodies randomly
 	Space<TYPE> *space;

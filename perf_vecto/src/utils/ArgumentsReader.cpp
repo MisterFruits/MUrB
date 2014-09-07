@@ -32,6 +32,8 @@ bool ArgumentsReader::parseArguments(map<string, string> requireArgs, map<string
 	//assert(requireArgs.size() > 0); // useless, it is possible to have no require arguments
 	unsigned short int nReqArg = 0;
 
+	this->clearArguments();
+
 	this->m_requireArgs = requireArgs;
 	this->m_facultativeArgs = facultativeArgs;
 
@@ -94,16 +96,17 @@ bool ArgumentsReader::parseDocArgs(std::map<std::string, std::string> docArgs)
 		reVal = false;
 
 	map<string, string>::iterator it;
-	for(it = docArgs.begin(); it != docArgs.end(); ++it)
-	{
-		if(!(this->m_requireArgs.find(it->first)     != this->m_requireArgs.end()) &&
-		   !(this->m_facultativeArgs.find(it->first) != this->m_facultativeArgs.end()))
-		{
+	for(it = this->m_requireArgs.begin(); it != this->m_requireArgs.end(); ++it)
+		if(!(docArgs.find(it->first) != docArgs.end()))
 			reVal = false;
-		}
 		else
-			this->m_docArgs[it->first] = it->second;
-	}
+			this->m_docArgs[it->first] = docArgs[it->first];
+
+	for(it = this->m_facultativeArgs.begin(); it != this->m_facultativeArgs.end(); ++it)
+		if(!(docArgs.find(it->first) != docArgs.end()))
+			reVal = false;
+		else
+			this->m_docArgs[it->first] = docArgs[it->first];
 
 	return reVal;
 }
@@ -138,4 +141,12 @@ void ArgumentsReader::printUsage()
 			if(this->m_docArgs.find(it->first) != this->m_docArgs.end())
 				cout << "\t-" << it->first << "\t\t" << this->m_docArgs.find(it->first)->second << endl;
 	}
+}
+
+void ArgumentsReader::clearArguments()
+{
+	this->m_requireArgs.clear();
+	this->m_facultativeArgs.clear();
+	this->m_args.clear();
+	this->m_docArgs.clear();
 }

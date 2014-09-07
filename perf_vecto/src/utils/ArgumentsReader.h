@@ -79,6 +79,11 @@ private:
 	bool subParseArguments(std::map<std::string, std::string> args,
 	                       unsigned short posArg);
 
+	/*
+	 * Clear m_requireArgs, m_facultativeArgs, m_args and m_docArgs
+	 */
+	void clearArguments();
+
 };
 
 #endif /* ARGUMENTS_READER_H_ */
