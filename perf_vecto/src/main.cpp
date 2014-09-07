@@ -31,12 +31,11 @@ string        InputFileName;
 string        OutputBaseName;
 unsigned long NBodies;
 unsigned long NIterations;
-bool          Verbose  = false;
-bool          GSEnable = false;
-TYPE          Dt       = 3600; //in sec, here 3600 sec = 1 hour
-
-int WinWidth  = 800;
-int WinHeight = 600;
+bool          Verbose   = false;
+bool          GSEnable  = false;
+TYPE          Dt        = 3600; //in sec, 3600 sec = 1 hour
+unsigned int  WinWidth  = 800;
+unsigned int  WinHeight = 600;
 
 /*
  * read args from command line and set global variables
@@ -70,7 +69,11 @@ void argsReader(int argc, char** argv)
 	docArgs  ["-dt"]   = "select a fixed time step in second.";
 	faculArgs["-gs"]   = "";
 	docArgs  ["-gs"]   = "Enable geometry shader for visu, "
-	                     "this is faster than the standard way but not all GPU can support it.";
+	                     "this is faster than the standard way but not all GPUs can support it.";
+	faculArgs["-ww"]   = "winWidth";
+	docArgs  ["-ww"]   = "width of the window in pixel (default is " + to_string(WinWidth) + ").";
+	faculArgs["-wh"]   = "winHeight";
+	docArgs  ["-wh"]   = "height of the window in pixel(default is " + to_string(WinHeight) + ").";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
@@ -109,6 +112,10 @@ void argsReader(int argc, char** argv)
 		Dt = stof(argsReader.getArgument("-dt"));
 	if(argsReader.existArgument("-gs"))
 		GSEnable = true;
+	if(argsReader.existArgument("-ww"))
+		WinWidth = stoi(argsReader.getArgument("-ww"));
+	if(argsReader.existArgument("-wh"))
+		WinHeight = stoi(argsReader.getArgument("-wh"));
 }
 
 string strDate(TYPE timestamp)
