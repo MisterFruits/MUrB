@@ -1,12 +1,12 @@
 /*
- * OGLSpheresVisualization.h
+ * OGLSpheresVisu.h
  *
  *  Created on: 30 août 2014
  *      Author: Adrien Cassagne
  */
 
-#ifndef OGL_SPHERES_VISUALIZATION_H_
-#define OGL_SPHERES_VISUALIZATION_H_
+#ifndef OGL_SPHERES_VISU_H_
+#define OGL_SPHERES_VISU_H_
 
 #include <map>
 #include <string>
@@ -21,8 +21,8 @@
 #include "../utils/typeVector.h"
 
 template <typename T = double>
-class OGLSpheresVisualization {
-private:
+class OGLSpheresVisu {
+protected:
 	GLFWwindow *window;
 
 	const vec_t<T> *positionsX;
@@ -46,27 +46,26 @@ private:
 
 	OGLControl *control;
 
+protected:
+	OGLSpheresVisu(const std::string winName,
+	               const int winWidth,
+	               const int winHeight,
+	               const vec_t<T> *positionsX,
+	               const vec_t<T> *positionsY,
+	               const vec_t<T> *positionsZ,
+	               const vec_t<T> *radius,
+	               const unsigned long nSpheres);
+
 public:
-	OGLSpheresVisualization(const std::string winName,
-	                        const int winWidth,
-	                        const int winHeight,
-	                        const vec_t<T> *positionsX,
-	                        const vec_t<T> *positionsY,
-	                        const vec_t<T> *positionsZ,
-	                        const vec_t<T> *radius,
-	                        const unsigned long nSpheres);
-
-	virtual ~OGLSpheresVisualization();
-
-	void refreshDisplay();
-
+	virtual ~OGLSpheresVisu();
+	virtual void refreshDisplay() = 0;
 	inline bool windowShouldClose();
 
-private:
+protected:
 	bool compileShaders(const std::vector<GLenum> shadersType, const std::vector<std::string> shadersFiles);
-
+	void updatePositions();
 };
 
-#include "OGLSpheresVisualization.hxx"
+#include "OGLSpheresVisu.hxx"
 
-#endif /* OGL_SPHERES_VISUALIZATION_H_ */
+#endif /* OGL_SPHERES_VISU_H_ */

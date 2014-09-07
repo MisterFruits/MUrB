@@ -31,9 +31,9 @@ string        InputFileName;
 string        OutputBaseName;
 unsigned long NBodies;
 unsigned long NIterations;
-bool          Verbose = false;
-bool          EnableGS = false;
-TYPE          Dt      = 3600; //in sec, here 3600 sec = 1 hour
+bool          Verbose  = false;
+bool          GSEnable = false;
+TYPE          Dt       = 3600; //in sec, here 3600 sec = 1 hour
 
 int WinWidth  = 800;
 int WinHeight = 600;
@@ -88,7 +88,7 @@ bool argsReader1(int argc, char** argv)
 		if(argsReader.existArgument("-dt"))
 			Dt = stof(argsReader.getArgument("-dt"));
 		if(argsReader.existArgument("-gs"))
-			EnableGS = true;
+			GSEnable = true;
 	}
 	else
 	{
@@ -153,7 +153,7 @@ void argsReader2(int argc, char** argv)
 		if(argsReader.existArgument("-dt"))
 			Dt = stof(argsReader.getArgument("-dt"));
 		if(argsReader.existArgument("-gs"))
-			EnableGS = true;
+			GSEnable = true;
 	}
 	else
 	{
@@ -227,11 +227,11 @@ int main(int argc, char** argv)
 	cout <<     "  -> precision        : simple"                                  << endl;
 #endif
 	cout <<     "  -> mem. used        : " << Mbytes << " MB"                     << endl;
-	cout <<     "  -> geometry shader  : " << ((EnableGS) ? "enable" : "disable") << endl << endl;
+	cout <<     "  -> geometry shader  : " << ((GSEnable) ? "enable" : "disable") << endl << endl;
 
 	// initialize visualization of bodies (with spheres in space)
 	OGLSpheresVisu<TYPE> *visu;
-	if(EnableGS) // geometry shader = better performances on dedicated GPUs
+	if(GSEnable) // geometry shader = better performances on dedicated GPUs
 		visu = new OGLSpheresVisuGS<TYPE>("N-body", WinWidth, WinHeight,
 		                                  space->positions.x, space->positions.y, space->positions.z,
 		                                  space->radiuses,
