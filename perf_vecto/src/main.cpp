@@ -230,7 +230,7 @@ int main(int argc, char** argv)
 		perfIte.start();
 		//-----------------------------//
 		//-- Simulation computations --//
-		space->computeBodiesAcceleration();
+		space->iComputeBodiesAcceleration();
 		space->findTimeStep();
 		space->updateBodiesPositionAndSpeed();
 		//-- Simulation computations --//

@@ -51,6 +51,7 @@ public:
 	inline T getDt();
 
 	void computeBodiesAcceleration();
+	void iComputeBodiesAcceleration();
 	void findTimeStep();
 	void updateBodiesPositionAndSpeed();
 
@@ -94,24 +95,20 @@ private:
 	                                                         const T* __restrict jVecPosY,
 	                                                         const T* __restrict jVecPosZ);
 
+	inline void iComputeAccelerationBetweenTwoBodies(const vec &rG,
+	                                                 const vec &rIPosX,
+	                                                 const vec &rIPosY,
+	                                                 const vec &rIPosZ,
+	                                                       vec &rIAccX,
+	                                                       vec &rIAccY,
+	                                                       vec &rIAccZ,
+	                                                       vec &rIClosNeiDist,
+	                                                       vec &rJMass,
+	                                                       vec &rJPosX,
+	                                                       vec &rJPosY,
+	                                                       vec &rJPosZ);
+
 	inline T computeTimeStep(const unsigned long iVec);
-
-	// EXPERIMENTAL ===================================================================================================
-	/* TODO: this part is commented because the code does not compile if we don't have AVX2 instructions
-public:
-	void vectorComputeBodiesAcceleration();
-	void intrinComputeBodiesAcceleration();
-
-private:
-	inline void vectorComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim);
-	inline void selfVectorComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim);
-
-	inline void intrinComputeAccelerationBetweenBodies(const unsigned long iBody, const unsigned long jBody, const int vecDim, 
-								vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest);
-	inline void selfIntrinComputeAccelerationBetweenBodies(const unsigned long iBody, const int vecDim,
-								vec px, vec py, vec pz, vec *accx, vec *accy, vec *accz, vec *closest);
-	*/
-	// EXPERIMENTAL ===================================================================================================
 };
 
 template <typename T>
