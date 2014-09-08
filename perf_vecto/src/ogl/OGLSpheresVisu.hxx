@@ -99,6 +99,28 @@ OGLSpheresVisu<T>::OGLSpheresVisu(const string winName,
 }
 
 template <typename T>
+OGLSpheresVisu<T>::OGLSpheresVisu()
+	: window           (NULL),
+	  positionsX       (NULL),
+	  positionsXBuffer (NULL),
+	  positionsY       (NULL),
+	  positionsYBuffer (NULL),
+	  positionsZ       (NULL),
+	  positionsZBuffer (NULL),
+	  radius           (NULL),
+	  radiusBuffer     (NULL),
+	  nSpheres         (0),
+	  vertexArrayRef   ((GLuint) 0),
+	  positionBufferRef{(GLuint) 0, (GLuint) 0, (GLuint) 0},
+	  radiusBufferRef  ((GLuint) 0),
+	  mvpRef           ((GLuint) 0),
+	  shaderProgramRef ((GLuint) 0),
+	  mvp              (glm::mat4(1.0f)),
+	  control          (NULL)
+{
+}
+
+template <typename T>
 OGLSpheresVisu<T>::~OGLSpheresVisu()
 {
 	if(this->window)

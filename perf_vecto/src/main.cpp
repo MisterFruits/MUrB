@@ -21,6 +21,7 @@ using namespace std;
 
 #include "ogl/OGLSpheresVisuInst.h"
 #include "ogl/OGLSpheresVisuGS.h"
+#include "ogl/OGLSpheresVisuNo.h"
 
 #include "utils/Perf.h"
 #include "utils/ArgumentsReader.h"
@@ -31,11 +32,12 @@ string        InputFileName;
 string        OutputBaseName;
 unsigned long NBodies;
 unsigned long NIterations;
-bool          Verbose   = false;
-bool          GSEnable  = false;
-TYPE          Dt        = 3600; //in sec, 3600 sec = 1 hour
-unsigned int  WinWidth  = 800;
-unsigned int  WinHeight = 600;
+bool          Verbose    = false;
+bool          GSEnable   = false;
+bool          VisuEnable = true;
+TYPE          Dt         = 3600; //in sec, 3600 sec = 1 hour
+unsigned int  WinWidth   = 800;
+unsigned int  WinHeight  = 600;
 
 /*
  * read args from command line and set global variables
@@ -68,12 +70,14 @@ void argsReader(int argc, char** argv)
 	faculArgs["-dt"]   = "timeStep";
 	docArgs  ["-dt"]   = "select a fixed time step in second.";
 	faculArgs["-gs"]   = "";
-	docArgs  ["-gs"]   = "Enable geometry shader for visu, "
+	docArgs  ["-gs"]   = "enable geometry shader for visu, "
 	                     "this is faster than the standard way but not all GPUs can support it.";
 	faculArgs["-ww"]   = "winWidth";
 	docArgs  ["-ww"]   = "width of the window in pixel (default is " + to_string(WinWidth) + ").";
 	faculArgs["-wh"]   = "winHeight";
-	docArgs  ["-wh"]   = "height of the window in pixel(default is " + to_string(WinHeight) + ").";
+	docArgs  ["-wh"]   = "height of the window in pixel (default is " + to_string(WinHeight) + ").";
+	faculArgs["-nv"]   = "";
+	docArgs  ["-nv"]   = "no visualization (disable visu).";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
@@ -116,6 +120,8 @@ void argsReader(int argc, char** argv)
 		WinWidth = stoi(argsReader.getArgument("-ww"));
 	if(argsReader.existArgument("-wh"))
 		WinHeight = stoi(argsReader.getArgument("-wh"));
+	if(argsReader.existArgument("-nv"))
+		VisuEnable = false;
 }
 
 string strDate(TYPE timestamp)
@@ -185,18 +191,24 @@ int main(int argc, char** argv)
 
 	// initialize visualization of bodies (with spheres in space)
 	OGLSpheresVisu<TYPE> *visu;
-	if(GSEnable) // geometry shader = better performances on dedicated GPUs
-		visu = new OGLSpheresVisuGS<TYPE>("N-body", WinWidth, WinHeight,
-		                                  space->positions.x, space->positions.y, space->positions.z,
-		                                  space->radiuses,
-		                                  NBodies);
+	if(VisuEnable)
+	{
+		if(GSEnable) // geometry shader = better performances on dedicated GPUs
+			visu = new OGLSpheresVisuGS<TYPE>("N-body", WinWidth, WinHeight,
+											  space->positions.x, space->positions.y, space->positions.z,
+											  space->radiuses,
+											  NBodies);
+		else
+			visu = new OGLSpheresVisuInst<TYPE>("N-body", WinWidth, WinHeight,
+												space->positions.x, space->positions.y, space->positions.z,
+												space->radiuses,
+												NBodies);
+		cout << endl;
+	}
 	else
-		visu = new OGLSpheresVisuInst<TYPE>("N-body", WinWidth, WinHeight,
-		                                    space->positions.x, space->positions.y, space->positions.z,
-		                                    space->radiuses,
-		                                    NBodies);
+		visu = new OGLSpheresVisuNo<TYPE>();
 
-	cout << endl << "Simulation started..." << endl;
+	cout << "Simulation started..." << endl;
 
 	// write initial bodies into file
 	if(!OutputBaseName.empty())

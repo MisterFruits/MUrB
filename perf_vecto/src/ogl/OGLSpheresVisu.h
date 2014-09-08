@@ -56,6 +56,8 @@ protected:
 	               const vec_t<T> *radius,
 	               const unsigned long nSpheres);
 
+	OGLSpheresVisu();
+
 public:
 	virtual ~OGLSpheresVisu();
 	virtual void refreshDisplay() = 0;

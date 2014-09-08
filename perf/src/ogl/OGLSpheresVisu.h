@@ -53,6 +53,7 @@ protected:
 	               const T *positionsZ,
 	               const T *radius,
 	               const unsigned long nSpheres);
+	OGLSpheresVisu();
 
 public:
 	virtual ~OGLSpheresVisu();
