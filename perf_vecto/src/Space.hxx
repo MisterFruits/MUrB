@@ -304,11 +304,11 @@ void Space<T>::iComputeBodiesAcceleration()
 				for(unsigned short iRot = 0; iRot < VECTOR_SIZE; iRot++)
 				{
 					this->iComputeAccelerationBetweenTwoBodies(rG,
-															   rIPosX, rIPosY, rIPosZ,
-															   rIAccX, rIAccY, rIAccZ,
-															   rIClosNeiDist,
-															   rJMass,
-															   rJPosX, rJPosY, rJPosZ);
+					                                           rIPosX, rIPosY, rIPosZ,
+					                                           rIAccX, rIAccY, rIAccZ,
+					                                           rIClosNeiDist,
+					                                           rJMass,
+					                                           rJPosX, rJPosY, rJPosZ);
 
 					// we make one useless rotate in the last iteration...
 					rJMass = vec_rot(rJMass);
@@ -323,11 +323,11 @@ void Space<T>::iComputeBodiesAcceleration()
 					rJPosX = vec_rot(rJPosX); rJPosY = vec_rot(rJPosY); rJPosZ = vec_rot(rJPosZ);
 
 					this->iComputeAccelerationBetweenTwoBodies(rG,
-															   rIPosX, rIPosY, rIPosZ,
-															   rIAccX, rIAccY, rIAccZ,
-															   rIClosNeiDist,
-															   rJMass,
-															   rJPosX, rJPosY, rJPosZ);
+					                                           rIPosX, rIPosY, rIPosZ,
+					                                           rIAccX, rIAccY, rIAccZ,
+					                                           rIClosNeiDist,
+					                                           rJMass,
+					                                           rJPosX, rJPosY, rJPosZ);
 				}
 			}
 		}
@@ -438,11 +438,11 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 	for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 	{
 		this->iComputeAccelerationBetweenTwoBodies(rG,
-												   rIPosX, rIPosY, rIPosZ,
-												   rIAccX, rIAccY, rIAccZ,
-												   rIClosNeiDist,
-												   rJMass,
-												   rJPosX, rJPosY, rJPosZ);
+		                                           rIPosX, rIPosY, rIPosZ,
+		                                           rIAccX, rIAccY, rIAccZ,
+		                                           rIClosNeiDist,
+		                                           rJMass,
+		                                           rJPosX, rJPosY, rJPosZ);
 
 		// we make one useless rotate in the last iteration...
 		rJPosX = vec_rot(rJPosX);
@@ -481,8 +481,8 @@ void Space<T>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
 
 	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
 	vec rSquareDist = vec_add(vec_mul(rDiffPosZ, rDiffPosZ),
-							  vec_add(vec_mul(rDiffPosY, rDiffPosY),
-									  vec_mul(rDiffPosX, rDiffPosX)));
+	                          vec_add(vec_mul(rDiffPosY, rDiffPosY),
+	                                  vec_mul(rDiffPosX, rDiffPosX)));
 
 	//const T dist = std::sqrt(squareDist);
 	vec rDist = vec_sqrt(rSquareDist);
