@@ -44,26 +44,6 @@ Space<T>::Space(const std::string inputFileName)
 template <typename T>
 void Space<T>::allocateBuffers()
 {
-	/* TODO: those allocations should work with intrinsics but they don't...
-	this->masses = new vec_t<T>[this->nVecs];
-
-	this->radiuses = new vec_t<T>[this->nVecs];
-
-	this->positions.x = new vec_t<T>[this->nVecs];
-	this->positions.y = new vec_t<T>[this->nVecs];
-	this->positions.z = new vec_t<T>[this->nVecs];
-
-	this->speeds.x = new vec_t<T>[this->nVecs];
-	this->speeds.y = new vec_t<T>[this->nVecs];
-	this->speeds.z = new vec_t<T>[this->nVecs];
-
-	this->accelerations.x = new vec_t<T>[this->nVecs];
-	this->accelerations.y = new vec_t<T>[this->nVecs];
-	this->accelerations.z = new vec_t<T>[this->nVecs];
-
-	this->closestNeighborDist = new vec_t<T>[this->nVecs];
-	*/
-
 	this->masses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
 
 	this->radiuses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
@@ -85,38 +65,6 @@ void Space<T>::allocateBuffers()
 
 template <typename T>
 Space<T>::~Space() {
-	/*
-	if(this->masses)
-		delete[] this->masses;
-
-	if(this->radiuses)
-		delete[] this->radiuses;
-
-	if(this->positions.x)
-		delete[] this->positions.x;
-	if(this->positions.y)
-		delete[] this->positions.y;
-	if(this->positions.z)
-		delete[] this->positions.z;
-
-	if(this->speeds.x)
-		delete[] this->speeds.x;
-	if(this->speeds.y)
-		delete[] this->speeds.y;
-	if(this->speeds.z)
-		delete[] this->speeds.z;
-
-	if(this->accelerations.x)
-		delete[] this->accelerations.x;
-	if(this->accelerations.y)
-		delete[] this->accelerations.y;
-	if(this->accelerations.z)
-		delete[] this->accelerations.z;
-
-	if(this->closestNeighborDist)
-		delete[] this->closestNeighborDist;
-	*/
-
 	if(this->masses)
 		_mm_free(this->masses);
 
@@ -237,12 +185,9 @@ template <typename T>
 void Space<T>::computeBodiesAcceleration()
 {
 #pragma omp parallel for schedule(runtime)
-	// flops ~= nBody^2 * 17
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
-		// flops ~= nBody * 17
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 			if(iVec != jVec)
-				// 17 flops
 				this->iComputeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
 				                                                   this->positions.y        [iVec].vec_data,
 				                                                   this->positions.z        [iVec].vec_data,
@@ -258,7 +203,6 @@ void Space<T>::computeBodiesAcceleration()
 				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
 						if(iBody != jBody)
-							// 17 flops
 							this->computeAccelerationBetweenTwoBodies(this->positions.x        [iVec].vec_data[iBody],
 							                                          this->positions.y        [iVec].vec_data[iBody],
 							                                          this->positions.z        [iVec].vec_data[iBody],
@@ -278,9 +222,9 @@ void Space<T>::iComputeBodiesAcceleration()
 	const vec rG = vec_set1(G);
 
 #pragma omp parallel for schedule(runtime) firstprivate(rG)
-	// flops ~= nBody^2 * 17
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 	{
+		// load vectors
 		const vec rIPosX = vec_load(this->positions.x[iVec].vec_data);
 		const vec rIPosY = vec_load(this->positions.y[iVec].vec_data);
 		const vec rIPosZ = vec_load(this->positions.z[iVec].vec_data);
@@ -291,9 +235,9 @@ void Space<T>::iComputeBodiesAcceleration()
 
 		vec rIClosNeiDist = vec_load(this->closestNeighborDist[iVec].vec_data);
 
-		// flops ~= nBody * 17
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 		{
+			// load vectors
 			vec rJMass = vec_load(this->masses[jVec].vec_data);
 			vec rJPosX = vec_load(this->positions.x[jVec].vec_data);
 			vec rJPosY = vec_load(this->positions.y[jVec].vec_data);
@@ -332,6 +276,7 @@ void Space<T>::iComputeBodiesAcceleration()
 			}
 		}
 
+		// store vectors
 		vec_store(this->accelerations.x[iVec].vec_data, rIAccX);
 		vec_store(this->accelerations.y[iVec].vec_data, rIAccY);
 		vec_store(this->accelerations.z[iVec].vec_data, rIAccZ);
@@ -416,7 +361,9 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 	assert(alignof(jVecPosY)     == REQUIRED_ALIGNEMENT);
 	assert(alignof(jVecPosZ)     == REQUIRED_ALIGNEMENT);
 
-	// 12 load
+	// load vectors
+	vec rG     = vec_set1(G);
+
 	vec rIPosX = vec_load(iVecPosX);
 	vec rIPosY = vec_load(iVecPosY);
 	vec rIPosZ = vec_load(iVecPosZ);
@@ -425,7 +372,7 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 	vec rJPosY = vec_load(jVecPosY);
 	vec rJPosZ = vec_load(jVecPosZ);
 
-	vec rG     = vec_set1(G);
+
 	vec rJMass = vec_load(jVecMasses);
 
 	vec rIAccX = vec_load(iVecAccsX);
@@ -434,7 +381,6 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 
 	vec rIClosNeiDist = vec_load(iClosNeiDist);
 
-	// 17 * VECTOR_SIZE flops
 	for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 	{
 		this->iComputeAccelerationBetweenTwoBodies(rG,
@@ -451,7 +397,7 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 		rJMass = vec_rot(rJMass);
 	}
 
-	// 4 stores
+	// stores vectors
 	vec_store(iVecAccsX,    rIAccX);
 	vec_store(iVecAccsY,    rIAccY);
 	vec_store(iVecAccsZ,    rIAccZ);
@@ -472,29 +418,30 @@ void Space<T>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
                                                           vec &rJPosY,
                                                           vec &rJPosZ)
 {
-	//const T diffPosX = jPosX - iPosX; // 1 flop
-	//const T diffPosY = jPosY - iPosY; // 1 flop
-	//const T diffPosZ = jPosZ - iPosZ; // 1 flop
+	//const T diffPosX = jPosX - iPosX;
 	vec rDiffPosX = vec_sub(rJPosX, rIPosX);
+	//const T diffPosY = jPosY - iPosY;
 	vec rDiffPosY = vec_sub(rJPosY, rIPosY);
+	//const T diffPosZ = jPosZ - iPosZ;
 	vec rDiffPosZ = vec_sub(rJPosZ, rIPosZ);
 
-	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
-	vec rSquareDist = vec_add(vec_mul(rDiffPosZ, rDiffPosZ),
-	                          vec_add(vec_mul(rDiffPosY, rDiffPosY),
-	                                  vec_mul(rDiffPosX, rDiffPosX)));
+	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ);
+	vec rSquareDist = vec_set1(0);
+	rSquareDist = vec_fmadd(rDiffPosX, rDiffPosX, rSquareDist);
+	rSquareDist = vec_fmadd(rDiffPosY, rDiffPosY, rSquareDist);
+	rSquareDist = vec_fmadd(rDiffPosZ, rDiffPosZ, rSquareDist);
 
 	//const T dist = std::sqrt(squareDist);
 	vec rDist = vec_sqrt(rSquareDist);
 
-	//const T acc = G * jMasses / (squareDist * dist); // 3 flops
+	//const T acc = G * jMasses / (squareDist * dist);
 	vec rAcc = vec_div(vec_mul(rG, rJMass), vec_mul(rDist, rSquareDist));
 
-	//iAccsX += acc * diffPosX; // 2 flop
-	//iAccsY += acc * diffPosY; // 2 flop
-	//iAccsZ += acc * diffPosZ; // 2 flop
+	//iAccsX += acc * diffPosX;
 	rIAccX = vec_fmadd(rAcc, rDiffPosX, rIAccX);
+	//iAccsY += acc * diffPosY;
 	rIAccY = vec_fmadd(rAcc, rDiffPosY, rIAccY);
+	//iAccsZ += acc * diffPosZ;
 	rIAccZ = vec_fmadd(rAcc, rDiffPosZ, rIAccZ);
 
 	//if(!this->dtConstant)
