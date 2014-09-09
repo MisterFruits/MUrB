@@ -106,7 +106,7 @@ GLuint OGLTools::linkShaders(const vector<GLuint> shaders)
 
 	cout << "Linking shader program...";
 
-	for(int i = 0; i < shaders.size(); i++)
+	for(unsigned i = 0; i < shaders.size(); i++)
 		glAttachShader(shaderProgram, shaders[i]);
 	glLinkProgram(shaderProgram);
 

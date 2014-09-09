@@ -68,5 +68,8 @@ unsigned long Perf::getTime() {
     int ret = gettimeofday(&t, NULL);
     assert(ret == 0);
 
-    return t.tv_sec * 1000000 + t.tv_usec;
+	if(ret == 0)
+    	return t.tv_sec * 1000000 + t.tv_usec;
+	else
+		return 0;
 }
