@@ -195,14 +195,14 @@ int main(int argc, char** argv)
 	{
 		if(GSEnable) // geometry shader = better performances on dedicated GPUs
 			visu = new OGLSpheresVisuGS<TYPE>("N-body", WinWidth, WinHeight,
-											  space->positions.x, space->positions.y, space->positions.z,
-											  space->radiuses,
-											  NBodies);
+			                                  space->positions.x, space->positions.y, space->positions.z,
+			                                  space->radiuses,
+			                                  NBodies);
 		else
 			visu = new OGLSpheresVisuInst<TYPE>("N-body", WinWidth, WinHeight,
-												space->positions.x, space->positions.y, space->positions.z,
-												space->radiuses,
-												NBodies);
+			                                    space->positions.x, space->positions.y, space->positions.z,
+			                                    space->radiuses,
+			                                    NBodies);
 		cout << endl;
 	}
 	else
