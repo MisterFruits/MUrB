@@ -44,6 +44,26 @@ Space<T>::Space(const std::string inputFileName)
 template <typename T>
 void Space<T>::allocateBuffers()
 {
+	/*
+	this->masses = new vec_t<T>[this->nVecs];
+
+	this->radiuses = new vec_t<T>[this->nVecs];
+
+	this->positions.x = new vec_t<T>[this->nVecs];
+	this->positions.y = new vec_t<T>[this->nVecs];
+	this->positions.z = new vec_t<T>[this->nVecs];
+
+	this->speeds.x = new vec_t<T>[this->nVecs];
+	this->speeds.y = new vec_t<T>[this->nVecs];
+	this->speeds.z = new vec_t<T>[this->nVecs];
+
+	this->accelerations.x = new vec_t<T>[this->nVecs];
+	this->accelerations.y = new vec_t<T>[this->nVecs];
+	this->accelerations.z = new vec_t<T>[this->nVecs];
+
+	this->closestNeighborDist = new vec_t<T>[this->nVecs];
+	*/
+
 	this->masses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
 
 	this->radiuses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
@@ -65,6 +85,38 @@ void Space<T>::allocateBuffers()
 
 template <typename T>
 Space<T>::~Space() {
+	/*
+	if(this->masses)
+		delete[] this->masses;
+
+	if(this->radiuses)
+		delete[] this->radiuses;
+
+	if(this->positions.x)
+		delete[] this->positions.x;
+	if(this->positions.y)
+		delete[] this->positions.y;
+	if(this->positions.z)
+		delete[] this->positions.z;
+
+	if(this->speeds.x)
+		delete[] this->speeds.x;
+	if(this->speeds.y)
+		delete[] this->speeds.y;
+	if(this->speeds.z)
+		delete[] this->speeds.z;
+
+	if(this->accelerations.x)
+		delete[] this->accelerations.x;
+	if(this->accelerations.y)
+		delete[] this->accelerations.y;
+	if(this->accelerations.z)
+		delete[] this->accelerations.z;
+
+	if(this->closestNeighborDist)
+		delete[] this->closestNeighborDist;
+	*/
+
 	if(this->masses)
 		_mm_free(this->masses);
 
