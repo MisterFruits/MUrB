@@ -63,10 +63,10 @@ Perf Perf::operator+=(const Perf& p) {
 }
 
 unsigned long Perf::getTime() {
-    struct timeval t;
-
-    int ret = gettimeofday(&t, NULL);
-    assert(ret == 0);
+	struct timeval t;
+	
+	int ret = gettimeofday(&t, NULL);
+	assert(ret == 0);
 
 	if(ret == 0)
 		return t.tv_sec * 1000000 + t.tv_usec;
