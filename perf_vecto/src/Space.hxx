@@ -123,6 +123,56 @@ T Space<T>:: getDt()
 }
 
 template <typename T>
+void Space<T>::setBody(const unsigned long &iVec, const unsigned short &iBody,
+                       const T &mass, const T &radius,
+                       const T &posX, const T &posY, const T &posZ,
+                       const T &speedX, const T &speedY, const T &speedZ)
+{
+	this->masses[iVec].vec_data[iBody] = mass;
+
+	this->radiuses[iVec].vec_data[iBody] = radius;
+
+	this->positions.x[iVec].vec_data[iBody] = posX;
+	this->positions.y[iVec].vec_data[iBody] = posY;
+	this->positions.z[iVec].vec_data[iBody] = posZ;
+
+	this->speeds.x[iVec].vec_data[iBody] = speedX;
+	this->speeds.y[iVec].vec_data[iBody] = speedY;
+	this->speeds.z[iVec].vec_data[iBody] = speedZ;
+
+	this->accelerations.x[iVec].vec_data[iBody] = 0;
+	this->accelerations.y[iVec].vec_data[iBody] = 0;
+	this->accelerations.z[iVec].vec_data[iBody] = 0;
+
+	this->closestNeighborDist[iVec].vec_data[iBody] = std::numeric_limits<T>::infinity();
+}
+
+template <>
+void Space<float>::setBody(const unsigned long &iVec, const unsigned short &iBody,
+                           const float &mass, const float &radius,
+                           const float &posX, const float &posY, const float &posZ,
+                           const float &speedX, const float &speedY, const float &speedZ)
+{
+	this->masses[iVec].vec_data[iBody] = mass;
+
+	this->radiuses[iVec].vec_data[iBody] = radius;
+
+	this->positions.x[iVec].vec_data[iBody] = posX;
+	this->positions.y[iVec].vec_data[iBody] = posY;
+	this->positions.z[iVec].vec_data[iBody] = posZ;
+
+	this->speeds.x[iVec].vec_data[iBody] = speedX;
+	this->speeds.y[iVec].vec_data[iBody] = speedY;
+	this->speeds.z[iVec].vec_data[iBody] = speedZ;
+
+	this->accelerations.x[iVec].vec_data[iBody] = 0;
+	this->accelerations.y[iVec].vec_data[iBody] = 0;
+	this->accelerations.z[iVec].vec_data[iBody] = 0;
+
+	this->closestNeighborDist[iVec].vec_data[iBody] = 0;
+}
+
+template <typename T>
 void Space<T>::initBodiesRandomly()
 {
 	this->allocateBuffers();
@@ -132,28 +182,25 @@ void Space<T>::initBodiesRandomly()
 	{
 		for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 		{
+			T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
+
 			unsigned long realBody = iBody + iVec * VECTOR_SIZE;
 			if(realBody < this->nBodies)
-				this->masses[iVec].vec_data[iBody] = ((rand() / (T) RAND_MAX) * 5.0e21);
+				mass = ((rand() / (T) RAND_MAX) * 5.0e21);
 			else // fake body just to fit into the last vector
-				this->masses[iVec].vec_data[iBody] = 0;
+				mass = 0;
 
-			this->radiuses[iVec].vec_data[iBody] = this->masses[iVec].vec_data[iBody] * 0.6e-15;
+			radius = mass * 0.6e-15;
 
-			this->positions.x[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-			this->positions.y[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-			this->positions.z[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+			posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+			posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+			posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
 
-			this->speeds.x[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-			this->speeds.y[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-			this->speeds.z[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+			speedX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+			speedY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+			speedZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
-			this->accelerations.x[iVec].vec_data[iBody] = 0;
-			this->accelerations.y[iVec].vec_data[iBody] = 0;
-			this->accelerations.z[iVec].vec_data[iBody] = 0;
-
-			this->closestNeighborDist[iVec].vec_data[iBody] = std::numeric_limits<T>::infinity();
-
+			this->setBody(iVec, iBody, mass, radius, posX, posY, posZ, speedX, speedY, speedZ);
 		}
 	}
 }
@@ -188,7 +235,7 @@ void Space<T>::computeBodiesAcceleration()
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 			if(iVec != jVec)
-				this->iComputeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
+				this->computeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
 				                                                   this->positions.y        [iVec].vec_data,
 				                                                   this->positions.z        [iVec].vec_data,
 				                                                   this->accelerations.x    [iVec].vec_data,
@@ -312,6 +359,7 @@ void Space<T>::computeAccelerationBetweenTwoVectorOfBodies(const T* __restrict i
 			                                          jVecPosZ    [jBody]);
 }
 
+// 18 flops
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
                                                          T &iAccsX,      T &iAccsY,      T &iAccsZ,
@@ -323,7 +371,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPos
 	const T diffPosY = jPosY - iPosY; // 1 flop
 	const T diffPosZ = jPosZ - iPosZ; // 1 flop
 	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
-	const T dist = std::sqrt(squareDist);
+	const T dist = std::sqrt(squareDist); // 1 flop
 	assert(dist != 0);
 
 	const T acc = G * jMasses / (squareDist * dist); // 3 flops
@@ -404,6 +452,7 @@ void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict 
 	vec_store(iClosNeiDist, rIClosNeiDist);
 }
 
+// 19 flops
 template <typename T>
 void Space<T>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
                                                     const vec &rIPosX,
@@ -419,35 +468,81 @@ void Space<T>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
                                                           vec &rJPosZ)
 {
 	//const T diffPosX = jPosX - iPosX;
-	vec rDiffPosX = vec_sub(rJPosX, rIPosX);
+	vec rDiffPosX = vec_sub(rJPosX, rIPosX); // 1 flop
 	//const T diffPosY = jPosY - iPosY;
-	vec rDiffPosY = vec_sub(rJPosY, rIPosY);
+	vec rDiffPosY = vec_sub(rJPosY, rIPosY); // 1 flop
 	//const T diffPosZ = jPosZ - iPosZ;
-	vec rDiffPosZ = vec_sub(rJPosZ, rIPosZ);
+	vec rDiffPosZ = vec_sub(rJPosZ, rIPosZ); // 1 flop
 
 	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ);
 	vec rSquareDist = vec_set1(0);
-	rSquareDist = vec_fmadd(rDiffPosX, rDiffPosX, rSquareDist);
-	rSquareDist = vec_fmadd(rDiffPosY, rDiffPosY, rSquareDist);
-	rSquareDist = vec_fmadd(rDiffPosZ, rDiffPosZ, rSquareDist);
+	rSquareDist = vec_fmadd(rDiffPosX, rDiffPosX, rSquareDist); // 2 flops
+	rSquareDist = vec_fmadd(rDiffPosY, rDiffPosY, rSquareDist); // 2 flops
+	rSquareDist = vec_fmadd(rDiffPosZ, rDiffPosZ, rSquareDist); // 2 flops
 
 	//const T dist = std::sqrt(squareDist);
-	vec rDist = vec_sqrt(rSquareDist);
+	vec rDist = vec_sqrt(rSquareDist); // 1 flop
 
 	//const T acc = G * jMasses / (squareDist * dist);
-	vec rAcc = vec_div(vec_mul(rG, rJMass), vec_mul(rDist, rSquareDist));
+	vec rAcc = vec_div(vec_mul(rG, rJMass), vec_mul(rDist, rSquareDist)); // 3 flops
 
 	//iAccsX += acc * diffPosX;
-	rIAccX = vec_fmadd(rAcc, rDiffPosX, rIAccX);
+	rIAccX = vec_fmadd(rAcc, rDiffPosX, rIAccX); // 2 flops
 	//iAccsY += acc * diffPosY;
-	rIAccY = vec_fmadd(rAcc, rDiffPosY, rIAccY);
+	rIAccY = vec_fmadd(rAcc, rDiffPosY, rIAccY); // 2 flops
 	//iAccsZ += acc * diffPosZ;
-	rIAccZ = vec_fmadd(rAcc, rDiffPosZ, rIAccZ);
+	rIAccZ = vec_fmadd(rAcc, rDiffPosZ, rIAccZ); // 2 flops
 
 	//if(!this->dtConstant)
-	//	if(dist < iClosNeiDist)
-	//		iClosNeiDist = dist;
+	//	min(iClosNeiDist, dist);
 	rIClosNeiDist = vec_min(rDist, rIClosNeiDist);
+}
+
+// 22 flops
+template <>
+void Space<float>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
+                                                        const vec &rIPosX,
+                                                        const vec &rIPosY,
+                                                        const vec &rIPosZ,
+                                                              vec &rIAccX,
+                                                              vec &rIAccY,
+                                                              vec &rIAccZ,
+                                                              vec &rIClosNeiDist,
+                                                              vec &rJMass,
+                                                              vec &rJPosX,
+                                                              vec &rJPosY,
+                                                              vec &rJPosZ)
+{
+	//const T diffPosX = jPosX - iPosX;
+	vec rDiffPosX = vec_sub(rJPosX, rIPosX); // 1 flop
+	//const T diffPosY = jPosY - iPosY;
+	vec rDiffPosY = vec_sub(rJPosY, rIPosY); // 1 flop
+	//const T diffPosZ = jPosZ - iPosZ;
+	vec rDiffPosZ = vec_sub(rJPosZ, rIPosZ); // 1 flop
+
+	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ);
+	vec rSquareDist = vec_set1(0);
+	rSquareDist = vec_fmadd(rDiffPosX, rDiffPosX, rSquareDist); // 2 flops
+	rSquareDist = vec_fmadd(rDiffPosY, rDiffPosY, rSquareDist); // 2 flops
+	rSquareDist = vec_fmadd(rDiffPosZ, rDiffPosZ, rSquareDist); // 2 flops
+
+	//const T invDist = 1.0 / std::sqrt(squareDist);
+	vec rInvDist = vec_rsqrt(rSquareDist); // 1 flop
+
+	// const T acc = G * jMasses / (dist * dist) <=>
+	// const T acc = G * jMasses * (invDist * invDist)
+	vec rAcc = vec_mul(vec_mul(rG, rJMass), vec_mul(rInvDist, rInvDist)); // 3 flops
+
+	//iAccsX += acc * (diffPosX / dist) <=> iAccsX += acc * (diffPosX * invDist)
+	rIAccX = vec_fmadd(rAcc, vec_mul(rDiffPosX, rInvDist), rIAccX); // 3 flops
+	//iAccsY += acc * (diffPosY / dist) <=> iAccsY += acc * (diffPosY * invDist)
+	rIAccY = vec_fmadd(rAcc, vec_mul(rDiffPosY, rInvDist), rIAccY); // 3 flops
+	//iAccsZ += acc * (diffPosZ / dist) <=> iAccsZ += acc * (diffPosZ * invDist)
+	rIAccZ = vec_fmadd(rAcc, vec_mul(rDiffPosZ, rInvDist), rIAccZ); // 3 flops
+
+	//if(!this->dtConstant)
+	//	min(iClosNeiDist, dist) <=> max(iClosNeiDist, rInvDist)
+	rIClosNeiDist = vec_max(rInvDist, rIClosNeiDist);
 }
 
 template <typename T>
@@ -459,10 +554,32 @@ void Space<T>::findTimeStep()
 	{
 		this->dt = std::numeric_limits<T>::infinity();
 
-		// flops = nBodies * 16
 		for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		{
 			const T newDt = computeTimeStep(iVec); // 16 flops
+
+			if(newDt < this->dt)
+				this->dt = newDt;
+		}
+	}
+}
+
+template <>
+void Space<float>::findTimeStep()
+{
+	// TODO: be careful, with fake bodies added at the end of the last vector, the dynamic time step is broken.
+	//       It is necessary to launch the simulation with a number of bodies multiple of VECTOR_SIZE!
+	if(!this->dtConstant)
+	{
+		this->dt = std::numeric_limits<float>::infinity();
+
+		for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
+		{
+			for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+				this->closestNeighborDist[iVec].vec_data[iBody] = 1.0 /
+				                                                  this->closestNeighborDist[iVec].vec_data[iBody];
+
+			const float newDt = computeTimeStep(iVec); // 16 flops
 
 			if(newDt < this->dt)
 				this->dt = newDt;
@@ -481,12 +598,12 @@ T Space<T>::computeTimeStep(const unsigned long iVec)
 		// || lb.speed ||
 		const T s = std::sqrt((this->speeds.x[iVec].vec_data[iBody] * this->speeds.x[iVec].vec_data[iBody]) +
 		                      (this->speeds.y[iVec].vec_data[iBody] * this->speeds.y[iVec].vec_data[iBody]) +
-		                      (this->speeds.z[iVec].vec_data[iBody] * this->speeds.z[iVec].vec_data[iBody])); // 5 flops
+		                      (this->speeds.z[iVec].vec_data[iBody] * this->speeds.z[iVec].vec_data[iBody]));
 
 		// || lb.acceleration ||
 		const T a = std::sqrt((this->accelerations.x[iVec].vec_data[iBody] * this->accelerations.x[iVec].vec_data[iBody]) +
 		                      (this->accelerations.y[iVec].vec_data[iBody] * this->accelerations.y[iVec].vec_data[iBody]) +
-		                      (this->accelerations.z[iVec].vec_data[iBody] * this->accelerations.z[iVec].vec_data[iBody])); // 5 flops
+		                      (this->accelerations.z[iVec].vec_data[iBody] * this->accelerations.z[iVec].vec_data[iBody]));
 
 		/*
 		 * compute dt
@@ -496,7 +613,7 @@ T Space<T>::computeTimeStep(const unsigned long iVec)
 		 * dt should be positive (+/- becomes + because result of sqrt is positive)
 		 * <=>     dt = [ -s + sqrt( s^2 + 0.2*ClosestNeighborDist*a) ] / a
 		 */
-		vecNewDt.vec_data[iBody] = (std::sqrt(s * s + 0.2 * a * this->closestNeighborDist[iVec].vec_data[iBody]) - s) / a; // 6 flops
+		vecNewDt.vec_data[iBody] = (std::sqrt(s * s + 0.2 * a * this->closestNeighborDist[iVec].vec_data[iBody]) - s) / a;
 
 		if(vecNewDt.vec_data[iBody] == 0)
 			vecNewDt.vec_data[iBody] = std::numeric_limits<T>::epsilon() / a;
@@ -521,23 +638,28 @@ void Space<T>::updateBodiesPositionAndSpeed()
 	{
 		for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 		{
-			T accXMultDt = this->accelerations.x[iVec].vec_data[iBody] * this->dt; // 1 flop
-			T accYMultDt = this->accelerations.y[iVec].vec_data[iBody] * this->dt; // 1 flop
-			T accZMultDt = this->accelerations.z[iVec].vec_data[iBody] * this->dt; // 1 flop
+			T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
 
-			this->positions.x[iVec].vec_data[iBody] += (this->speeds.x[iVec].vec_data[iBody] + accXMultDt * 0.5) * this->dt; // 4 flops
-			this->positions.y[iVec].vec_data[iBody] += (this->speeds.y[iVec].vec_data[iBody] + accYMultDt * 0.5) * this->dt; // 4 flops
-			this->positions.z[iVec].vec_data[iBody] += (this->speeds.z[iVec].vec_data[iBody] + accZMultDt * 0.5) * this->dt; // 4 flops;
+			mass = this->masses[iVec].vec_data[iBody];
 
-			this->speeds.x[iVec].vec_data[iBody] += accXMultDt; // 1 flop
-			this->speeds.y[iVec].vec_data[iBody] += accYMultDt; // 1 flop
-			this->speeds.z[iVec].vec_data[iBody] += accZMultDt; // 1 flop
+			radius = this->radiuses[iVec].vec_data[iBody];
 
-			this->accelerations.x[iVec].vec_data[iBody] = 0;
-			this->accelerations.y[iVec].vec_data[iBody] = 0;
-			this->accelerations.z[iVec].vec_data[iBody] = 0;
+			T accXMultDt = this->accelerations.x[iVec].vec_data[iBody] * this->dt;
+			T accYMultDt = this->accelerations.y[iVec].vec_data[iBody] * this->dt;
+			T accZMultDt = this->accelerations.z[iVec].vec_data[iBody] * this->dt;
 
-			this->closestNeighborDist[iVec].vec_data[iBody] = std::numeric_limits<T>::infinity();
+			posX = this->positions.x[iVec].vec_data[iBody] +
+			       (this->speeds.x[iVec].vec_data[iBody] + accXMultDt * 0.5) * this->dt;
+			posY = this->positions.y[iVec].vec_data[iBody] +
+			       (this->speeds.y[iVec].vec_data[iBody] + accYMultDt * 0.5) * this->dt;
+			posZ = this->positions.z[iVec].vec_data[iBody] +
+			       (this->speeds.z[iVec].vec_data[iBody] + accZMultDt * 0.5) * this->dt;
+
+			speedX = this->speeds.x[iVec].vec_data[iBody] + accXMultDt;
+			speedY = this->speeds.y[iVec].vec_data[iBody] + accYMultDt;
+			speedZ = this->speeds.z[iVec].vec_data[iBody] + accZMultDt;
+
+			this->setBody(iVec, iBody, mass, radius, posX, posY, posZ, speedX, speedY, speedZ);
 		}
 	}
 }
@@ -560,41 +682,39 @@ bool Space<T>::read(std::istream& stream)
 	{
 		for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 		{
+			T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
+
 			unsigned long realBody = iBody + iVec * VECTOR_SIZE;
 			if(realBody < this->nBodies) // read from file
 			{
-				stream >> this->masses[iVec].vec_data[iBody];
+				stream >> mass;
 
-				stream >> this->radiuses[iVec].vec_data[iBody];
+				stream >> radius;
 
-				stream >> this->positions.x[iVec].vec_data[iBody];
-				stream >> this->positions.y[iVec].vec_data[iBody];
-				stream >> this->positions.z[iVec].vec_data[iBody];
+				stream >> posX;
+				stream >> posY;
+				stream >> posZ;
 
-				stream >> this->speeds.x[iVec].vec_data[iBody];
-				stream >> this->speeds.y[iVec].vec_data[iBody];
-				stream >> this->speeds.z[iVec].vec_data[iBody];
+				stream >> speedX;
+				stream >> speedY;
+				stream >> speedZ;
 			}
 			else // fake body just to fit into the last vector
 			{
-				this->masses[iVec].vec_data[iBody] = 0;
+				mass = 0;
 
-				this->radiuses[iVec].vec_data[iBody] = this->masses[iVec].vec_data[iBody] * 0.6e-15;
+				radius = 0;
 
-				this->positions.x[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-				this->positions.y[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-				this->positions.z[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+				posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+				posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+				posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
 
-				this->speeds.x[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-				this->speeds.y[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-				this->speeds.z[iVec].vec_data[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+				speedX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+				speedY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+				speedZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 			}
 
-			this->accelerations.x[iVec].vec_data[iBody] = 0;
-			this->accelerations.y[iVec].vec_data[iBody] = 0;
-			this->accelerations.z[iVec].vec_data[iBody] = 0;
-
-			this->closestNeighborDist[iVec].vec_data[iBody] = std::numeric_limits<T>::infinity();
+			this->setBody(iVec, iBody, mass, radius, posX, posY, posZ, speedX, speedY, speedZ);
 
 			if(!stream.good())
 				return false;

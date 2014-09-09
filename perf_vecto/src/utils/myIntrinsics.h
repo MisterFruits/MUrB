@@ -52,8 +52,9 @@
 		__m256d _mm256_sub_pd         (__m256d a, __m256d b);
 		__m256d _mm256_mul_pd         (__m256d a, __m256d b);
 		__m256d _mm256_div_pd         (__m256d a, __m256d b);
-		__m256d _mm256_min_pd         (__m256d a, __m256d b)
-		__m256d _mm256_sqrt_pd        (__m256d a)
+		__m256d _mm256_min_pd         (__m256d a, __m256d b);
+		__m256d _mm256_max_pd         (__m256d a, __m256d b);
+		__m256d _mm256_sqrt_pd        (__m256d a);
 		__m256d _mm256_fmadd_pd       (__m256d a, __m256d b, __m256d c);
 		__m256d _mm256_permute4x64_pd (__m256d a, const int imm)
 		  void  _mm256_store_pd       (double * mem_addr, __m256d a);
@@ -68,7 +69,9 @@
 		#define vec_mul(a, b)          _mm256_mul_pd  (a, b)
 		#define vec_div(a, b)          _mm256_div_pd  (a, b)
 		#define vec_min(a, b)          _mm256_min_pd  (a, b)
+		#define vec_max(a, b)          _mm256_max_pd  (a, b)
 		#define vec_sqrt(a)            _mm256_sqrt_pd (a)
+		#define vec_rsqrt(a)           vec_div(vec_set1(1), vec_sqrt(a))
 
 		#ifdef __AVX2__
 			#define vec_fmadd(a, b, c) _mm256_fmadd_pd(a, b, c)
@@ -108,7 +111,9 @@
 		__m256 _mm256_mul_ps         (__m256 a, __m256 b);
 		__m256 _mm256_div_ps         (__m256 a, __m256 b);
 		__m256 _mm256_min_ps         (__m256 a, __m256 b);
+		__m256 _mm256_max_ps         (__m256 a, __m256 b);
 		__m256 _mm256_sqrt_ps        (__m256 a);
+		__m256 _mm256_rsqrt_ps       (__m256 a);
 		__m256 _mm256_fmadd_ps       (__m256 a, __m256 b, __m256 c);
 		__m256 _mm256_permute4x64_ps (__m256d a, const int imm)
 		  void _mm256_store_ps       (float * mem_addr, __m256 a);
@@ -123,7 +128,9 @@
 		#define vec_mul(a, b)          _mm256_mul_ps  (a, b)
 		#define vec_div(a, b)          _mm256_div_ps  (a, b)
 		#define vec_min(a, b)          _mm256_min_ps  (a, b)
+		#define vec_max(a, b)          _mm256_max_ps  (a, b)
 		#define vec_sqrt(a)            _mm256_sqrt_ps (a)
+		#define vec_rsqrt(a)           _mm256_rsqrt_ps(a)
 
 		#ifdef __AVX2__
 			#define vec_fmadd(a, b, c) _mm256_fmadd_ps(a, b, c)
@@ -163,6 +170,10 @@
 		__m128d _mm_add_pd   (__m128d a, __m128d b);
 		__m128d _mm_sub_pd   (__m128d a, __m128d b);
 		__m128d _mm_mul_pd   (__m128d a, __m128d b);
+		__m128d _mm_div_pd   (__m128d a, __m128d b);
+		__m128d _mm_min_pd   (__m128d a, __m128d b);
+		__m128d _mm_max_pd   (__m128d a, __m128d b);
+		__m128  _mm_sqrt_pd  (__m128d a);
 		  void  _mm_store_pd (double * mem_addr, __m128d a);
 		*/
 
@@ -175,7 +186,9 @@
 		#define vec_mul(a, b)          _mm_mul_pd  (a, b)
 		#define vec_div(a, b)          _mm_div_pd  (a, b)
 		#define vec_min(a, b)          _mm_min_pd  (a, b)
+		#define vec_max(a, b)          _mm_max_pd  (a, b)
 		#define vec_sqrt(a)            _mm_sqrt_pd (a)
+		#define vec_rsqrt(a)           vec_div(vec_set1(1), vec_sqrt(a))
 		#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
 		// make a rotation in:[1, 0] => out:[0, 1]
 		#define vec_rot(a)             (__m128d) _mm_shuffle_epi32 ((__m128i) a, _MM_SHUFFLE(1, 0, 3, 2))
@@ -190,6 +203,11 @@
 		__m128  _mm_add_ps   (__m128 a, __m128 b);
 		__m128  _mm_sub_ps   (__m128 a, __m128 b);
 		__m128  _mm_mul_ps   (__m128 a, __m128 b);
+		__m128d _mm_div_ps   (__m128 a, __m128 b);
+		__m128d _mm_min_ps   (__m128 a, __m128 b);
+		__m128d _mm_max_ps   (__m128 a, __m128 b);
+		__m128  _mm_sqrt_ps  (__m128 a)
+		__m128  _mm_rsqrt_ps (__m128 a)
 		  void  _mm_store_ps (float * mem_addr, __m128 a);
 		__m128i _mm_shuffle_epi32 (__m128i a, int imm);
 		*/
@@ -203,7 +221,9 @@
 		#define vec_mul(a, b)          _mm_mul_ps  (a, b)
 		#define vec_div(a, b)          _mm_div_ps  (a, b)
 		#define vec_min(a, b)          _mm_min_ps  (a, b)
+		#define vec_max(a, b)          _mm_max_ps  (a, b)
 		#define vec_sqrt(a)            _mm_sqrt_ps (a)
+		#define vec_rsqrt(a)           _mm_rsqrt_ps(a)
 		#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
 		// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
 		#define vec_rot(a)             (__m128) _mm_shuffle_epi32 ((__m128i) a, _MM_SHUFFLE(0, 3, 2, 1))

@@ -164,10 +164,10 @@ int main(int argc, char** argv)
 	NBodies = space->getNBodies();
 
 	// compute MB used for this simulation
-	float Mbytes = (11 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
+	float Mbytes = (12 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
 
 	// compute flops per iteration
-	float flopsPerIte = (float) NBodies * (float) (NBodies * 17);
+	float flopsPerIte = (float) NBodies * (float) (NBodies * 18);
 
 	// display simulation configuration
 	cout << "N-body simulation started !" << endl;

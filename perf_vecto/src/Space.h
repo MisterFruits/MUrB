@@ -62,6 +62,11 @@ public:
 private:
 	void allocateBuffers();
 
+	void setBody(const unsigned long &iVec, const unsigned short &iBody,
+	             const T &mass, const T &radius,
+	             const T &posX, const T &posY, const T &posZ,
+	             const T &speedX, const T &speedY, const T &speedZ);
+
 	void initBodiesRandomly();
 	void initBodiesFromFile(const std::string inputFileName);
 	
@@ -95,18 +100,18 @@ private:
 	                                                         const T* __restrict jVecPosY,
 	                                                         const T* __restrict jVecPosZ);
 
-	inline void iComputeAccelerationBetweenTwoBodies(const vec &rG,
-	                                                 const vec &rIPosX,
-	                                                 const vec &rIPosY,
-	                                                 const vec &rIPosZ,
-	                                                       vec &rIAccX,
-	                                                       vec &rIAccY,
-	                                                       vec &rIAccZ,
-	                                                       vec &rIClosNeiDist,
-	                                                       vec &rJMass,
-	                                                       vec &rJPosX,
-	                                                       vec &rJPosY,
-	                                                       vec &rJPosZ);
+	static inline void iComputeAccelerationBetweenTwoBodies(const vec &rG,
+	                                                        const vec &rIPosX,
+	                                                        const vec &rIPosY,
+	                                                        const vec &rIPosZ,
+	                                                              vec &rIAccX,
+	                                                              vec &rIAccY,
+	                                                              vec &rIAccZ,
+	                                                              vec &rIClosNeiDist,
+	                                                              vec &rJMass,
+	                                                              vec &rJPosX,
+	                                                              vec &rJPosY,
+	                                                              vec &rJPosZ);
 
 	inline T computeTimeStep(const unsigned long iVec);
 };

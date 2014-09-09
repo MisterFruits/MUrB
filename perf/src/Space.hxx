@@ -175,15 +175,14 @@ template <typename T>
 void Space<T>::computeBodiesAcceleration()
 {
 #pragma omp parallel for schedule(runtime)
-	// flops ~= nBody^2 * 17
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
-		// flops ~= nBody * 17
 		for(unsigned long jBody = 0; jBody < this->nBodies; jBody++)
 			if(iBody != jBody)
-				this->computeAccelerationBetweenTwoBodies(iBody, jBody); // 17 flops
-				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody); // 22 flops
+				this->computeAccelerationBetweenTwoBodies(iBody, jBody);
+				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
 }
 
+// 18 flops
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
 {
@@ -193,7 +192,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 	const T diffPosY = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
 	const T diffPosZ = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
 	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
-	const T dist = std::sqrt(squareDist);
+	const T dist = std::sqrt(squareDist); // 1 flop
 	assert(dist != 0);
 
 	const T acc = G * this->masses[jBody] / (squareDist * dist); // 3 flops
@@ -206,6 +205,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 			this->closestNeighborDist[iBody] = dist;
 }
 
+// 23 flops
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody)
 {
@@ -216,7 +216,7 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBod
 	const T diffPosZ  = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
 
 	// compute distance between iBody and jBody: Dij
-	const T dist = std::sqrt((diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ)); // 5 flops
+	const T dist = std::sqrt((diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ)); // 6 flops
 
 	// compute the force value between iBody and jBody: || F || = G.mi.mj / Dij²
 	const T force = G * this->masses[iBody] * this->masses[jBody] / (dist * dist); // 4 flops
@@ -249,10 +249,9 @@ void Space<T>::findTimeStep()
 	if(!this->dtConstant)
 	{
 		this->dt = std::numeric_limits<T>::infinity();
-		// flops = nBodies * 16
 		for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 		{
-			const T newDt = computeTimeStep(iBody); // 16 flops
+			const T newDt = computeTimeStep(iBody);
 
 			if(newDt < this->dt)
 				this->dt = newDt;
@@ -266,12 +265,12 @@ T Space<T>::computeTimeStep(const unsigned long iBody)
 	// || lb.speed ||
 	const T s = std::sqrt((this->speeds.x[iBody] * this->speeds.x[iBody]) +
 	                      (this->speeds.y[iBody] * this->speeds.y[iBody]) +
-	                      (this->speeds.z[iBody] * this->speeds.z[iBody])); // 5 flops
+	                      (this->speeds.z[iBody] * this->speeds.z[iBody]));
 
 	// || lb.acceleration ||
 	const T a = std::sqrt((this->accelerations.x[iBody] * this->accelerations.x[iBody]) +
 	                      (this->accelerations.y[iBody] * this->accelerations.y[iBody]) +
-	                      (this->accelerations.z[iBody] * this->accelerations.z[iBody])); // 5 flops
+	                      (this->accelerations.z[iBody] * this->accelerations.z[iBody]));
 
 	/*
 	 * compute dt
@@ -281,7 +280,7 @@ T Space<T>::computeTimeStep(const unsigned long iBody)
 	 * dt should be positive (+/- becomes + because result of sqrt is positive)
 	 * <=>     dt = [ -s + sqrt( s^2 + 0.2*ClosestNeighborDist*a) ] / a
 	 */
-	T dt = (std::sqrt(s * s + 0.2 * a * this->closestNeighborDist[iBody]) - s) / a; // 6 flops
+	T dt = (std::sqrt(s * s + 0.2 * a * this->closestNeighborDist[iBody]) - s) / a;
 
 	if(dt == 0)
 		dt = std::numeric_limits<T>::epsilon() / a;
@@ -295,17 +294,17 @@ void Space<T>::updateBodiesPositionAndSpeed()
 	// flops = nBodies * 18
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
-		T accXMultDt = this->accelerations.x[iBody] * this->dt; // 1 flop
-		T accYMultDt = this->accelerations.y[iBody] * this->dt; // 1 flop
-		T accZMultDt = this->accelerations.z[iBody] * this->dt; // 1 flop
+		T accXMultDt = this->accelerations.x[iBody] * this->dt;
+		T accYMultDt = this->accelerations.y[iBody] * this->dt;
+		T accZMultDt = this->accelerations.z[iBody] * this->dt;
 
-		this->positions.x[iBody] += (this->speeds.x[iBody] + accXMultDt * 0.5) * this->dt; // 4 flops
-		this->positions.y[iBody] += (this->speeds.y[iBody] + accYMultDt * 0.5) * this->dt; // 4 flops
-		this->positions.z[iBody] += (this->speeds.z[iBody] + accZMultDt * 0.5) * this->dt; // 4 flops;
+		this->positions.x[iBody] += (this->speeds.x[iBody] + accXMultDt * 0.5) * this->dt;
+		this->positions.y[iBody] += (this->speeds.y[iBody] + accYMultDt * 0.5) * this->dt;
+		this->positions.z[iBody] += (this->speeds.z[iBody] + accZMultDt * 0.5) * this->dt;
 
-		this->speeds.x[iBody] += accXMultDt; // 1 flop
-		this->speeds.y[iBody] += accYMultDt; // 1 flop
-		this->speeds.z[iBody] += accZMultDt; // 1 flop
+		this->speeds.x[iBody] += accXMultDt;
+		this->speeds.y[iBody] += accYMultDt;
+		this->speeds.z[iBody] += accZMultDt;
 
 		this->accelerations.x[iBody] = 0;
 		this->accelerations.y[iBody] = 0;
