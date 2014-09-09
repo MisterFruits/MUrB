@@ -30,7 +30,7 @@
 		float32x4_t vrecpeq_f32  (float32x4_t);              // 1.0 / float32x4_t
 		float32x4_t vminq_f32    (float32x4_t, float32x4_t); // min
 		float32x4_t vmaxq_f32    (float32x4_t, float32x4_t); // max
-		float32x4_t vrsqrteq_f32 (float32x4_t);              // 1 / sqrt(float32x4_t)
+		float32x4_t vrsqrteq_f32 (float32x4_t);              // 1.0 / sqrt(float32x4_t)
 		void        vst1q_f32    (float32_t *, float32x4_t); // store
 		*/
 

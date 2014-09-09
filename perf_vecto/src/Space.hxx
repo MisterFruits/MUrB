@@ -44,7 +44,7 @@ Space<T>::Space(const std::string inputFileName)
 template <typename T>
 void Space<T>::allocateBuffers()
 {
-	/*
+#ifdef __ARM_NEON__
 	this->masses = new vec_t<T>[this->nVecs];
 
 	this->radiuses = new vec_t<T>[this->nVecs];
@@ -62,8 +62,7 @@ void Space<T>::allocateBuffers()
 	this->accelerations.z = new vec_t<T>[this->nVecs];
 
 	this->closestNeighborDist = new vec_t<T>[this->nVecs];
-	*/
-
+#else
 	this->masses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
 
 	this->radiuses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
@@ -81,11 +80,12 @@ void Space<T>::allocateBuffers()
 	this->accelerations.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
 
 	this->closestNeighborDist = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+#endif
 }
 
 template <typename T>
 Space<T>::~Space() {
-	/*
+#ifdef __ARM_NEON__
 	if(this->masses)
 		delete[] this->masses;
 
@@ -115,8 +115,7 @@ Space<T>::~Space() {
 
 	if(this->closestNeighborDist)
 		delete[] this->closestNeighborDist;
-	*/
-
+#else
 	if(this->masses)
 		_mm_free(this->masses);
 
@@ -146,6 +145,7 @@ Space<T>::~Space() {
 
 	if(this->closestNeighborDist)
 		_mm_free(this->closestNeighborDist);
+#endif
 }
 
 template <typename T>
