@@ -16,18 +16,22 @@
 
 #ifdef __ARM_NEON__
 	#ifdef NBODY_DOUBLE /* NEON-128 double */
-		/* ces instructions n'existent pas ! */
+		/* those instructions does not really exist */
 		#define VECTOR_SIZE 2
 		#define REQUIRED_ALIGNEMENT 16
 
 	#elif defined(NBODY_FLOAT) /* NEON-128 float */
 		/* intrinsics NEON headers
-		float32x4_t vld1q_f32   (const float32_t *);        // load
-		float32x4_t vdupq_n_f32 (float32_t)                 // set 1
-		float32x4_t vaddq_f32   (float32x4_t, float32x4_t); // add
-		float32x4_t vsubq_f32   (float32x4_t, float32x4_t); // sub
-		float32x4_t vmulq_f32   (float32x4_t, float32x4_t); // mul
-		void        vst1q_f32   (float32_t *, float32x4_t); // store
+		float32x4_t vld1q_f32    (const float32_t *);        // load
+		float32x4_t vdupq_n_f32  (float32_t)                 // set 1
+		float32x4_t vaddq_f32    (float32x4_t, float32x4_t); // add
+		float32x4_t vsubq_f32    (float32x4_t, float32x4_t); // sub
+		float32x4_t vmulq_f32    (float32x4_t, float32x4_t); // mul
+		float32x4_t vrecpeq_f32  (float32x4_t);              // 1.0 / float32x4_t
+		float32x4_t vminq_f32    (float32x4_t, float32x4_t); // min
+		float32x4_t vmaxq_f32    (float32x4_t, float32x4_t); // max
+		float32x4_t vrsqrteq_f32 (float32x4_t);              // 1 / sqrt(float32x4_t)
+		void        vst1q_f32    (float32_t *, float32x4_t); // store
 		*/
 
 		#define vec                    float32x4_t
@@ -37,7 +41,13 @@
 		#define vec_add(a, b)          vaddq_f32   (a, b)
 		#define vec_sub(a, b)          vsubq_f32   (a, b)
 		#define vec_mul(a, b)          vmulq_f32   (a, b)
-		#define vec_fmadd(a, b, c)     vec_add(c, vec_mul(a, b))
+		#define vec_div(a, b)          vec_mul     (a, vrecpeq_f32(b))
+		#define vec_min(a, b)          vminq_f32   (a, b)
+		#define vec_max(a, b)          vmaxq_f32   (a, b)
+		#define vec_rsqrt(a)           vrsqrteq_f32(a)
+		#define vec_sqrt(a)            vrecpeq_f32 (vec_rsqrt(a))
+		#define vec_fmadd(a, b, c)     vec_add     (c, vec_mul(a, b))
+		#define vec_rot(a)             vextq_f32   (a, a, 1)
 
 		#define VECTOR_SIZE 4
 		#define REQUIRED_ALIGNEMENT 16
