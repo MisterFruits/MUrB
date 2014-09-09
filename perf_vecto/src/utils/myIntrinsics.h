@@ -1,8 +1,8 @@
 /*
- * myIntrinsics.h
- *
- *  Created on: 25 apr. 2014
- *      Author: Adrien CASSAGNE
+ * Do not remove.
+ * Optimization training courses 2014 (CINES)
+ * Adrien Cassagne, adrien.cassagne@cines.fr
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
 #ifndef MY_INTRINSICS_H
@@ -47,6 +47,7 @@
 		#define vec_rsqrt(a)           vrsqrteq_f32(a)
 		#define vec_sqrt(a)            vrecpeq_f32 (vec_rsqrt(a))
 		#define vec_fmadd(a, b, c)     vec_add     (c, vec_mul(a, b))
+		// make a rotation in:[3, 2, 1, 0] => out:[0, 3, 2, 1]
 		#define vec_rot(a)             vextq_f32   (a, a, 1)
 
 		#define VECTOR_SIZE 4

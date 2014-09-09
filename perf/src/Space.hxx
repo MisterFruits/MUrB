@@ -1,7 +1,7 @@
 /*
  * Do not remove.
- * MPI/OpenMP training courses
- * Adrien Cassagne, ASA - CINES, adrien.cassagne@cines.fr
+ * Optimization training courses 2014 (CINES)
+ * Adrien Cassagne, adrien.cassagne@cines.fr
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
@@ -16,12 +16,12 @@
 
 template <typename T>
 Space<T>::Space(const unsigned long nBodies)
-	: nBodies(nBodies),
-	  masses(NULL),
-	  radiuses(NULL),
+	: nBodies            (nBodies),
+	  masses             (NULL),
+	  radiuses           (NULL),
 	  closestNeighborDist(NULL),
-	  dt(std::numeric_limits<T>::infinity()),
-	  dtConstant(false)
+	  dt                 (std::numeric_limits<T>::infinity()),
+	  dtConstant         (false)
 {
 	assert(nBodies > 0);
 	this->initBodiesRandomly();
@@ -29,12 +29,12 @@ Space<T>::Space(const unsigned long nBodies)
 
 template <typename T>
 Space<T>::Space(const std::string inputFileName)
-	: nBodies(0),
-	  masses(NULL),
-	  radiuses(NULL),
+	: nBodies            (0),
+	  masses             (NULL),
+	  radiuses           (NULL),
 	  closestNeighborDist(NULL),
-	  dt(std::numeric_limits<T>::infinity()),
-	  dtConstant(false)
+	  dt                 (std::numeric_limits<T>::infinity()),
+	  dtConstant         (false)
 {
 	this->initBodiesFromFile(inputFileName);
 }

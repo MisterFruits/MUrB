@@ -1,8 +1,8 @@
 /*
- * Perf.h
- *
- *  Created on: 13 févr. 2014
- *      Author: Adrien CASSAGNE
+ * Do not remove.
+ * Optimization training courses 2014 (CINES)
+ * Adrien Cassagne, adrien.cassagne@cines.fr
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
 #ifndef PERF_H_
