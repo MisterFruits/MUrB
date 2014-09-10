@@ -68,7 +68,7 @@ void argsReader(int argc, char** argv)
 	faculArgs["-help"] = "";
 	docArgs  ["-help"] = "display this help.";
 	faculArgs["-dt"]   = "timeStep";
-	docArgs  ["-dt"]   = "select a fixed time step in second.";
+	docArgs  ["-dt"]   = "select a fixed time step in second (default is " + to_string(Dt) + " sec).";
 	faculArgs["-gs"]   = "";
 	docArgs  ["-gs"]   = "enable geometry shader for visu, "
 	                     "this is faster than the standard way but not all GPUs can support it.";
