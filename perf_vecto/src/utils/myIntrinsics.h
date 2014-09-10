@@ -18,7 +18,7 @@
 	#ifdef NBODY_DOUBLE /* NEON-128 double */
 		/* those instructions does not really exist */
 		#define VECTOR_SIZE 2
-		#define REQUIRED_ALIGNEMENT 16
+		#define REQUIRED_ALIGNEMENT 16 // bytes
 
 	#elif defined(NBODY_FLOAT) /* NEON-128 float */
 		/* intrinsics NEON headers
@@ -51,7 +51,7 @@
 		#define vec_rot(a)             vextq_f32   (a, a, 1)
 
 		#define VECTOR_SIZE 4
-		#define REQUIRED_ALIGNEMENT 16
+		#define REQUIRED_ALIGNEMENT 16 // bytes
 
 	#endif
 #elif defined(__AVX__)
@@ -111,7 +111,7 @@
 		#endif
 	
 		#define VECTOR_SIZE 4
-		#define REQUIRED_ALIGNEMENT 32
+		#define REQUIRED_ALIGNEMENT 32 // bytes
 
 	#elif defined(NBODY_FLOAT) /* AVX-256 float */
 		/* intrinsics AVX headers
@@ -170,7 +170,7 @@
 		#endif
 
 		#define VECTOR_SIZE 8
-		#define REQUIRED_ALIGNEMENT 32
+		#define REQUIRED_ALIGNEMENT 32 // bytes
 
 	#endif
 #elif defined(__SSE2__)
@@ -205,7 +205,7 @@
 		#define vec_rot(a)             (__m128d) _mm_shuffle_epi32 ((__m128i) a, _MM_SHUFFLE(1, 0, 3, 2))
 
 		#define VECTOR_SIZE 2
-		#define REQUIRED_ALIGNEMENT 16
+		#define REQUIRED_ALIGNEMENT 16 // bytes
 
 	#elif defined(NBODY_FLOAT) /* SSE-128 float */
 		/* intrinsics SSE headers
@@ -240,7 +240,7 @@
 		#define vec_rot(a)             (__m128) _mm_shuffle_epi32 ((__m128i) a, _MM_SHUFFLE(0, 3, 2, 1))
 
 		#define VECTOR_SIZE 4
-		#define REQUIRED_ALIGNEMENT 16
+		#define REQUIRED_ALIGNEMENT 16 // bytes
 
 	#endif
 #endif

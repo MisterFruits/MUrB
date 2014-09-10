@@ -287,17 +287,19 @@ void Space<T>::computeBodiesAcceleration()
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 			if(iVec != jVec)
-				this->computeAccelerationBetweenTwoVectorOfBodies(this->positions.x        [iVec].vec_data,
-				                                                   this->positions.y        [iVec].vec_data,
-				                                                   this->positions.z        [iVec].vec_data,
-				                                                   this->accelerations.x    [iVec].vec_data,
-				                                                   this->accelerations.y    [iVec].vec_data,
-				                                                   this->accelerations.z    [iVec].vec_data,
-				                                                   this->closestNeighborDist[iVec].vec_data,
-				                                                   this->masses             [jVec].vec_data,
-				                                                   this->positions.x        [jVec].vec_data,
-				                                                   this->positions.y        [jVec].vec_data,
-				                                                   this->positions.z        [jVec].vec_data);
+				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
+						this->computeAccelerationBetweenTwoBodies(this->positions.x        [iVec].vec_data[iBody],
+						                                          this->positions.y        [iVec].vec_data[iBody],
+						                                          this->positions.z        [iVec].vec_data[iBody],
+						                                          this->accelerations.x    [iVec].vec_data[iBody],
+						                                          this->accelerations.y    [iVec].vec_data[iBody],
+						                                          this->accelerations.z    [iVec].vec_data[iBody],
+						                                          this->closestNeighborDist[iVec].vec_data[iBody],
+						                                          this->masses             [jVec].vec_data[jBody],
+						                                          this->positions.x        [jVec].vec_data[jBody],
+						                                          this->positions.y        [jVec].vec_data[jBody],
+						                                          this->positions.z        [jVec].vec_data[jBody]);
 			else
 				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
 					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
@@ -383,34 +385,6 @@ void Space<T>::iComputeBodiesAcceleration()
 	}
 }
 
-template <typename T>
-void Space<T>::computeAccelerationBetweenTwoVectorOfBodies(const T* __restrict iVecPosX,
-                                                           const T* __restrict iVecPosY,
-                                                           const T* __restrict iVecPosZ,
-                                                                 T* __restrict iVecAccsX,
-                                                                 T* __restrict iVecAccsY,
-                                                                 T* __restrict iVecAccsZ,
-                                                                 T* __restrict iClosNeiDist,
-                                                           const T* __restrict jVecMasses,
-                                                           const T* __restrict jVecPosX,
-                                                           const T* __restrict jVecPosY,
-                                                           const T* __restrict jVecPosZ)
-{
-	for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
-		for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
-			this->computeAccelerationBetweenTwoBodies(iVecPosX    [iBody],
-			                                          iVecPosY    [iBody],
-			                                          iVecPosZ    [iBody],
-			                                          iVecAccsX   [iBody],
-			                                          iVecAccsY   [iBody],
-			                                          iVecAccsZ   [iBody],
-			                                          iClosNeiDist[iBody],
-			                                          jVecMasses  [jBody],
-			                                          jVecPosX    [jBody],
-			                                          jVecPosY    [jBody],
-			                                          jVecPosZ    [jBody]);
-}
-
 // 18 flops
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
@@ -432,76 +406,36 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPos
 	iAccsZ += acc * diffPosZ; // 2 flop
 
 	if(!this->dtConstant)
+		// min
 		if(dist < iClosNeiDist)
 			iClosNeiDist = dist;
 }
 
-template <typename T>
-void Space<T>::iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict iVecPosX,
-                                                            const T* __restrict iVecPosY,
-                                                            const T* __restrict iVecPosZ,
-                                                                  T* __restrict iVecAccsX,
-                                                                  T* __restrict iVecAccsY,
-                                                                  T* __restrict iVecAccsZ,
-                                                                  T* __restrict iClosNeiDist,
-                                                            const T* __restrict jVecMasses,
-                                                            const T* __restrict jVecPosX,
-                                                            const T* __restrict jVecPosY,
-                                                            const T* __restrict jVecPosZ)
+// 21 flops
+template <>
+void Space<float>::computeAccelerationBetweenTwoBodies(const float &iPosX, const float &iPosY, const float &iPosZ,
+                                                             float &iAccsX,      float &iAccsY,      float &iAccsZ,
+                                                       float &iClosNeiDist,
+                                                       const float &jMasses,
+                                                       const float &jPosX, const float &jPosY, const float &jPosZ)
 {
-	assert(alignof(iVecPosX)     == REQUIRED_ALIGNEMENT);
-	assert(alignof(iVecPosY)     == REQUIRED_ALIGNEMENT);
-	assert(alignof(iVecPosZ)     == REQUIRED_ALIGNEMENT);
-	assert(alignof(iVecAccsX)    == REQUIRED_ALIGNEMENT);
-	assert(alignof(iVecAccsY)    == REQUIRED_ALIGNEMENT);
-	assert(alignof(iVecAccsZ)    == REQUIRED_ALIGNEMENT);
-	assert(alignof(iClosNeiDist) == REQUIRED_ALIGNEMENT);
-	assert(alignof(jVecMasses)   == REQUIRED_ALIGNEMENT);
-	assert(alignof(jVecPosX)     == REQUIRED_ALIGNEMENT);
-	assert(alignof(jVecPosY)     == REQUIRED_ALIGNEMENT);
-	assert(alignof(jVecPosZ)     == REQUIRED_ALIGNEMENT);
+	const float diffPosX = jPosX - iPosX; // 1 flop
+	const float diffPosY = jPosY - iPosY; // 1 flop
+	const float diffPosZ = jPosZ - iPosZ; // 1 flop
+	const float squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
+	assert(squareDist != 0);
+	// reciprocal sqrt operation is hard coded in the CPUs
+	const float invDist = 1.0 / std::sqrt(squareDist); // 1 flop
 
-	// load vectors
-	vec rG     = vec_set1(G);
+	const float acc = G * jMasses * (invDist * invDist); // 3 flops
+	iAccsX += acc * (diffPosX * invDist); // 3 flop
+	iAccsY += acc * (diffPosY * invDist); // 3 flop
+	iAccsZ += acc * (diffPosZ * invDist); // 3 flop
 
-	vec rIPosX = vec_load(iVecPosX);
-	vec rIPosY = vec_load(iVecPosY);
-	vec rIPosZ = vec_load(iVecPosZ);
-
-	vec rJPosX = vec_load(jVecPosX);
-	vec rJPosY = vec_load(jVecPosY);
-	vec rJPosZ = vec_load(jVecPosZ);
-
-
-	vec rJMass = vec_load(jVecMasses);
-
-	vec rIAccX = vec_load(iVecAccsX);
-	vec rIAccY = vec_load(iVecAccsY);
-	vec rIAccZ = vec_load(iVecAccsZ);
-
-	vec rIClosNeiDist = vec_load(iClosNeiDist);
-
-	for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
-	{
-		this->iComputeAccelerationBetweenTwoBodies(rG,
-		                                           rIPosX, rIPosY, rIPosZ,
-		                                           rIAccX, rIAccY, rIAccZ,
-		                                           rIClosNeiDist,
-		                                           rJMass,
-		                                           rJPosX, rJPosY, rJPosZ);
-
-		// we make one useless rotate in the last iteration...
-		rJPosX = vec_rot(rJPosX);
-		rJPosY = vec_rot(rJPosY);
-		rJPosZ = vec_rot(rJPosZ);
-		rJMass = vec_rot(rJMass);
-	}
-
-	// stores vectors
-	vec_store(iVecAccsX,    rIAccX);
-	vec_store(iVecAccsY,    rIAccY);
-	vec_store(iVecAccsZ,    rIAccZ);
-	vec_store(iClosNeiDist, rIClosNeiDist);
+	if(!this->dtConstant)
+		// max
+		if(invDist > iClosNeiDist)
+			iClosNeiDist = invDist;
 }
 
 // 19 flops
@@ -600,10 +534,12 @@ void Space<float>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
 template <typename T>
 void Space<T>::findTimeStep()
 {
-	// TODO: be careful, with fake bodies added at the end of the last vector, the dynamic time step is broken.
-	//       It is necessary to launch the simulation with a number of bodies multiple of VECTOR_SIZE!
 	if(!this->dtConstant)
 	{
+		// TODO: be careful, with fake bodies added at the end of the last vector, the dynamic time step is broken.
+		//       It is necessary to launch the simulation with a number of bodies multiple of VECTOR_SIZE!
+		assert(this->nBodies % VECTOR_SIZE == 0);
+
 		this->dt = std::numeric_limits<T>::infinity();
 
 		for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)

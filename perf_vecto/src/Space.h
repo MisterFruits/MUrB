@@ -69,36 +69,12 @@ private:
 
 	void initBodiesRandomly();
 	void initBodiesFromFile(const std::string inputFileName);
-	
-	void computeAccelerationBetweenTwoVectorOfBodies(const T* __restrict iVecPosX,
-	                                                 const T* __restrict iVecPosY,
-	                                                 const T* __restrict iVecPosZ,
-	                                                       T* __restrict iVecAccsX,
-	                                                       T* __restrict iVecAccsY,
-	                                                       T* __restrict iVecAccsZ,
-	                                                       T* __restrict iClosNeiDist,
-	                                                 const T* __restrict jVecMasses,
-	                                                 const T* __restrict jVecPosX,
-	                                                 const T* __restrict jVecPosY,
-	                                                 const T* __restrict jVecPosZ);
 
 	inline void computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
 	                                                      T &iAccsX,      T &iAccsY,      T &iAccsZ,
 	                                                      T &iClosNeiDist,
 	                                                const T &jMasses,
 	                                                const T &jPosX, const T &jPosY, const T &jPosZ);
-
-	inline void iComputeAccelerationBetweenTwoVectorOfBodies(const T* __restrict iVecPosX,
-	                                                         const T* __restrict iVecPosY,
-	                                                         const T* __restrict iVecPosZ,
-	                                                               T* __restrict iVecAccsX,
-	                                                               T* __restrict iVecAccsY,
-	                                                               T* __restrict iVecAccsZ,
-	                                                               T* __restrict iClosNeiDist,
-	                                                         const T* __restrict jVecMasses,
-	                                                         const T* __restrict jVecPosX,
-	                                                         const T* __restrict jVecPosY,
-	                                                         const T* __restrict jVecPosZ);
 
 	static inline void iComputeAccelerationBetweenTwoBodies(const vec &rG,
 	                                                        const vec &rIPosX,
