@@ -415,7 +415,7 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPos
 template <>
 void Space<float>::computeAccelerationBetweenTwoBodies(const float &iPosX, const float &iPosY, const float &iPosZ,
                                                              float &iAccsX,      float &iAccsY,      float &iAccsZ,
-                                                       float &iClosNeiDist,
+                                                             float &iClosNeiDist,
                                                        const float &jMasses,
                                                        const float &jPosX, const float &jPosY, const float &jPosZ)
 {
@@ -555,10 +555,12 @@ void Space<T>::findTimeStep()
 template <>
 void Space<float>::findTimeStep()
 {
-	// TODO: be careful, with fake bodies added at the end of the last vector, the dynamic time step is broken.
-	//       It is necessary to launch the simulation with a number of bodies multiple of VECTOR_SIZE!
 	if(!this->dtConstant)
 	{
+		// TODO: be careful, with fake bodies added at the end of the last vector, the dynamic time step is broken.
+		//       It is necessary to launch the simulation with a number of bodies multiple of VECTOR_SIZE!
+		assert(this->nBodies % VECTOR_SIZE == 0);
+
 		this->dt = std::numeric_limits<float>::infinity();
 
 		for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
