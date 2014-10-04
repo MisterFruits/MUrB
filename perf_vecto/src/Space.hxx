@@ -334,7 +334,9 @@ void Space<T>::iComputeBodiesAcceleration()
 		vec rIAccY = vec_load(this->accelerations.y[iVec].vec_data);
 		vec rIAccZ = vec_load(this->accelerations.z[iVec].vec_data);
 
-		vec rIClosNeiDist = vec_load(this->closestNeighborDist[iVec].vec_data);
+		vec rIClosNeiDist;
+		if(!this->dtConstant)
+			rIClosNeiDist = vec_load(this->closestNeighborDist[iVec].vec_data);
 
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 		{
@@ -381,7 +383,8 @@ void Space<T>::iComputeBodiesAcceleration()
 		vec_store(this->accelerations.x[iVec].vec_data, rIAccX);
 		vec_store(this->accelerations.y[iVec].vec_data, rIAccY);
 		vec_store(this->accelerations.z[iVec].vec_data, rIAccZ);
-		vec_store(this->closestNeighborDist[iVec].vec_data, rIClosNeiDist);
+		if(!this->dtConstant)
+			vec_store(this->closestNeighborDist[iVec].vec_data, rIClosNeiDist);
 	}
 }
 
@@ -484,7 +487,7 @@ void Space<T>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
 	rIClosNeiDist = vec_min(rDist, rIClosNeiDist);
 }
 
-// 22 flops
+// 20 flops
 template <>
 void Space<float>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
                                                         const vec &rIPosX,
@@ -515,16 +518,16 @@ void Space<float>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
 	//const T invDist = 1.0 / std::sqrt(squareDist);
 	vec rInvDist = vec_rsqrt(rSquareDist); // 1 flop
 
-	// const T acc = G * jMasses / (dist * dist) <=>
-	// const T acc = G * jMasses * (invDist * invDist)
-	vec rAcc = vec_mul(vec_mul(rG, rJMass), vec_mul(rInvDist, rInvDist)); // 3 flops
+	// const T acc = G * jMasses / (dist * dist * dist) <=>
+	// const T acc = G * jMasses * (invDist * invDist * invDist)
+	vec rAcc = vec_mul(vec_mul(rG, rJMass), vec_mul(vec_mul(rInvDist, rInvDist), rInvDist)); // 4 flops
 
-	//iAccsX += acc * (diffPosX / dist) <=> iAccsX += acc * (diffPosX * invDist)
-	rIAccX = vec_fmadd(rAcc, vec_mul(rDiffPosX, rInvDist), rIAccX); // 3 flops
-	//iAccsY += acc * (diffPosY / dist) <=> iAccsY += acc * (diffPosY * invDist)
-	rIAccY = vec_fmadd(rAcc, vec_mul(rDiffPosY, rInvDist), rIAccY); // 3 flops
-	//iAccsZ += acc * (diffPosZ / dist) <=> iAccsZ += acc * (diffPosZ * invDist)
-	rIAccZ = vec_fmadd(rAcc, vec_mul(rDiffPosZ, rInvDist), rIAccZ); // 3 flops
+	//iAccsX += acc * diffPosX
+	rIAccX = vec_fmadd(rAcc, rDiffPosX, rIAccX); // 2 flops
+	//iAccsY += acc * diffPosY
+	rIAccY = vec_fmadd(rAcc, rDiffPosY, rIAccY); // 2 flops
+	//iAccsZ += acc * diffPosZ
+	rIAccZ = vec_fmadd(rAcc, rDiffPosZ, rIAccZ); // 2 flops
 
 	//if(!this->dtConstant)
 	//	min(iClosNeiDist, dist) <=> max(iClosNeiDist, rInvDist)
