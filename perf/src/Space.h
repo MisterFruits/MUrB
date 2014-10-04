@@ -47,6 +47,7 @@ public:
 	inline T getDt();
 
 	void computeBodiesAcceleration();
+	void computeBodiesAccelerationCB();
 	void findTimeStep();
 	void updateBodiesPositionAndSpeed();
 
@@ -56,6 +57,11 @@ public:
 
 private:
 	void allocateBuffers();
+
+	void setBody(const unsigned long &iBody,
+	             const T &mass, const T &radius,
+	             const T &posX, const T &posY, const T &posZ,
+	             const T &speedX, const T &speedY, const T &speedZ);
 
 	void initBodiesRandomly();
 	void initBodiesFromFile(const std::string inputFileName);

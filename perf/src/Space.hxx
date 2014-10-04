@@ -121,6 +121,31 @@ T Space<T>:: getDt()
 }
 
 template <typename T>
+void Space<T>::setBody(const unsigned long &iBody,
+                       const T &mass, const T &radius,
+                       const T &posX, const T &posY, const T &posZ,
+                       const T &speedX, const T &speedY, const T &speedZ)
+{
+	this->masses[iBody] = mass;
+
+	this->radiuses[iBody] = radius;
+
+	this->positions.x[iBody] = posX;
+	this->positions.y[iBody] = posY;
+	this->positions.z[iBody] = posZ;
+
+	this->speeds.x[iBody] = speedX;
+	this->speeds.y[iBody] = speedY;
+	this->speeds.z[iBody] = speedZ;
+
+	this->accelerations.x[iBody] = 0;
+	this->accelerations.y[iBody] = 0;
+	this->accelerations.z[iBody] = 0;
+
+	this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
+}
+
+template <typename T>
 void Space<T>::initBodiesRandomly()
 {
 	this->allocateBuffers();
@@ -128,23 +153,21 @@ void Space<T>::initBodiesRandomly()
 	srand(123);
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
-		this->masses[iBody] = ((rand() / (T) RAND_MAX) * 5.0e21);
+		T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
 
-		this->radiuses[iBody] = this->masses[iBody] * 0.6e-15;
+		mass = ((rand() / (T) RAND_MAX) * 5.0e21);
 
-		this->positions.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-		this->positions.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-		this->positions.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+		radius = mass * 0.6e-15;
 
-		this->speeds.x[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		this->speeds.y[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		this->speeds.z[iBody] = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+		posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+		posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
 
-		this->accelerations.x[iBody] = 0;
-		this->accelerations.y[iBody] = 0;
-		this->accelerations.z[iBody] = 0;
+		speedX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		speedY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		speedZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
-		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
+		this->setBody(iBody, mass, radius, posX, posY, posZ, speedX, speedY, speedZ);
 	}
 }
 
@@ -180,6 +203,40 @@ void Space<T>::computeBodiesAcceleration()
 			if(iBody != jBody)
 				this->computeAccelerationBetweenTwoBodies(iBody, jBody);
 				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
+}
+
+/* 
+	AI  = (23 * blockSize * nBodies * nBlocks)  / ((4 * blockSize + 7 * nBodies) * nBlocks) <=>
+	AI  = (23 * blockSize * nBodies)            /  (4 * blockSize + 7 * nBodies)            <=>
+	AI  = (23 * blockSize * nBlock * blockSize) /  (4 * blockSize + 7 * nBlock * blockSize) <=>
+	AI  = (23 * nBlock * blockSize²)            / ((4 + 7 * nBlock) * blockSize)            <=>
+	AI  = (23 * nBlock * blockSize)             /  (4 + 7 * nBlock)                         <=>
+	AI ~= (23 * nBlock * blockSize)             /      (7 * nBlock)                         <=>
+	AI ~= (23 * blockSize)                      /       7
+	-------------------------------------------------------------------------------------------
+	OI  = AI                                    /      sizeof(T)                            <=>
+	OI  = (23 * blockSize)                      / (7 * sizeof(T))
+*/
+template <typename T>
+void Space<T>::computeBodiesAccelerationCB()
+{
+	unsigned long blockSize = 512;
+	// flops  = 23 * blockSize * nBodies      * nBlocks
+	// memops = (4 * blockSize + 7 * nBodies) * nBlocks
+	for(unsigned long jOff = 0; jOff < this->nBodies; jOff += blockSize)
+	{
+		blockSize = std::min(blockSize, this->nBodies - jOff);
+		// flops  = 23 * blockSize * nBodies
+		// memops =  4 * blockSize + 7 * nBodies 
+#pragma omp parallel for schedule(runtime)
+		for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
+			// flops  = 23 * blockSize
+			// memops =  4 * blockSize + 7 
+			for(unsigned long jBody = jOff; jBody < jOff + blockSize; jBody++)
+				if(iBody != jBody)
+					this->computeAccelerationBetweenTwoBodies(iBody, jBody);
+					//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
+	}
 }
 
 // 18 flops
@@ -218,12 +275,6 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBod
 	// compute distance between iBody and jBody: Dij
 	const T dist = std::sqrt((diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ)); // 6 flops
 
-	// compute the force value between iBody and jBody: || F || = G.mi.mj / Dij²
-	const T force = G * this->masses[iBody] * this->masses[jBody] / (dist * dist); // 4 flops
-
-	// compute the acceleration value: || a || = || F || / mi
-	const T acc = force / this->masses[iBody]; // 1 flop
-
 	// we cannot divide by 0
 	if(dist == 0)
 	{
@@ -232,6 +283,12 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBod
 		                              << this->positions.z[jBody] << "}" << std::endl;
 		assert(dist != 0);
 	}
+
+	// compute the force value between iBody and jBody: || F || = G.mi.mj / Dij²
+	const T force = G * this->masses[iBody] * this->masses[jBody] / (dist * dist); // 4 flops
+
+	// compute the acceleration value: || a || = || F || / mi
+	const T acc = force / this->masses[iBody]; // 1 flop
 
 	// normalize and add acceleration value into acceleration vector: a += || a ||.u
 	this->accelerations.x[iBody] += acc * (diffPosX / dist); // 3 flops
@@ -294,23 +351,25 @@ void Space<T>::updateBodiesPositionAndSpeed()
 	// flops = nBodies * 18
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
+		T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
+
+		mass = this->masses[iBody];
+
+		radius = this->radiuses[iBody];
+
 		T accXMultDt = this->accelerations.x[iBody] * this->dt;
 		T accYMultDt = this->accelerations.y[iBody] * this->dt;
 		T accZMultDt = this->accelerations.z[iBody] * this->dt;
 
-		this->positions.x[iBody] += (this->speeds.x[iBody] + accXMultDt * 0.5) * this->dt;
-		this->positions.y[iBody] += (this->speeds.y[iBody] + accYMultDt * 0.5) * this->dt;
-		this->positions.z[iBody] += (this->speeds.z[iBody] + accZMultDt * 0.5) * this->dt;
+		posX = this->positions.x[iBody] + (this->speeds.x[iBody] + accXMultDt * 0.5) * this->dt;
+		posY = this->positions.y[iBody] + (this->speeds.y[iBody] + accYMultDt * 0.5) * this->dt;
+		posZ = this->positions.z[iBody] + (this->speeds.z[iBody] + accZMultDt * 0.5) * this->dt;
 
-		this->speeds.x[iBody] += accXMultDt;
-		this->speeds.y[iBody] += accYMultDt;
-		this->speeds.z[iBody] += accZMultDt;
+		speedX = this->speeds.x[iBody] + accXMultDt;
+		speedY = this->speeds.y[iBody] + accYMultDt;
+		speedZ = this->speeds.z[iBody] + accZMultDt;
 
-		this->accelerations.x[iBody] = 0;
-		this->accelerations.y[iBody] = 0;
-		this->accelerations.z[iBody] = 0;
-
-		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
+		this->setBody(iBody, mass, radius, posX, posY, posZ, speedX, speedY, speedZ);
 	}
 }
 
@@ -327,23 +386,21 @@ bool Space<T>::read(std::istream& stream)
 
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 	{
-		stream >> this->masses[iBody];
+		T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
 
-		stream >> this->radiuses[iBody];
+		stream >> mass;
 
-		stream >> this->positions.x[iBody];
-		stream >> this->positions.y[iBody];
-		stream >> this->positions.z[iBody];
+		stream >> radius;
 
-		stream >> this->speeds.x[iBody];
-		stream >> this->speeds.y[iBody];
-		stream >> this->speeds.z[iBody];
+		stream >> posX;
+		stream >> posY;
+		stream >> posZ;
 
-		this->accelerations.x[iBody] = 0;
-		this->accelerations.y[iBody] = 0;
-		this->accelerations.z[iBody] = 0;
+		stream >> speedX;
+		stream >> speedY;
+		stream >> speedZ;
 
-		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
+		this->setBody(iBody, mass, radius, posX, posY, posZ, speedX, speedY, speedZ);
 
 		if(!stream.good())
 			return false;

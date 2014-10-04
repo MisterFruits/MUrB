@@ -6,9 +6,12 @@
  */
 
 #ifdef NBODY_DOUBLE
-#define TYPE double
+using floatType = double;
 #else
-#define TYPE float
+#ifndef NBODY_FLOAT
+#define NBODY_FLOAT
+#endif
+using floatType = float;
 #endif
 
 #include <map>
@@ -35,7 +38,7 @@ unsigned long NIterations;
 bool          Verbose    = false;
 bool          GSEnable   = false;
 bool          VisuEnable = true;
-TYPE          Dt         = 3600; //in sec, 3600 sec = 1 hour
+floatType     Dt         = 3600; //in sec, 3600 sec = 1 hour
 unsigned int  WinWidth   = 800;
 unsigned int  WinHeight  = 600;
 
@@ -50,19 +53,19 @@ void argsReader(int argc, char** argv)
 	ArgumentsReader argsReader(argc, argv);
 
 	reqArgs1 ["n"]     = "nBodies";
-	docArgs  ["n"]     = "approximate number of bodies randomly generated.";
+	docArgs  ["n"]     = "the number of bodies randomly generated.";
 	reqArgs1 ["i"]     = "nIterations";
-	docArgs  ["i"]     = "number of iterations to compute.";
+	docArgs  ["i"]     = "the number of iterations to compute.";
 
 	reqArgs2 ["f"]     = "inputFileName";
-	docArgs  ["f"]     = "bodies file name to read, do not use with -n "
-	                     "(you can put 'data/in/np1/in.testcase1.0.dat').";
+	docArgs  ["f"]     = "the bodies input file to read, do not use with -n "
+	                     "(you can put 'data/in/8bodies.dat').";
 	reqArgs2 ["i"]     = "nIterations";
 
 	faculArgs["v"]     = "";
-	docArgs  ["v"]     = "activate verbose mode.";
+	docArgs  ["v"]     = "enable verbose mode.";
 	faculArgs["w"]     = "outputFileName";
-	docArgs  ["w"]     = "base name of body file(s) to write (you can put 'data/out/out').";
+	docArgs  ["w"]     = "the base name of the body file ( s ) to write (you can put 'data/out/out').";
 	faculArgs["h"]     = "";
 	docArgs  ["h"]     = "display this help.";
 	faculArgs["-help"] = "";
@@ -73,9 +76,9 @@ void argsReader(int argc, char** argv)
 	docArgs  ["-gs"]   = "enable geometry shader for visu, "
 	                     "this is faster than the standard way but not all GPUs can support it.";
 	faculArgs["-ww"]   = "winWidth";
-	docArgs  ["-ww"]   = "width of the window in pixel (default is " + to_string(WinWidth) + ").";
+	docArgs  ["-ww"]   = "the width of the window in pixel (default is " + to_string(WinWidth) + ").";
 	faculArgs["-wh"]   = "winHeight";
-	docArgs  ["-wh"]   = "height of the window in pixel (default is " + to_string(WinHeight) + ").";
+	docArgs  ["-wh"]   = "the height of the window in pixel (default is " + to_string(WinHeight) + ").";
 	faculArgs["-nv"]   = "";
 	docArgs  ["-nv"]   = "no visualization (disable visu).";
 
@@ -124,12 +127,13 @@ void argsReader(int argc, char** argv)
 		VisuEnable = false;
 }
 
-string strDate(TYPE timestamp)
+template <typename T>
+string strDate(T timestamp)
 {
 	unsigned int days;
 	unsigned int hours;
 	unsigned int minutes;
-	TYPE rest;
+	T rest;
 
 	days = timestamp / (24 * 60 * 60);
 	rest = timestamp - (days * 24 * 60 * 60);
@@ -156,57 +160,53 @@ int main(int argc, char** argv)
 	argsReader(argc, argv);
 
 	// create plan by reading file or generate bodies randomly
-	Space<TYPE> *space;
+	Space<floatType> *space;
 	if(InputFileName.empty())
-		space = new Space<TYPE>(NBodies);
+		space = new Space<floatType>(NBodies);
 	else
-		space = new Space<TYPE>(InputFileName);
+		space = new Space<floatType>(InputFileName);
 	NBodies = space->getNBodies();
 
 	// compute MB used for this simulation
-	float Mbytes = (12 * sizeof(TYPE) * NBodies) / 1024.f / 1024.f;
+	float Mbytes = (12 * sizeof(floatType) * NBodies) / 1024.f / 1024.f;
 
 	// compute flops per iteration
 	float flopsPerIte = (float) NBodies * (float) (NBodies * 18);
 
 	// display simulation configuration
-	cout << "N-body simulation started !" << endl;
+	cout << "n-body simulation started !" << endl;
 	cout << "---------------------------" << endl;
 	if(!InputFileName.empty())
-		cout << "  -> inputFileName    : " << InputFileName                       << endl;
+		cout << "  -> inputFileName    : " << InputFileName << endl;
 	else
-		cout << "  -> random mode      : enable"                                  << endl;
+		cout << "  -> random mode      : enable" << endl;
 	if(!OutputBaseName.empty())
-		cout << "  -> outputFileName(s): " << OutputBaseName << ".*.dat"          << endl;
-	cout <<     "  -> nBodies          : " << NBodies                             << endl;
-	cout <<     "  -> nIterations      : " << NIterations                         << endl;
-	cout <<     "  -> verbose          : " << Verbose                             << endl;
-#ifdef NBODY_DOUBLE
-	cout <<     "  -> precision        : double"                                  << endl;
-#else
-	cout <<     "  -> precision        : simple"                                  << endl;
-#endif
-	cout <<     "  -> mem. used        : " << Mbytes << " MB"                     << endl;
+		cout << "  -> outputFileName(s): " << OutputBaseName << ".*.dat" << endl;
+	cout <<     "  -> nBodies          : " << NBodies << endl;
+	cout <<     "  -> nIterations      : " << NIterations << endl;
+	cout <<     "  -> verbose          : " << Verbose << endl;
+	cout <<     "  -> precision        : " << ((sizeof(floatType) == 4) ? "simple": "double") << endl;
+	cout <<     "  -> mem. used        : " << Mbytes << " MB" << endl;
 	cout <<     "  -> geometry shader  : " << ((GSEnable) ? "enable" : "disable") << endl << endl;
 
 	// initialize visualization of bodies (with spheres in space)
-	OGLSpheresVisu<TYPE> *visu;
+	OGLSpheresVisu<floatType> *visu;
 	if(VisuEnable)
 	{
 		if(GSEnable) // geometry shader = better performances on dedicated GPUs
-			visu = new OGLSpheresVisuGS<TYPE>("N-body", WinWidth, WinHeight,
-			                                  space->positions.x, space->positions.y, space->positions.z,
-			                                  space->radiuses,
-			                                  NBodies);
+			visu = new OGLSpheresVisuGS<floatType>("n-body (geometry shader)", WinWidth, WinHeight,
+			                                       space->positions.x, space->positions.y, space->positions.z,
+			                                       space->radiuses,
+			                                       NBodies);
 		else
-			visu = new OGLSpheresVisuInst<TYPE>("N-body", WinWidth, WinHeight,
-			                                    space->positions.x, space->positions.y, space->positions.z,
-			                                    space->radiuses,
-			                                    NBodies);
+			visu = new OGLSpheresVisuInst<floatType>("n-body (instancing)", WinWidth, WinHeight,
+			                                         space->positions.x, space->positions.y, space->positions.z,
+			                                         space->radiuses,
+			                                         NBodies);
 		cout << endl;
 	}
 	else
-		visu = new OGLSpheresVisuNo<TYPE>();
+		visu = new OGLSpheresVisuNo<floatType>();
 
 	cout << "Simulation started..." << endl;
 
@@ -220,7 +220,7 @@ int main(int argc, char** argv)
 	// constant timestep (easier for the visualization)
 	space->setDtConstant(Dt);
 
-	TYPE physicTime = 0.0;
+	floatType physicTime = 0.0;
 	unsigned long iIte;
 	for(iIte = 1; iIte <= NIterations && !visu->windowShouldClose(); iIte++)
 	{

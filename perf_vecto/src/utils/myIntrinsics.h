@@ -146,6 +146,7 @@
 		#ifdef __AVX2__
 			#define vec_fmadd(a, b, c) _mm256_fmadd_ps(a, b, c)
 			// make a rotation in:[7, 6, 5, 4, 3, 2 , 1, 0] => out:[0, 7, 6, 5, 4, 3, 2, 1]
+			// TODO: this intrinsic does not work well :-(
 			#define vec_rot(a)         _mm256_permute8x32_ps (a, _mm256_setr_epi32(0, 7, 6, 5, 4, 3, 2, 1))
 		#else
 			#define vec_fmadd(a, b, c) vec_add(c, vec_mul(a, b))
