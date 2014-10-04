@@ -171,7 +171,7 @@ int main(int argc, char** argv)
 	float Mbytes = (12 * sizeof(floatType) * NBodies) / 1024.f / 1024.f;
 
 	// compute flops per iteration
-	float flopsPerIte = (float) NBodies * (float) (NBodies * 18);
+	float flopsPerIte = (float) NBodies * (float) (NBodies * ((sizeof(floatType) == 4) ? 22 : 19));
 
 	// display simulation configuration
 	cout << "n-body simulation started !" << endl;
