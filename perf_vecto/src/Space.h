@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "utils/myIntrinsics.h"
+#include "utils/myIntrinsicsPlusPlus.h"
 #include "utils/typeVector.h"
 
 template <typename T = double>
@@ -76,18 +76,18 @@ private:
 	                                                const T &jMasses,
 	                                                const T &jPosX, const T &jPosY, const T &jPosZ);
 
-	static inline void iComputeAccelerationBetweenTwoBodies(const vec &rG,
-	                                                        const vec &rIPosX,
-	                                                        const vec &rIPosY,
-	                                                        const vec &rIPosZ,
-	                                                              vec &rIAccX,
-	                                                              vec &rIAccY,
-	                                                              vec &rIAccZ,
-	                                                              vec &rIClosNeiDist,
-	                                                              vec &rJMass,
-	                                                              vec &rJPosX,
-	                                                              vec &rJPosY,
-	                                                              vec &rJPosZ);
+	static inline void iComputeAccelerationBetweenTwoBodies(const mipp::vec &rG,
+	                                                        const mipp::vec &rIPosX,
+	                                                        const mipp::vec &rIPosY,
+	                                                        const mipp::vec &rIPosZ,
+	                                                              mipp::vec &rIAccX,
+	                                                              mipp::vec &rIAccY,
+	                                                              mipp::vec &rIAccZ,
+	                                                              mipp::vec &rIClosNeiDist,
+	                                                              mipp::vec &rJMass,
+	                                                              mipp::vec &rJPosX,
+	                                                              mipp::vec &rJPosY,
+	                                                              mipp::vec &rJPosZ);
 
 	inline T computeTimeStep(const unsigned long iVec);
 };

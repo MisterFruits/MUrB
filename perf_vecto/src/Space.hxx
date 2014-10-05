@@ -17,7 +17,7 @@
 template <typename T>
 Space<T>::Space(const unsigned long nBodies)
 	: nBodies            (nBodies),
-	  nVecs              (ceil(nBodies * 1.0 / VECTOR_SIZE)),
+	  nVecs              (ceil(nBodies * 1.0 / mipp::vectorSize<T>())),
 	  masses             (NULL),
 	  radiuses           (NULL),
 	  closestNeighborDist(NULL),
@@ -63,23 +63,23 @@ void Space<T>::allocateBuffers()
 
 	this->closestNeighborDist = new vec_t<T>[this->nVecs];
 #else
-	this->masses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->masses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
 
-	this->radiuses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->radiuses = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
 
-	this->positions.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
-	this->positions.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
-	this->positions.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->positions.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
+	this->positions.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
+	this->positions.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
 
-	this->speeds.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
-	this->speeds.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
-	this->speeds.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->speeds.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
+	this->speeds.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
+	this->speeds.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
 
-	this->accelerations.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
-	this->accelerations.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
-	this->accelerations.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->accelerations.x = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
+	this->accelerations.y = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
+	this->accelerations.z = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
 
-	this->closestNeighborDist = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), REQUIRED_ALIGNEMENT);
+	this->closestNeighborDist = (vec_t<T>*)_mm_malloc(this->nVecs * sizeof(vec_t<T>), mipp::RequiredAlignement);
 #endif
 }
 
@@ -232,11 +232,11 @@ void Space<T>::initBodiesRandomly()
 	srand(123);
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 	{
-		for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+		for(unsigned short iBody = 0; iBody < mipp::vectorSize<T>(); iBody++)
 		{
 			T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
 
-			unsigned long realBody = iBody + iVec * VECTOR_SIZE;
+			unsigned long realBody = iBody + iVec * mipp::vectorSize<T>();
 			if(realBody < this->nBodies)
 				mass = ((rand() / (T) RAND_MAX) * 5.0e21);
 			else // fake body just to fit into the last vector
@@ -287,8 +287,8 @@ void Space<T>::computeBodiesAcceleration()
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 			if(iVec != jVec)
-				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
-					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
+				for(unsigned short iBody = 0; iBody < mipp::vectorSize<T>(); iBody++)
+					for(unsigned short jBody = 0; jBody < mipp::vectorSize<T>(); jBody++)
 						this->computeAccelerationBetweenTwoBodies(this->positions.x        [iVec].vec_data[iBody],
 						                                          this->positions.y        [iVec].vec_data[iBody],
 						                                          this->positions.z        [iVec].vec_data[iBody],
@@ -301,8 +301,8 @@ void Space<T>::computeBodiesAcceleration()
 						                                          this->positions.y        [jVec].vec_data[jBody],
 						                                          this->positions.z        [jVec].vec_data[jBody]);
 			else
-				for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
-					for(unsigned short jBody = 0; jBody < VECTOR_SIZE; jBody++)
+				for(unsigned short iBody = 0; iBody < mipp::vectorSize<T>(); iBody++)
+					for(unsigned short jBody = 0; jBody < mipp::vectorSize<T>(); jBody++)
 						if(iBody != jBody)
 							this->computeAccelerationBetweenTwoBodies(this->positions.x        [iVec].vec_data[iBody],
 							                                          this->positions.y        [iVec].vec_data[iBody],
@@ -320,35 +320,35 @@ void Space<T>::computeBodiesAcceleration()
 template <typename T>
 void Space<T>::iComputeBodiesAcceleration()
 {
-	const vec rG = vec_set1(G);
+	const mipp::vec rG = mipp::set1<T>(G);
 
 #pragma omp parallel for schedule(runtime) firstprivate(rG)
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 	{
 		// load vectors
-		const vec rIPosX = vec_load(this->positions.x[iVec].vec_data);
-		const vec rIPosY = vec_load(this->positions.y[iVec].vec_data);
-		const vec rIPosZ = vec_load(this->positions.z[iVec].vec_data);
+		const mipp::vec rIPosX = mipp::load<T>(this->positions.x[iVec].vec_data);
+		const mipp::vec rIPosY = mipp::load<T>(this->positions.y[iVec].vec_data);
+		const mipp::vec rIPosZ = mipp::load<T>(this->positions.z[iVec].vec_data);
 
-		vec rIAccX = vec_load(this->accelerations.x[iVec].vec_data);
-		vec rIAccY = vec_load(this->accelerations.y[iVec].vec_data);
-		vec rIAccZ = vec_load(this->accelerations.z[iVec].vec_data);
+		mipp::vec rIAccX = mipp::load<T>(this->accelerations.x[iVec].vec_data);
+		mipp::vec rIAccY = mipp::load<T>(this->accelerations.y[iVec].vec_data);
+		mipp::vec rIAccZ = mipp::load<T>(this->accelerations.z[iVec].vec_data);
 
-		vec rIClosNeiDist;
+		mipp::vec rIClosNeiDist;
 		if(!this->dtConstant)
-			rIClosNeiDist = vec_load(this->closestNeighborDist[iVec].vec_data);
+			rIClosNeiDist = mipp::load<T>(this->closestNeighborDist[iVec].vec_data);
 
 		for(unsigned long jVec = 0; jVec < this->nVecs; jVec++)
 		{
 			// load vectors
-			vec rJMass = vec_load(this->masses[jVec].vec_data);
-			vec rJPosX = vec_load(this->positions.x[jVec].vec_data);
-			vec rJPosY = vec_load(this->positions.y[jVec].vec_data);
-			vec rJPosZ = vec_load(this->positions.z[jVec].vec_data);
+			mipp::vec rJMass = mipp::load<T>(this->masses[jVec].vec_data);
+			mipp::vec rJPosX = mipp::load<T>(this->positions.x[jVec].vec_data);
+			mipp::vec rJPosY = mipp::load<T>(this->positions.y[jVec].vec_data);
+			mipp::vec rJPosZ = mipp::load<T>(this->positions.z[jVec].vec_data);
 
 			if(iVec != jVec)
 			{
-				for(unsigned short iRot = 0; iRot < VECTOR_SIZE; iRot++)
+				for(unsigned short iRot = 0; iRot < mipp::vectorSize<T>(); iRot++)
 				{
 					this->iComputeAccelerationBetweenTwoBodies(rG,
 					                                           rIPosX, rIPosY, rIPosZ,
@@ -358,16 +358,16 @@ void Space<T>::iComputeBodiesAcceleration()
 					                                           rJPosX, rJPosY, rJPosZ);
 
 					// we make one useless rotate in the last iteration...
-					rJMass = vec_rot(rJMass);
-					rJPosX = vec_rot(rJPosX); rJPosY = vec_rot(rJPosY); rJPosZ = vec_rot(rJPosZ);
+					rJMass = mipp::rot<T>(rJMass);
+					rJPosX = mipp::rot<T>(rJPosX); rJPosY = mipp::rot<T>(rJPosY); rJPosZ = mipp::rot<T>(rJPosZ);
 				}
 			}
 			else
 			{
-				for(unsigned short iRot = 1; iRot < VECTOR_SIZE; iRot++)
+				for(unsigned short iRot = 1; iRot < mipp::vectorSize<T>(); iRot++)
 				{
-					rJMass = vec_rot(rJMass);
-					rJPosX = vec_rot(rJPosX); rJPosY = vec_rot(rJPosY); rJPosZ = vec_rot(rJPosZ);
+					rJMass = mipp::rot<T>(rJMass);
+					rJPosX = mipp::rot<T>(rJPosX); rJPosY = mipp::rot<T>(rJPosY); rJPosZ = mipp::rot<T>(rJPosZ);
 
 					this->iComputeAccelerationBetweenTwoBodies(rG,
 					                                           rIPosX, rIPosY, rIPosZ,
@@ -380,11 +380,11 @@ void Space<T>::iComputeBodiesAcceleration()
 		}
 
 		// store vectors
-		vec_store(this->accelerations.x[iVec].vec_data, rIAccX);
-		vec_store(this->accelerations.y[iVec].vec_data, rIAccY);
-		vec_store(this->accelerations.z[iVec].vec_data, rIAccZ);
+		mipp::store<T>(this->accelerations.x[iVec].vec_data, rIAccX);
+		mipp::store<T>(this->accelerations.y[iVec].vec_data, rIAccY);
+		mipp::store<T>(this->accelerations.z[iVec].vec_data, rIAccZ);
 		if(!this->dtConstant)
-			vec_store(this->closestNeighborDist[iVec].vec_data, rIClosNeiDist);
+			mipp::store<T>(this->closestNeighborDist[iVec].vec_data, rIClosNeiDist);
 	}
 }
 
@@ -443,95 +443,96 @@ void Space<float>::computeAccelerationBetweenTwoBodies(const float &iPosX, const
 
 // 19 flops
 template <typename T>
-void Space<T>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
-                                                    const vec &rIPosX,
-                                                    const vec &rIPosY,
-                                                    const vec &rIPosZ,
-                                                          vec &rIAccX,
-                                                          vec &rIAccY,
-                                                          vec &rIAccZ,
-                                                          vec &rIClosNeiDist,
-                                                          vec &rJMass,
-                                                          vec &rJPosX,
-                                                          vec &rJPosY,
-                                                          vec &rJPosZ)
+void Space<T>::iComputeAccelerationBetweenTwoBodies(const mipp::vec &rG,
+                                                    const mipp::vec &rIPosX,
+                                                    const mipp::vec &rIPosY,
+                                                    const mipp::vec &rIPosZ,
+                                                          mipp::vec &rIAccX,
+                                                          mipp::vec &rIAccY,
+                                                          mipp::vec &rIAccZ,
+                                                          mipp::vec &rIClosNeiDist,
+                                                          mipp::vec &rJMass,
+                                                          mipp::vec &rJPosX,
+                                                          mipp::vec &rJPosY,
+                                                          mipp::vec &rJPosZ)
 {
 	//const T diffPosX = jPosX - iPosX;
-	vec rDiffPosX = vec_sub(rJPosX, rIPosX); // 1 flop
+	mipp::vec rDiffPosX = mipp::sub<T>(rJPosX, rIPosX); // 1 flop
 	//const T diffPosY = jPosY - iPosY;
-	vec rDiffPosY = vec_sub(rJPosY, rIPosY); // 1 flop
+	mipp::vec rDiffPosY = mipp::sub<T>(rJPosY, rIPosY); // 1 flop
 	//const T diffPosZ = jPosZ - iPosZ;
-	vec rDiffPosZ = vec_sub(rJPosZ, rIPosZ); // 1 flop
+	mipp::vec rDiffPosZ = mipp::sub<T>(rJPosZ, rIPosZ); // 1 flop
 
 	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ);
-	vec rSquareDist = vec_set1(0);
-	rSquareDist = vec_fmadd(rDiffPosX, rDiffPosX, rSquareDist); // 2 flops
-	rSquareDist = vec_fmadd(rDiffPosY, rDiffPosY, rSquareDist); // 2 flops
-	rSquareDist = vec_fmadd(rDiffPosZ, rDiffPosZ, rSquareDist); // 2 flops
+	mipp::vec rSquareDist = mipp::set1<T>(0);
+	rSquareDist = mipp::fmadd<T>(rDiffPosX, rDiffPosX, rSquareDist); // 2 flops
+	rSquareDist = mipp::fmadd<T>(rDiffPosY, rDiffPosY, rSquareDist); // 2 flops
+	rSquareDist = mipp::fmadd<T>(rDiffPosZ, rDiffPosZ, rSquareDist); // 2 flops
 
 	//const T dist = std::sqrt(squareDist);
-	vec rDist = vec_sqrt(rSquareDist); // 1 flop
+	mipp::vec rDist = mipp::sqrt<T>(rSquareDist); // 1 flop
 
 	//const T acc = G * jMasses / (squareDist * dist);
-	vec rAcc = vec_div(vec_mul(rG, rJMass), vec_mul(rDist, rSquareDist)); // 3 flops
+	mipp::vec rAcc = mipp::div<T>(mipp::mul<T>(rG, rJMass), mipp::mul<T>(rDist, rSquareDist)); // 3 flops
 
 	//iAccsX += acc * diffPosX;
-	rIAccX = vec_fmadd(rAcc, rDiffPosX, rIAccX); // 2 flops
+	rIAccX = mipp::fmadd<T>(rAcc, rDiffPosX, rIAccX); // 2 flops
 	//iAccsY += acc * diffPosY;
-	rIAccY = vec_fmadd(rAcc, rDiffPosY, rIAccY); // 2 flops
+	rIAccY = mipp::fmadd<T>(rAcc, rDiffPosY, rIAccY); // 2 flops
 	//iAccsZ += acc * diffPosZ;
-	rIAccZ = vec_fmadd(rAcc, rDiffPosZ, rIAccZ); // 2 flops
+	rIAccZ = mipp::fmadd<T>(rAcc, rDiffPosZ, rIAccZ); // 2 flops
 
 	//if(!this->dtConstant)
 	//	min(iClosNeiDist, dist);
-	rIClosNeiDist = vec_min(rDist, rIClosNeiDist);
+	rIClosNeiDist = mipp::min<T>(rDist, rIClosNeiDist);
 }
 
 // 20 flops
 template <>
-void Space<float>::iComputeAccelerationBetweenTwoBodies(const vec &rG,
-                                                        const vec &rIPosX,
-                                                        const vec &rIPosY,
-                                                        const vec &rIPosZ,
-                                                              vec &rIAccX,
-                                                              vec &rIAccY,
-                                                              vec &rIAccZ,
-                                                              vec &rIClosNeiDist,
-                                                              vec &rJMass,
-                                                              vec &rJPosX,
-                                                              vec &rJPosY,
-                                                              vec &rJPosZ)
+void Space<float>::iComputeAccelerationBetweenTwoBodies(const mipp::vec &rG,
+                                                        const mipp::vec &rIPosX,
+                                                        const mipp::vec &rIPosY,
+                                                        const mipp::vec &rIPosZ,
+                                                              mipp::vec &rIAccX,
+                                                              mipp::vec &rIAccY,
+                                                              mipp::vec &rIAccZ,
+                                                              mipp::vec &rIClosNeiDist,
+                                                              mipp::vec &rJMass,
+                                                              mipp::vec &rJPosX,
+                                                              mipp::vec &rJPosY,
+                                                              mipp::vec &rJPosZ)
 {
 	//const T diffPosX = jPosX - iPosX;
-	vec rDiffPosX = vec_sub(rJPosX, rIPosX); // 1 flop
+	mipp::vec rDiffPosX = mipp::sub<float>(rJPosX, rIPosX); // 1 flop
 	//const T diffPosY = jPosY - iPosY;
-	vec rDiffPosY = vec_sub(rJPosY, rIPosY); // 1 flop
+	mipp::vec rDiffPosY = mipp::sub<float>(rJPosY, rIPosY); // 1 flop
 	//const T diffPosZ = jPosZ - iPosZ;
-	vec rDiffPosZ = vec_sub(rJPosZ, rIPosZ); // 1 flop
+	mipp::vec rDiffPosZ = mipp::sub<float>(rJPosZ, rIPosZ); // 1 flop
 
 	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ);
-	vec rSquareDist = vec_set1(0);
-	rSquareDist = vec_fmadd(rDiffPosX, rDiffPosX, rSquareDist); // 2 flops
-	rSquareDist = vec_fmadd(rDiffPosY, rDiffPosY, rSquareDist); // 2 flops
-	rSquareDist = vec_fmadd(rDiffPosZ, rDiffPosZ, rSquareDist); // 2 flops
+	mipp::vec rSquareDist = mipp::set1<float>(0);
+	rSquareDist = mipp::fmadd<float>(rDiffPosX, rDiffPosX, rSquareDist); // 2 flops
+	rSquareDist = mipp::fmadd<float>(rDiffPosY, rDiffPosY, rSquareDist); // 2 flops
+	rSquareDist = mipp::fmadd<float>(rDiffPosZ, rDiffPosZ, rSquareDist); // 2 flops
 
 	//const T invDist = 1.0 / std::sqrt(squareDist);
-	vec rInvDist = vec_rsqrt(rSquareDist); // 1 flop
+	mipp::vec rInvDist = mipp::rsqrt<float>(rSquareDist); // 1 flop
 
 	// const T acc = G * jMasses / (dist * dist * dist) <=>
 	// const T acc = G * jMasses * (invDist * invDist * invDist)
-	vec rAcc = vec_mul(vec_mul(rG, rJMass), vec_mul(vec_mul(rInvDist, rInvDist), rInvDist)); // 4 flops
+	mipp::vec rAcc = mipp::mul<float>(mipp::mul<float>(rG, rJMass),
+	                                  mipp::mul<float>(mipp::mul<float>(rInvDist, rInvDist), rInvDist)); // 4 flops
 
 	//iAccsX += acc * diffPosX
-	rIAccX = vec_fmadd(rAcc, rDiffPosX, rIAccX); // 2 flops
+	rIAccX = mipp::fmadd<float>(rAcc, rDiffPosX, rIAccX); // 2 flops
 	//iAccsY += acc * diffPosY
-	rIAccY = vec_fmadd(rAcc, rDiffPosY, rIAccY); // 2 flops
+	rIAccY = mipp::fmadd<float>(rAcc, rDiffPosY, rIAccY); // 2 flops
 	//iAccsZ += acc * diffPosZ
-	rIAccZ = vec_fmadd(rAcc, rDiffPosZ, rIAccZ); // 2 flops
+	rIAccZ = mipp::fmadd<float>(rAcc, rDiffPosZ, rIAccZ); // 2 flops
 
 	//if(!this->dtConstant)
 	//	min(iClosNeiDist, dist) <=> max(iClosNeiDist, rInvDist)
-	rIClosNeiDist = vec_max(rInvDist, rIClosNeiDist);
+	rIClosNeiDist = mipp::max<float>(rInvDist, rIClosNeiDist);
 }
 
 template <typename T>
@@ -540,8 +541,8 @@ void Space<T>::findTimeStep()
 	if(!this->dtConstant)
 	{
 		// TODO: be careful, with fake bodies added at the end of the last vector, the dynamic time step is broken.
-		//       It is necessary to launch the simulation with a number of bodies multiple of VECTOR_SIZE!
-		assert(this->nBodies % VECTOR_SIZE == 0);
+		//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
+		assert(this->nBodies % mipp::vectorSize<T>() == 0);
 
 		this->dt = std::numeric_limits<T>::infinity();
 
@@ -561,14 +562,14 @@ void Space<float>::findTimeStep()
 	if(!this->dtConstant)
 	{
 		// TODO: be careful, with fake bodies added at the end of the last vector, the dynamic time step is broken.
-		//       It is necessary to launch the simulation with a number of bodies multiple of VECTOR_SIZE!
-		assert(this->nBodies % VECTOR_SIZE == 0);
+		//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
+		assert(this->nBodies % mipp::vectorSize<T>() == 0);
 
 		this->dt = std::numeric_limits<float>::infinity();
 
 		for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		{
-			for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+			for(unsigned short iBody = 0; iBody < mipp::vectorSize<float>(); iBody++)
 				this->closestNeighborDist[iVec].vec_data[iBody] = 1.0 /
 				                                                  this->closestNeighborDist[iVec].vec_data[iBody];
 
@@ -586,7 +587,7 @@ T Space<T>::computeTimeStep(const unsigned long iVec)
 	T newDt;
 	vec_t<T> vecNewDt;
 
-	for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+	for(unsigned short iBody = 0; iBody < mipp::vectorSize<T>(); iBody++)
 	{
 		// || lb.speed ||
 		const T s = std::sqrt((this->speeds.x[iVec].vec_data[iBody] * this->speeds.x[iVec].vec_data[iBody]) +
@@ -614,7 +615,7 @@ T Space<T>::computeTimeStep(const unsigned long iVec)
 
 	// looking for min dt in the vector of dt
 	newDt = vecNewDt.vec_data[0];
-	for(unsigned short iBody = 1; iBody < VECTOR_SIZE; iBody++)
+	for(unsigned short iBody = 1; iBody < mipp::vectorSize<T>(); iBody++)
 	{
 		if(vecNewDt.vec_data[iBody] < newDt)
 			newDt = vecNewDt.vec_data[iBody];
@@ -629,7 +630,7 @@ void Space<T>::updateBodiesPositionAndSpeed()
 	// flops = nBodies * 18
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 	{
-		for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+		for(unsigned short iBody = 0; iBody < mipp::vectorSize<T>(); iBody++)
 		{
 			T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
 
@@ -665,7 +666,7 @@ bool Space<T>::read(std::istream& stream)
 
 	if(this->nBodies)
 	{
-		this->nVecs = ceil(this->nBodies * 1.0 / VECTOR_SIZE);
+		this->nVecs = ceil(this->nBodies * 1.0 / mipp::vectorSize<T>());
 		this->allocateBuffers();
 	}
 	else
@@ -673,11 +674,11 @@ bool Space<T>::read(std::istream& stream)
 
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 	{
-		for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
+		for(unsigned short iBody = 0; iBody < mipp::vectorSize<T>(); iBody++)
 		{
 			T mass, radius, posX, posY, posZ, speedX, speedY, speedZ;
 
-			unsigned long realBody = iBody + iVec * VECTOR_SIZE;
+			unsigned long realBody = iBody + iVec * mipp::vectorSize<T>();
 			if(realBody < this->nBodies) // read from file
 			{
 				stream >> mass;
@@ -723,8 +724,8 @@ void Space<T>::write(std::ostream& stream)
 	stream << this->nBodies << std::endl;
 
 	for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
-		for(unsigned short iBody = 0; iBody < VECTOR_SIZE; iBody++)
-			if((iBody + iVec * VECTOR_SIZE) < this->nBodies) // do not write fake bodies
+		for(unsigned short iBody = 0; iBody < mipp::vectorSize<T>(); iBody++)
+			if((iBody + iVec * mipp::vectorSize<T>()) < this->nBodies) // do not write fake bodies
 				stream << this->masses     [iVec].vec_data[iBody] << " "
 				       << this->radiuses   [iVec].vec_data[iBody] << " "
 				       << this->positions.x[iVec].vec_data[iBody] << " "

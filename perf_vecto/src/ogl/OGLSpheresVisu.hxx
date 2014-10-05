@@ -20,6 +20,8 @@
 
 #include "OGLSpheresVisu.h"
 
+#include "../utils/myIntrinsicsPlusPlus.h"
+
 template <typename T>
 OGLSpheresVisu<T>::OGLSpheresVisu(const string winName,
                                   const int winWidth,
@@ -60,10 +62,10 @@ OGLSpheresVisu<T>::OGLSpheresVisu(const string winName,
 	this->radiusBuffer     = new float[this->nSpheres];
 
 	// copying the radius values
-	for(unsigned long iVec = 0; iVec < ceil(this->nSpheres * 1.0 / VECTOR_SIZE); iVec++)
-		for(unsigned short iSphere = 0; iSphere < VECTOR_SIZE; iSphere++)
+	for(unsigned long iVec = 0; iVec < ceil(this->nSpheres * 1.0 / mipp::vectorSize<T>()); iVec++)
+		for(unsigned short iSphere = 0; iSphere < mipp::vectorSize<T>(); iSphere++)
 		{
-			unsigned long realSpherePos = iSphere + iVec * VECTOR_SIZE;
+			unsigned long realSpherePos = iSphere + iVec * mipp::vectorSize<T>();
 			if(realSpherePos < this->nSpheres)
 				this->radiusBuffer[realSpherePos] = (float) this->radius[iVec].vec_data[iSphere];
 		}
@@ -176,10 +178,10 @@ template <typename T>
 void OGLSpheresVisu<T>::updatePositions()
 {
 	// convert positions in float buffers
-	for(unsigned long iVec = 0; iVec < ceil(this->nSpheres * 1.0 / VECTOR_SIZE); iVec++)
-		for(unsigned short iSphere = 0; iSphere < VECTOR_SIZE; iSphere++)
+	for(unsigned long iVec = 0; iVec < ceil(this->nSpheres * 1.0 / mipp::vectorSize<T>()); iVec++)
+		for(unsigned short iSphere = 0; iSphere < mipp::vectorSize<T>(); iSphere++)
 		{
-			unsigned long realSpherePos = iSphere + iVec * VECTOR_SIZE;
+			unsigned long realSpherePos = iSphere + iVec * mipp::vectorSize<T>();
 			if(realSpherePos < this->nSpheres)
 			{
 				this->positionsXBuffer[realSpherePos] = (float) this->positionsX[iVec].vec_data[iSphere];
