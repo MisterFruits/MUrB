@@ -239,7 +239,7 @@ void Space<T>::initBodiesRandomly()
 			unsigned long realBody = iBody + iVec * mipp::vectorSize<T>();
 			if(realBody < this->nBodies)
 				mass = ((rand() / (T) RAND_MAX) * 5.0e21);
-			else // fake body just to fit into the last vector
+			else // fake body just for fill the last vector
 				mass = 0;
 
 			radius = mass * 0.6e-15;
@@ -408,13 +408,16 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPos
 	iAccsY += acc * diffPosY; // 2 flop
 	iAccsZ += acc * diffPosZ; // 2 flop
 
+	/*
 	if(!this->dtConstant)
 		// min
 		if(dist < iClosNeiDist)
 			iClosNeiDist = dist;
+	*/
+	iClosNeiDist = std::min(iClosNeiDist, dist);
 }
 
-// 21 flops
+// 19 flops
 template <>
 void Space<float>::computeAccelerationBetweenTwoBodies(const float &iPosX, const float &iPosY, const float &iPosZ,
                                                              float &iAccsX,      float &iAccsY,      float &iAccsZ,
@@ -427,18 +430,21 @@ void Space<float>::computeAccelerationBetweenTwoBodies(const float &iPosX, const
 	const float diffPosZ = jPosZ - iPosZ; // 1 flop
 	const float squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
 	assert(squareDist != 0);
-	// reciprocal sqrt operation is hard coded in the CPUs
+	// reciprocal sqrt operation is hard coded in the CPUs, so it should be an optimization
 	const float invDist = 1.0 / std::sqrt(squareDist); // 1 flop
 
-	const float acc = G * jMasses * (invDist * invDist); // 3 flops
-	iAccsX += acc * (diffPosX * invDist); // 3 flop
-	iAccsY += acc * (diffPosY * invDist); // 3 flop
-	iAccsZ += acc * (diffPosZ * invDist); // 3 flop
+	const float acc = G * jMasses * (invDist * invDist * invDist); // 4 flops
+	iAccsX += acc * (diffPosX); // 2 flop
+	iAccsY += acc * (diffPosY); // 2 flop
+	iAccsZ += acc * (diffPosZ); // 2 flop
 
+	/*
 	if(!this->dtConstant)
 		// max
 		if(invDist > iClosNeiDist)
 			iClosNeiDist = invDist;
+	*/
+	iClosNeiDist = std::max(iClosNeiDist, invDist);
 }
 
 // 19 flops
@@ -570,8 +576,7 @@ void Space<float>::findTimeStep()
 		for(unsigned long iVec = 0; iVec < this->nVecs; iVec++)
 		{
 			for(unsigned short iBody = 0; iBody < mipp::vectorSize<float>(); iBody++)
-				this->closestNeighborDist[iVec].vec_data[iBody] = 1.0 /
-				                                                  this->closestNeighborDist[iVec].vec_data[iBody];
+				this->closestNeighborDist[iVec].vec_data[iBody] = 1.0 / this->closestNeighborDist[iVec].vec_data[iBody];
 
 			const float newDt = computeTimeStep(iVec); // 16 flops
 
@@ -693,7 +698,7 @@ bool Space<T>::read(std::istream& stream)
 				stream >> speedY;
 				stream >> speedZ;
 			}
-			else // fake body just to fit into the last vector
+			else // fake body just for fill into the last vector
 			{
 				mass = 0;
 
