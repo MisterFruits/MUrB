@@ -171,7 +171,9 @@ int main(int argc, char** argv)
 	float Mbytes = (12 * sizeof(floatType) * NBodies) / 1024.f / 1024.f;
 
 	// compute flops per iteration
-	float flopsPerIte = (float) NBodies * (float) (NBodies * 18);
+	//float flopsPerIte = (float) NBodies * (float) (NBodies * 18);
+	//float flopsPerIte = (float) NBodies * (float) ((NBodies -1) * 23);
+	float flopsPerIte = 0.5f * (float) NBodies * (float) ((NBodies -1) * 32);
 
 	// display simulation configuration
 	cout << "n-body simulation started !" << endl;
@@ -230,7 +232,9 @@ int main(int argc, char** argv)
 		perfIte.start();
 		//-----------------------------//
 		//-- Simulation computations --//
-		space->computeBodiesAccelerationCB();
+		//space->computeBodiesAcceleration();
+		//space->computeBodiesAccelerationCB();
+		space->computeBodiesAccelerationV2();
 		space->findTimeStep();
 		space->updateBodiesPositionAndSpeed();
 		//-- Simulation computations --//

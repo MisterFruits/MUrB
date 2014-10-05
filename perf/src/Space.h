@@ -47,6 +47,7 @@ public:
 	inline T getDt();
 
 	void computeBodiesAcceleration();
+	void computeBodiesAccelerationV2();
 	void computeBodiesAccelerationCB();
 	void findTimeStep();
 	void updateBodiesPositionAndSpeed();
@@ -68,6 +69,8 @@ private:
 	
 	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
 	void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
+
+	void computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iBody, const unsigned long jBody);
 
 	inline T computeTimeStep(const unsigned long iBody);
 };
