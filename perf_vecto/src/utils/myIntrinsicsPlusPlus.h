@@ -15,7 +15,7 @@
 #endif
 #include <cassert>
 
-namespace mipp
+namespace mipp //My Intrinsics Plus Plus => mipp
 {
 // ------------------------------------------------------------------------------------------ myIntrinsics vector sizes
 // --------------------------------------------------------------------------------------------------------------------
@@ -484,6 +484,7 @@ inline vec rot(const vec v1) {
 	__m128  _mm_rsqrt_ps (__m128 a)
 	  void  _mm_store_ps (float * mem_addr, __m128 a);   void  _mm_store_pd (double * mem_addr, __m128d a);
 
+	   intrinsics AVX headers (int)
 	__m128i _mm_shuffle_epi32 (__m128i a, int imm);
 	*/
 
