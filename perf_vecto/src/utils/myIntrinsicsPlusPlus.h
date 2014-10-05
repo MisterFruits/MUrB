@@ -152,8 +152,6 @@ inline vec rot(const vec v1) {
 
 #ifdef __ARM_NEON__ // ----------------------------------------------------------------------------------- ARM NEON-128
 	// ----------------------------------------------------------------------------------------------------------------
-	static const unsigned int VectorSizeBit      = 128;
-	static const unsigned int RequiredAlignement = 16;
 
 	/* intrinsics NEON-128 headers (float)
 	float32x4_t vld1q_f32    (const float32_t *);        // load
@@ -209,7 +207,7 @@ inline vec rot(const vec v1) {
 	// ------------------------------------------------------------------------------------------------------------ div
 	template <>
 	inline vec div<float>(const vec v1, const vec v2) {
-		return vec_mul(v1, vrecpeq_f32(v2))
+		return mipp::mul<float>(v1, vrecpeq_f32(v2));
 	}
 
 	// ------------------------------------------------------------------------------------------------------------ min
