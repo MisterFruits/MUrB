@@ -29,7 +29,8 @@ using namespace std;
 #include "utils/Perf.h"
 #include "utils/ArgumentsReader.h"
 
-#include "Space.h"
+//#include "Space.h"
+#include "SimulationNBody.h"
 
 string        InputFileName;
 string        OutputBaseName;
@@ -160,12 +161,20 @@ int main(int argc, char** argv)
 	argsReader(argc, argv);
 
 	// create plan by reading file or generate bodies randomly
+	/*
 	Space<floatType> *space;
 	if(InputFileName.empty())
 		space = new Space<floatType>(NBodies);
 	else
 		space = new Space<floatType>(InputFileName);
 	NBodies = space->getNBodies();
+	*/
+	SimulationNBody<floatType> *simu;
+	if(InputFileName.empty())
+		simu = new SimulationNBody<floatType>(NBodies);
+	else
+		simu = new SimulationNBody<floatType>(InputFileName);
+	NBodies = simu->bodies.n;
 
 	// compute MB used for this simulation
 	float Mbytes = (12 * sizeof(floatType) * NBodies) / 1024.f / 1024.f;
@@ -192,6 +201,7 @@ int main(int argc, char** argv)
 	cout <<     "  -> geometry shader  : " << ((GSEnable) ? "enable" : "disable") << endl << endl;
 
 	// initialize visualization of bodies (with spheres in space)
+	/*
 	OGLSpheresVisu<floatType> *visu;
 	if(VisuEnable)
 	{
@@ -209,6 +219,28 @@ int main(int argc, char** argv)
 	}
 	else
 		visu = new OGLSpheresVisuNo<floatType>();
+	*/
+	OGLSpheresVisu<floatType> *visu;
+	if(VisuEnable)
+	{
+		if(GSEnable) // geometry shader = better performances on dedicated GPUs
+			visu = new OGLSpheresVisuGS<floatType>("n-body (geometry shader)", WinWidth, WinHeight,
+			                                       simu->bodies.positions.x,
+			                                       simu->bodies.positions.y,
+			                                       simu->bodies.positions.z,
+			                                       simu->bodies.radiuses,
+			                                       NBodies);
+		else
+			visu = new OGLSpheresVisuInst<floatType>("n-body (instancing)", WinWidth, WinHeight,
+			                                         simu->bodies.positions.x,
+			                                         simu->bodies.positions.y,
+			                                         simu->bodies.positions.z,
+			                                         simu->bodies.radiuses,
+			                                         NBodies);
+		cout << endl;
+	}
+	else
+		visu = new OGLSpheresVisuNo<floatType>();
 
 	cout << "Simulation started..." << endl;
 
@@ -216,11 +248,11 @@ int main(int argc, char** argv)
 	if(!OutputBaseName.empty())
 	{
 		std::string outputFileName = OutputBaseName + ".0.dat";
-		space->writeIntoFile(outputFileName);
+		simu->bodies.writeIntoFile(outputFileName);
 	}
 
 	// constant timestep (easier for the visualization)
-	space->setDtConstant(Dt);
+	simu->setDtConstant(Dt);
 
 	floatType physicTime = 0.0;
 	unsigned long iIte;
@@ -232,17 +264,20 @@ int main(int argc, char** argv)
 		perfIte.start();
 		//-----------------------------//
 		//-- Simulation computations --//
+		/*
 		//space->computeBodiesAcceleration();
 		//space->computeBodiesAccelerationCB();
 		space->computeBodiesAccelerationV2();
 		space->findTimeStep();
 		space->updateBodiesPositionAndSpeed();
+		*/
+		simu->computeIteration();
 		//-- Simulation computations --//
 		//-----------------------------//
 		perfIte.stop();
 		perfTotal += perfIte;
 
-		physicTime += space->getDt();
+		physicTime += simu->getDt();
 
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
@@ -253,7 +288,7 @@ int main(int argc, char** argv)
 		if(!OutputBaseName.empty())
 		{
 			std::string outputFileName = OutputBaseName + "." + to_string(iIte) + ".dat";
-			space->writeIntoFile(outputFileName);
+			simu->bodies.writeIntoFile(outputFileName);
 		}
 	}
 	cout << "Simulation ended." << endl << endl;
@@ -262,7 +297,7 @@ int main(int argc, char** argv)
 	     << "(" << perfTotal.getGflops(flopsPerIte * (iIte -1)) << " Gflop/s)" << endl;
 
 	delete visu;
-	delete space;
+	delete simu;
 
 	return EXIT_SUCCESS;
 }
