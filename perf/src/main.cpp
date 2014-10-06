@@ -173,7 +173,7 @@ int main(int argc, char** argv)
 	// compute flops per iteration
 	//float flopsPerIte = (float) NBodies * (float) (NBodies * 18);
 	//float flopsPerIte = (float) NBodies * (float) ((NBodies -1) * 23);
-	float flopsPerIte = 0.5f * (float) NBodies * (float) ((NBodies -1) * 24);
+	float flopsPerIte = 0.5f * (float) NBodies * (float) ((NBodies -1) * 25);
 
 	// display simulation configuration
 	cout << "n-body simulation started !" << endl;

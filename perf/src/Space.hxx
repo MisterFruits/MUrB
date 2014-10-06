@@ -277,9 +277,9 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBod
 {
 	assert(iBody != jBody);
 
-	const T diffPosX  = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
-	const T diffPosY  = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
-	const T diffPosZ  = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
+	const T diffPosX = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
+	const T diffPosY = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
+	const T diffPosZ = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
 
 	// compute distance between iBody and jBody: Dij
 	const T dist = std::sqrt((diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ)); // 6 flops
@@ -332,15 +332,15 @@ void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, co
 			this->closestNeighborDist[iBody] = dist;
 }
 
-// 32 flops
+// 33 flops
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iBody, const unsigned long jBody)
 {
 	assert(iBody != jBody);
 
-	const T diffPosX  = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
-	const T diffPosY  = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
-	const T diffPosZ  = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
+	const T diffPosX = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
+	const T diffPosY = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
+	const T diffPosZ = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
 
 	// compute distance between iBody and jBody: Dij
 	const T dist = std::sqrt((diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ)); // 6 flops
@@ -358,16 +358,19 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iB
 	const T force = G * this->masses[iBody] * this->masses[jBody] / (dist * dist); // 4 flops
 
 	// compute the acceleration value: || a || = || F || / mi
-	const T acc = force / this->masses[iBody]; // 1 flop
+	T acc = force / this->masses[iBody]; // 1 flop
 
 	// normalize and add acceleration value into acceleration vector: a += || a ||.u
 	this->accelerations.x[iBody + omp_get_thread_num() * this->nBodies] += acc * (diffPosX / dist); // 3 flops
 	this->accelerations.y[iBody + omp_get_thread_num() * this->nBodies] += acc * (diffPosY / dist); // 3 flops
 	this->accelerations.z[iBody + omp_get_thread_num() * this->nBodies] += acc * (diffPosZ / dist); // 3 flops
 
-	this->accelerations.x[jBody + omp_get_thread_num() * this->nBodies] += acc * ((-diffPosX) / dist); // 3 flops
-	this->accelerations.y[jBody + omp_get_thread_num() * this->nBodies] += acc * ((-diffPosY) / dist); // 3 flops
-	this->accelerations.z[jBody + omp_get_thread_num() * this->nBodies] += acc * ((-diffPosZ) / dist); // 3 flops
+	// compute the acceleration value: || a || = || F || / mj
+	acc = force / this->masses[jBody]; // 1 flop
+
+	this->accelerations.x[jBody + omp_get_thread_num() * this->nBodies] -= acc * (diffPosX / dist); // 3 flops
+	this->accelerations.y[jBody + omp_get_thread_num() * this->nBodies] -= acc * (diffPosY / dist); // 3 flops
+	this->accelerations.z[jBody + omp_get_thread_num() * this->nBodies] -= acc * (diffPosZ / dist); // 3 flops
 
 	if(!this->dtConstant)
 	{
@@ -381,7 +384,7 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iB
 	}
 }
 
-// 24 flops
+// 25 flops
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodiesV2(const unsigned long iBody, const unsigned long jBody)
 {
@@ -395,12 +398,14 @@ void Space<T>::computeAccelerationBetweenTwoBodiesV2(const unsigned long iBody, 
 	const T dist = std::sqrt(squareDist); // 1 flops
 	assert(dist != 0);
 
-	const T acc = G * this->masses[jBody] / (squareDist * dist); // 3 flops
+	const T force = G / (squareDist * dist); // 2 flops
 
+	T acc = force * this->masses[jBody]; // 1 flop
 	this->accelerations.x[iBody + omp_get_thread_num() * this->nBodies] += acc * diffPosX; // 2 flops
 	this->accelerations.y[iBody + omp_get_thread_num() * this->nBodies] += acc * diffPosY; // 2 flops
 	this->accelerations.z[iBody + omp_get_thread_num() * this->nBodies] += acc * diffPosZ; // 2 flops
 
+	acc = force * this->masses[iBody]; // 1 flop
 	this->accelerations.x[jBody + omp_get_thread_num() * this->nBodies] -= acc * diffPosX; // 2 flops
 	this->accelerations.y[jBody + omp_get_thread_num() * this->nBodies] -= acc * diffPosY; // 2 flops
 	this->accelerations.z[jBody + omp_get_thread_num() * this->nBodies] -= acc * diffPosZ; // 2 flops
