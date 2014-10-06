@@ -12,6 +12,15 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef _OPENMP
+#include <omp.h>
+#else
+inline void omp_set_num_threads(int) {           }
+inline int  omp_get_num_threads(   ) { return 1; }
+inline int  omp_get_max_threads(   ) { return 1; }
+inline int  omp_get_thread_num (   ) { return 0; }
+#endif
+
 #include "Space.h"
 
 template <typename T>
@@ -54,9 +63,9 @@ void Space<T>::allocateBuffers()
 	this->speeds.y = new T[this->nBodies];
 	this->speeds.z = new T[this->nBodies];
 
-	this->accelerations.x = new T[this->nBodies];
-	this->accelerations.y = new T[this->nBodies];
-	this->accelerations.z = new T[this->nBodies];
+	this->accelerations.x = new T[this->nBodies * omp_get_max_threads()];
+	this->accelerations.y = new T[this->nBodies * omp_get_max_threads()];
+	this->accelerations.z = new T[this->nBodies * omp_get_max_threads()];
 
 	this->closestNeighborDist = new T[this->nBodies];
 }
@@ -138,9 +147,12 @@ void Space<T>::setBody(const unsigned long &iBody,
 	this->speeds.y[iBody] = speedY;
 	this->speeds.z[iBody] = speedZ;
 
-	this->accelerations.x[iBody] = 0;
-	this->accelerations.y[iBody] = 0;
-	this->accelerations.z[iBody] = 0;
+	for(unsigned short iThread = 0; iThread < omp_get_max_threads(); iThread++)
+	{
+		this->accelerations.x[iBody + iThread * this->nBodies] = 0;
+		this->accelerations.y[iBody + iThread * this->nBodies] = 0;
+		this->accelerations.z[iBody + iThread * this->nBodies] = 0;
+	}
 
 	this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
 }
@@ -201,8 +213,9 @@ void Space<T>::computeBodiesAcceleration()
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 		for(unsigned long jBody = 0; jBody < this->nBodies; jBody++)
 			if(iBody != jBody)
-				//this->computeAccelerationBetweenTwoBodies(iBody, jBody);
-				this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
+				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
+				this->computeAccelerationBetweenTwoBodies(iBody, jBody);
+
 }
 
 template <typename T>
@@ -211,8 +224,17 @@ void Space<T>::computeBodiesAccelerationV2()
 #pragma omp parallel for schedule(runtime)
 	for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
 		for(unsigned long jBody = iBody +1; jBody < this->nBodies; jBody++)
-			//this->computeAccelerationBetweenTwoBodies(iBody, jBody);
-			this->computeAccelerationBetweenTwoBodiesNaiveV2(iBody, jBody);
+			//this->computeAccelerationBetweenTwoBodiesNaiveV2(iBody, jBody);
+			this->computeAccelerationBetweenTwoBodiesV2(iBody, jBody);
+
+	if(omp_get_max_threads() > 1)
+		for(unsigned long iBody = 0; iBody < this->nBodies; iBody++)
+			for(unsigned short iThread = 1; iThread < omp_get_max_threads(); iThread++)
+			{
+				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * this->nBodies];
+				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * this->nBodies];
+				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * this->nBodies];
+			}
 }
 
 /* 
@@ -247,29 +269,6 @@ void Space<T>::computeBodiesAccelerationCB()
 					this->computeAccelerationBetweenTwoBodies(iBody, jBody);
 					//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
 	}
-}
-
-// 18 flops
-template <typename T>
-void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
-{
-	assert(iBody != jBody);
-
-	const T diffPosX = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
-	const T diffPosY = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
-	const T diffPosZ = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
-	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
-	const T dist = std::sqrt(squareDist); // 1 flop
-	assert(dist != 0);
-
-	const T acc = G * this->masses[jBody] / (squareDist * dist); // 3 flops
-	this->accelerations.x[iBody] += acc * diffPosX; // 2 flop
-	this->accelerations.y[iBody] += acc * diffPosY; // 2 flop
-	this->accelerations.z[iBody] += acc * diffPosZ; // 2 flop
-
-	if(!this->dtConstant)
-		if(dist < this->closestNeighborDist[iBody])
-			this->closestNeighborDist[iBody] = dist;
 }
 
 // 23 flops
@@ -310,6 +309,29 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBod
 			this->closestNeighborDist[iBody] = dist;
 }
 
+// 18 flops
+template <typename T>
+void Space<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
+{
+	assert(iBody != jBody);
+
+	const T diffPosX = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
+	const T diffPosY = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
+	const T diffPosZ = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
+	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
+	const T dist = std::sqrt(squareDist); // 1 flop
+	assert(dist != 0);
+
+	const T acc = G * this->masses[jBody] / (squareDist * dist); // 3 flops
+	this->accelerations.x[iBody] += acc * diffPosX; // 2 flop
+	this->accelerations.y[iBody] += acc * diffPosY; // 2 flop
+	this->accelerations.z[iBody] += acc * diffPosZ; // 2 flop
+
+	if(!this->dtConstant)
+		if(dist < this->closestNeighborDist[iBody])
+			this->closestNeighborDist[iBody] = dist;
+}
+
 // 32 flops
 template <typename T>
 void Space<T>::computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iBody, const unsigned long jBody)
@@ -339,20 +361,59 @@ void Space<T>::computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iB
 	const T acc = force / this->masses[iBody]; // 1 flop
 
 	// normalize and add acceleration value into acceleration vector: a += || a ||.u
-	this->accelerations.x[iBody] += acc * (diffPosX / dist); // 3 flops
-	this->accelerations.y[iBody] += acc * (diffPosY / dist); // 3 flops
-	this->accelerations.z[iBody] += acc * (diffPosZ / dist); // 3 flops
+	this->accelerations.x[iBody + omp_get_thread_num() * this->nBodies] += acc * (diffPosX / dist); // 3 flops
+	this->accelerations.y[iBody + omp_get_thread_num() * this->nBodies] += acc * (diffPosY / dist); // 3 flops
+	this->accelerations.z[iBody + omp_get_thread_num() * this->nBodies] += acc * (diffPosZ / dist); // 3 flops
 
-	this->accelerations.x[jBody] += acc * ((-diffPosX) / dist); // 3 flops
-	this->accelerations.y[jBody] += acc * ((-diffPosY) / dist); // 3 flops
-	this->accelerations.z[jBody] += acc * ((-diffPosZ) / dist); // 3 flops
+	this->accelerations.x[jBody + omp_get_thread_num() * this->nBodies] += acc * ((-diffPosX) / dist); // 3 flops
+	this->accelerations.y[jBody + omp_get_thread_num() * this->nBodies] += acc * ((-diffPosY) / dist); // 3 flops
+	this->accelerations.z[jBody + omp_get_thread_num() * this->nBodies] += acc * ((-diffPosZ) / dist); // 3 flops
 
 	if(!this->dtConstant)
 	{
 		if(dist < this->closestNeighborDist[iBody])
 			this->closestNeighborDist[iBody] = dist;
+
 		if(dist < this->closestNeighborDist[jBody])
-			this->closestNeighborDist[jBody] = dist;
+#pragma omp critical
+			if(dist < this->closestNeighborDist[jBody])
+				this->closestNeighborDist[jBody] = dist;
+	}
+}
+
+// 24 flops
+template <typename T>
+void Space<T>::computeAccelerationBetweenTwoBodiesV2(const unsigned long iBody, const unsigned long jBody)
+{
+	assert(iBody != jBody);
+
+	const T diffPosX  = this->positions.x[jBody] - this->positions.x[iBody]; // 1 flop
+	const T diffPosY  = this->positions.y[jBody] - this->positions.y[iBody]; // 1 flop
+	const T diffPosZ  = this->positions.z[jBody] - this->positions.z[iBody]; // 1 flop
+
+	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
+	const T dist = std::sqrt(squareDist); // 1 flops
+	assert(dist != 0);
+
+	const T acc = G * this->masses[jBody] / (squareDist * dist); // 3 flops
+
+	this->accelerations.x[iBody + omp_get_thread_num() * this->nBodies] += acc * diffPosX; // 2 flops
+	this->accelerations.y[iBody + omp_get_thread_num() * this->nBodies] += acc * diffPosY; // 2 flops
+	this->accelerations.z[iBody + omp_get_thread_num() * this->nBodies] += acc * diffPosZ; // 2 flops
+
+	this->accelerations.x[jBody + omp_get_thread_num() * this->nBodies] -= acc * diffPosX; // 2 flops
+	this->accelerations.y[jBody + omp_get_thread_num() * this->nBodies] -= acc * diffPosY; // 2 flops
+	this->accelerations.z[jBody + omp_get_thread_num() * this->nBodies] -= acc * diffPosZ; // 2 flops
+
+	if(!this->dtConstant)
+	{
+		if(dist < this->closestNeighborDist[iBody])
+			this->closestNeighborDist[iBody] = dist;
+
+		if(dist < this->closestNeighborDist[jBody])
+#pragma omp critical
+			if(dist < this->closestNeighborDist[jBody])
+				this->closestNeighborDist[jBody] = dist;
 	}
 }
 

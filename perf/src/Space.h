@@ -67,10 +67,11 @@ private:
 	void initBodiesRandomly();
 	void initBodiesFromFile(const std::string inputFileName);
 	
+	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
 	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
-	void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
 
-	void computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iBody, const unsigned long jBody);
+	inline void computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iBody, const unsigned long jBody);
+	inline void computeAccelerationBetweenTwoBodiesV2(const unsigned long iBody, const unsigned long jBody);
 
 	inline T computeTimeStep(const unsigned long iBody);
 };
