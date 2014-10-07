@@ -34,6 +34,27 @@ Bodies<T>::Bodies(const std::string inputFileName)
 }
 
 template <typename T>
+Bodies<T>::Bodies(const Bodies<T>& bodies)
+	: n       (bodies.n),
+	  masses  (bodies.masses),
+	  radiuses(bodies.radiuses)
+{
+	this->positions.x = bodies.positions.x;
+	this->positions.y = bodies.positions.y;
+	this->positions.z = bodies.positions.z;
+
+	this->velocities.x = bodies.velocities.x;
+	this->velocities.y = bodies.velocities.y;
+	this->velocities.z = bodies.velocities.z;
+}
+
+template <typename T>
+Bodies<T>& Bodies<T>::operator=(const Bodies<T>& bodies)
+{
+	return Bodies<T>(bodies);
+}
+
+template <typename T>
 void Bodies<T>::allocateBuffers()
 {
 	this->masses = new T[this->n];
@@ -73,9 +94,57 @@ Bodies<T>::~Bodies() {
 }
 
 template <typename T>
-unsigned long Bodies<T>::getNBodies()
+const unsigned long& Bodies<T>::getN()
 {
-	return this->n;
+	return const_cast<const unsigned long&>(this->n);
+}
+
+template <typename T>
+const T* Bodies<T>::getMasses()
+{
+	return const_cast<const T*>(this->masses);
+}
+
+template <typename T>
+const T* Bodies<T>::getRadiuses()
+{
+	return const_cast<const T*>(this->radiuses);
+}
+
+template <typename T>
+const T* Bodies<T>::getPositionsX()
+{
+	return const_cast<const T*>(this->positions.x);
+}
+
+template <typename T>
+const T* Bodies<T>::getPositionsY()
+{
+	return const_cast<const T*>(this->positions.y);
+}
+
+template <typename T>
+const T* Bodies<T>::getPositionsZ()
+{
+	return const_cast<const T*>(this->positions.z);
+}
+
+template <typename T>
+const T* Bodies<T>::getVelocitiesX()
+{
+	return const_cast<const T*>(this->velocities.x);
+}
+
+template <typename T>
+const T* Bodies<T>::getVelocitiesY()
+{
+	return const_cast<const T*>(this->velocities.y);
+}
+
+template <typename T>
+const T* Bodies<T>::getVelocitiesZ()
+{
+	return const_cast<const T*>(this->velocities.z);
 }
 
 template <typename T>

@@ -29,7 +29,7 @@ using namespace std;
 #include "utils/Perf.h"
 #include "utils/ArgumentsReader.h"
 
-//#include "Space.h"
+#include "Bodies.h"
 #include "SimulationNBody.h"
 
 string        InputFileName;
@@ -160,21 +160,14 @@ int main(int argc, char** argv)
 	// usage: ./nbody -n nBodies  -i nIterations [-v] [-w] ...
 	argsReader(argc, argv);
 
-	// create plan by reading file or generate bodies randomly
-	/*
-	Space<floatType> *space;
-	if(InputFileName.empty())
-		space = new Space<floatType>(NBodies);
-	else
-		space = new Space<floatType>(InputFileName);
-	NBodies = space->getNBodies();
-	*/
+	// create an n-body simulation
 	SimulationNBody<floatType> *simu;
 	if(InputFileName.empty())
 		simu = new SimulationNBody<floatType>(NBodies);
 	else
 		simu = new SimulationNBody<floatType>(InputFileName);
-	NBodies = simu->bodies.n;
+	const unsigned long n = simu->getBodies().getN();
+	NBodies = n;
 
 	// compute MB used for this simulation
 	float Mbytes = (12 * sizeof(floatType) * NBodies) / 1024.f / 1024.f;
@@ -201,41 +194,23 @@ int main(int argc, char** argv)
 	cout <<     "  -> geometry shader  : " << ((GSEnable) ? "enable" : "disable") << endl << endl;
 
 	// initialize visualization of bodies (with spheres in space)
-	/*
 	OGLSpheresVisu<floatType> *visu;
 	if(VisuEnable)
 	{
+		const floatType *positionsX = simu->getBodies().getPositionsX();
+		const floatType *positionsY = simu->getBodies().getPositionsY();
+		const floatType *positionsZ = simu->getBodies().getPositionsZ();
+		const floatType *radiuses   = simu->getBodies().getRadiuses();
+
 		if(GSEnable) // geometry shader = better performances on dedicated GPUs
 			visu = new OGLSpheresVisuGS<floatType>("n-body (geometry shader)", WinWidth, WinHeight,
-			                                       space->positions.x, space->positions.y, space->positions.z,
-			                                       space->radiuses,
+			                                       positionsX, positionsY, positionsZ,
+			                                       radiuses,
 			                                       NBodies);
 		else
 			visu = new OGLSpheresVisuInst<floatType>("n-body (instancing)", WinWidth, WinHeight,
-			                                         space->positions.x, space->positions.y, space->positions.z,
-			                                         space->radiuses,
-			                                         NBodies);
-		cout << endl;
-	}
-	else
-		visu = new OGLSpheresVisuNo<floatType>();
-	*/
-	OGLSpheresVisu<floatType> *visu;
-	if(VisuEnable)
-	{
-		if(GSEnable) // geometry shader = better performances on dedicated GPUs
-			visu = new OGLSpheresVisuGS<floatType>("n-body (geometry shader)", WinWidth, WinHeight,
-			                                       simu->bodies.positions.x,
-			                                       simu->bodies.positions.y,
-			                                       simu->bodies.positions.z,
-			                                       simu->bodies.radiuses,
-			                                       NBodies);
-		else
-			visu = new OGLSpheresVisuInst<floatType>("n-body (instancing)", WinWidth, WinHeight,
-			                                         simu->bodies.positions.x,
-			                                         simu->bodies.positions.y,
-			                                         simu->bodies.positions.z,
-			                                         simu->bodies.radiuses,
+			                                         positionsX, positionsY, positionsZ,
+			                                         radiuses,
 			                                         NBodies);
 		cout << endl;
 	}
@@ -248,7 +223,7 @@ int main(int argc, char** argv)
 	if(!OutputBaseName.empty())
 	{
 		std::string outputFileName = OutputBaseName + ".0.dat";
-		simu->bodies.writeIntoFile(outputFileName);
+		simu->getBodies().writeIntoFile(outputFileName);
 	}
 
 	// constant timestep (easier for the visualization)
@@ -264,14 +239,7 @@ int main(int argc, char** argv)
 		perfIte.start();
 		//-----------------------------//
 		//-- Simulation computations --//
-		/*
-		//space->computeBodiesAcceleration();
-		//space->computeBodiesAccelerationCB();
-		space->computeBodiesAccelerationV2();
-		space->findTimeStep();
-		space->updateBodiesPositionAndSpeed();
-		*/
-		simu->computeIteration();
+		simu->computeOneIteration();
 		//-- Simulation computations --//
 		//-----------------------------//
 		perfIte.stop();
@@ -288,7 +256,7 @@ int main(int argc, char** argv)
 		if(!OutputBaseName.empty())
 		{
 			std::string outputFileName = OutputBaseName + "." + to_string(iIte) + ".dat";
-			simu->bodies.writeIntoFile(outputFileName);
+			simu->getBodies().writeIntoFile(outputFileName);
 		}
 	}
 	cout << "Simulation ended." << endl << endl;

@@ -15,7 +15,7 @@
 template <typename T = double>
 class SimulationNBody
 {
-public:
+private:
 	const T G = 6.67384e-11;
 
 	Bodies<T>     bodies;
@@ -34,11 +34,12 @@ private:
 public:
 	virtual ~SimulationNBody();
 
+	inline Bodies<T>& getBodies();
 	inline void setDtConstant(T dtVal);
 	inline void setDtVariable();
 	inline T getDt();
 
-	void computeIteration();
+	void computeOneIteration();
 
 private:
 	void computeBodiesAcceleration();

@@ -21,7 +21,7 @@ struct vector3
 template <typename T = double>
 class Bodies
 {
-public:
+protected:
 	unsigned long n;
 	T            *masses;
 	T            *radiuses;
@@ -31,10 +31,21 @@ public:
 public:
 	Bodies(const unsigned long n);
 	Bodies(const std::string inputFileName);
+	Bodies(const Bodies<T>& bodies);
+
+	Bodies<T>& operator=(const Bodies<T>& bodies);
 
 	virtual ~Bodies();
 
-	inline unsigned long getNBodies();
+	inline const unsigned long& getN();
+	inline const T* getMasses();
+	inline const T* getRadiuses();
+	inline const T* getPositionsX();
+	inline const T* getPositionsY();
+	inline const T* getPositionsZ();
+	inline const T* getVelocitiesX();
+	inline const T* getVelocitiesY();
+	inline const T* getVelocitiesZ();
 
 	inline void setBody(const unsigned long &iBody,
 	                    const T &mass, const T &radius,
