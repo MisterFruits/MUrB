@@ -30,7 +30,7 @@ protected:
 	SimulationNBody(const unsigned long nBodies);
 	SimulationNBody(const std::string inputFileName);
 
-protected:
+private:
 	virtual void allocateBuffers() = 0;
 
 public:

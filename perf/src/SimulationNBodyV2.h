@@ -19,7 +19,7 @@ public:
 	SimulationNBodyV2(const unsigned long nBodies);
 	SimulationNBodyV2(const std::string inputFileName);
 
-protected:
+private:
 	virtual void allocateBuffers();
 
 public:
