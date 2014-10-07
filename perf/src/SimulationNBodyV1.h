@@ -18,16 +18,11 @@ class SimulationNBodyV1 : public SimulationNBody<T>
 public:
 	SimulationNBodyV1(const unsigned long nBodies);
 	SimulationNBodyV1(const std::string inputFileName);
-
-private:
-	virtual void allocateBuffers();
-
-protected:
 	virtual ~SimulationNBodyV1();
 
 protected:
+	virtual void allocateBuffers();
 	virtual void initIteration();
-
 	virtual void computeBodiesAcceleration();
 
 	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);

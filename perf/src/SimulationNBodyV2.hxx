@@ -41,6 +41,11 @@ SimulationNBodyV2<T>::SimulationNBodyV2(const std::string inputFileName)
 }
 
 template <typename T>
+SimulationNBodyV2<T>::~SimulationNBodyV2()
+{
+}
+
+template <typename T>
 void SimulationNBodyV2<T>::allocateBuffers()
 {
 	this->accelerations.x = new T[this->bodies.getN() * omp_get_max_threads()];
@@ -48,11 +53,6 @@ void SimulationNBodyV2<T>::allocateBuffers()
 	this->accelerations.z = new T[this->bodies.getN() * omp_get_max_threads()];
 
 	this->closestNeighborDist = new T[this->bodies.getN()];
-}
-
-template <typename T>
-SimulationNBodyV2<T>::~SimulationNBodyV2()
-{
 }
 
 template <typename T>

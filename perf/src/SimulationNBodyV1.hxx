@@ -41,6 +41,11 @@ SimulationNBodyV1<T>::SimulationNBodyV1(const std::string inputFileName)
 }
 
 template <typename T>
+SimulationNBodyV1<T>::~SimulationNBodyV1()
+{
+}
+
+template <typename T>
 void SimulationNBodyV1<T>::allocateBuffers()
 {
 	this->accelerations.x = new T[this->bodies.getN()];
@@ -48,11 +53,6 @@ void SimulationNBodyV1<T>::allocateBuffers()
 	this->accelerations.z = new T[this->bodies.getN()];
 
 	this->closestNeighborDist = new T[this->bodies.getN()];
-}
-
-template <typename T>
-SimulationNBodyV1<T>::~SimulationNBodyV1()
-{
 }
 
 template <typename T>

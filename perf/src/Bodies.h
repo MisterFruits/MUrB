@@ -21,7 +21,7 @@ struct vector3
 template <typename T = double>
 class Bodies
 {
-protected:
+private:
 	unsigned long n;
 	T            *masses;
 	T            *radiuses;
@@ -47,18 +47,17 @@ public:
 	inline const T* getVelocitiesY();
 	inline const T* getVelocitiesZ();
 
-	inline void setBody(const unsigned long &iBody,
-	                    const T &mass, const T &radius,
-	                    const T &posX, const T &posY, const T &posZ,
-	                    const T &velocityX, const T &velocityY, const T &velocityZ);
-
 	void updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt);
 
-	bool read(std::istream& stream);
 	void write(std::ostream& stream);
 	void writeIntoFile(const std::string outputFileName);
 
 private:
+	inline void setBody(const unsigned long &iBody,
+	                    const T &mass, const T &radius,
+	                    const T &posX, const T &posY, const T &posZ,
+	                    const T &velocityX, const T &velocityY, const T &velocityZ);
+	bool read(std::istream& stream);
 	void allocateBuffers();
 	void initRandomly();
 	void initFromFile(const std::string inputFileName);

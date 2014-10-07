@@ -18,8 +18,6 @@ class SimulationNBodyV1CB : public SimulationNBodyV1<T>
 public:
 	SimulationNBodyV1CB(const unsigned long nBodies);
 	SimulationNBodyV1CB(const std::string inputFileName);
-
-protected:
 	virtual ~SimulationNBodyV1CB();
 
 protected:

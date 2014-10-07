@@ -224,7 +224,7 @@ int main(int argc, char** argv)
 		simu->getBodies().writeIntoFile(outputFileName);
 	}
 
-	// constant timestep (easier for the visualization)
+	// constant time step (easier for the visualization)
 	simu->setDtConstant(Dt);
 
 	// loop over the iterations

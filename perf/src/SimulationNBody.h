@@ -30,9 +30,6 @@ protected:
 	SimulationNBody(const unsigned long nBodies);
 	SimulationNBody(const std::string inputFileName);
 
-private:
-	virtual void allocateBuffers() = 0;
-
 public:
 	virtual ~SimulationNBody();
 
@@ -40,13 +37,14 @@ public:
 	inline void setDtConstant(T dtVal);
 	inline void setDtVariable();
 	inline T getDt();
-
 	void computeOneIteration();
 
-private:
-	virtual void initIteration() = 0;
+protected:
+	virtual void allocateBuffers()           = 0;
+	virtual void initIteration()             = 0;
 	virtual void computeBodiesAcceleration() = 0;
 
+private:
 	void findTimeStep();
 	inline T computeTimeStep(const unsigned long iBody);
 };
