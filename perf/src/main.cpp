@@ -8,9 +8,6 @@
 #ifdef NBODY_DOUBLE
 using floatType = double;
 #else
-#ifndef NBODY_FLOAT
-#define NBODY_FLOAT
-#endif
 using floatType = float;
 #endif
 
@@ -158,12 +155,12 @@ int main(int argc, char** argv)
 {
 	Perf perfIte, perfTotal;
 
-	// read arguments from command line
+	// read arguments from the command line
 	// usage: ./nbody -f fileName -i nIterations [-v] [-w] ...
 	// usage: ./nbody -n nBodies  -i nIterations [-v] [-w] ...
 	argsReader(argc, argv);
 
-	// create an n-body simulation
+	// create the n-body simulation
 	SimulationNBody<floatType> *simu;
 	if(InputFileName.empty())
 		simu = new SimulationNBodyV2<floatType>(NBodies);
@@ -176,9 +173,7 @@ int main(int argc, char** argv)
 	float Mbytes = (12 * sizeof(floatType) * NBodies) / 1024.f / 1024.f;
 
 	// compute flops per iteration
-	//float flopsPerIte = (float) NBodies * (float) (NBodies * 18);
-	//float flopsPerIte = (float) NBodies * (float) ((NBodies -1) * 23);
-	float flopsPerIte = 0.5f * (float) NBodies * (float) ((NBodies -1) * 25);
+	float flopsPerIte = 0.5f * (float) NBodies * (float) ((NBodies -1) * 25); // V2 (non-naive)
 
 	// display simulation configuration
 	cout << "n-body simulation started !" << endl;
@@ -232,24 +227,24 @@ int main(int argc, char** argv)
 	// constant timestep (easier for the visualization)
 	simu->setDtConstant(Dt);
 
+	// loop over the iterations
 	floatType physicTime = 0.0;
 	unsigned long iIte;
 	for(iIte = 1; iIte <= NIterations && !visu->windowShouldClose(); iIte++)
 	{
-		// refresh display in OpenGL window
+		// refresh the display in OpenGL window
 		visu->refreshDisplay();
 
+		// simulation computations
 		perfIte.start();
-		//-----------------------------//
-		//-- Simulation computations --//
 		simu->computeOneIteration();
-		//-- Simulation computations --//
-		//-----------------------------//
 		perfIte.stop();
 		perfTotal += perfIte;
 
+		// compute the elapsed physic time
 		physicTime += simu->getDt();
 
+		// display the status of this iteration
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
 				 << "(" << perfIte.getGflops(flopsPerIte)  << " Gflop/s), "
