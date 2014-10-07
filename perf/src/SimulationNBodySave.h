@@ -15,23 +15,21 @@
 template <typename T = double>
 class SimulationNBody
 {
-protected:
+private:
 	const T G = 6.67384e-11;
 
 	Bodies<T>  bodies;
 	vector3<T> accelerations;
 	T         *closestNeighborDist;
+	T          dt;
 	bool       dtConstant;
 
-private:
-	T          dt;
-
-protected:
+public:
 	SimulationNBody(const unsigned long nBodies);
 	SimulationNBody(const std::string inputFileName);
 
 private:
-	virtual void allocateBuffers();
+	void allocateBuffers();
 
 public:
 	virtual ~SimulationNBody();
@@ -44,8 +42,14 @@ public:
 	void computeOneIteration();
 
 private:
-	virtual void initIteration() = 0;
-	virtual void computeBodiesAcceleration() = 0;
+	void computeBodiesAcceleration();
+	void computeBodiesAccelerationCB();
+	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
+	inline void computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody);
+
+	void computeBodiesAccelerationV2();
+	inline void computeAccelerationBetweenTwoBodiesNaiveV2(const unsigned long iBody, const unsigned long jBody);
+	inline void computeAccelerationBetweenTwoBodiesV2(const unsigned long iBody, const unsigned long jBody);
 
 	void findTimeStep();
 	inline T computeTimeStep(const unsigned long iBody);

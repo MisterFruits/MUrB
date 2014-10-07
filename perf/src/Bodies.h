@@ -33,9 +33,9 @@ public:
 	Bodies(const std::string inputFileName);
 	Bodies(const Bodies<T>& bodies);
 
-	Bodies<T>& operator=(const Bodies<T>& bodies);
-
 	virtual ~Bodies();
+
+	Bodies<T>& operator=(const Bodies<T>& bodies);
 
 	inline const unsigned long& getN();
 	inline const T* getMasses();
@@ -52,7 +52,7 @@ public:
 	                    const T &posX, const T &posY, const T &posZ,
 	                    const T &velocityX, const T &velocityY, const T &velocityZ);
 
-	void updatePositionsAndVelocities(vector3<T> &accelerations, T &dt);
+	void updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt);
 
 	bool read(std::istream& stream);
 	void write(std::ostream& stream);

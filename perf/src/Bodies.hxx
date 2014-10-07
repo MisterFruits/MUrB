@@ -216,7 +216,7 @@ void Bodies<T>::initFromFile(const std::string inputFileName)
 }
 
 template <typename T>
-void Bodies<T>::updatePositionsAndVelocities(vector3<T> &accelerations, T &dt)
+void Bodies<T>::updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt)
 {
 	// flops = n * 18
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
