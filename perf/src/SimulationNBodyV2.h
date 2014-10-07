@@ -5,25 +5,25 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
-#ifndef SIMULATION_N_BODY_V1_H_
-#define SIMULATION_N_BODY_V1_H_
+#ifndef SIMULATION_N_BODY_V2_H_
+#define SIMULATION_N_BODY_V2_H_
 
 #include <string>
 
 #include "SimulationNBody.h"
 
 template <typename T = double>
-class SimulationNBodyV1 : public SimulationNBody<T>
+class SimulationNBodyV2 : public SimulationNBody<T>
 {
 public:
-	SimulationNBodyV1(const unsigned long nBodies);
-	SimulationNBodyV1(const std::string inputFileName);
-
-private:
-	virtual void allocateBuffers();
+	SimulationNBodyV2(const unsigned long nBodies);
+	SimulationNBodyV2(const std::string inputFileName);
 
 protected:
-	virtual ~SimulationNBodyV1();
+	virtual void allocateBuffers();
+
+public:
+	virtual ~SimulationNBodyV2();
 
 protected:
 	virtual void initIteration();
@@ -34,6 +34,6 @@ protected:
 	inline void computeAccelerationBetweenTwoBodies     (const unsigned long iBody, const unsigned long jBody);
 };
 
-#include "SimulationNBodyV1.hxx"
+#include "SimulationNBodyV2.hxx"
 
-#endif /* SIMULATION_N_BODY_V1_H_ */
+#endif /* SIMULATION_N_BODY_V2_H_ */

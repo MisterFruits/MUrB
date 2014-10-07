@@ -32,6 +32,8 @@ using namespace std;
 #include "Bodies.h"
 #include "SimulationNBody.h"
 #include "SimulationNBodyV1.h"
+#include "SimulationNBodyV1CB.h"
+#include "SimulationNBodyV2.h"
 
 string        InputFileName;
 string        OutputBaseName;
@@ -164,9 +166,9 @@ int main(int argc, char** argv)
 	// create an n-body simulation
 	SimulationNBody<floatType> *simu;
 	if(InputFileName.empty())
-		simu = new SimulationNBodyV1<floatType>(NBodies);
+		simu = new SimulationNBodyV2<floatType>(NBodies);
 	else
-		simu = new SimulationNBodyV1<floatType>(InputFileName);
+		simu = new SimulationNBodyV2<floatType>(InputFileName);
 	const unsigned long n = simu->getBodies().getN();
 	NBodies = n;
 

@@ -15,10 +15,13 @@
 #ifdef _OPENMP
 #include <omp.h>
 #else
+#ifndef _MYOPENMP
+#define _MYOPENMP
 inline void omp_set_num_threads(int) {           }
 inline int  omp_get_num_threads(   ) { return 1; }
 inline int  omp_get_max_threads(   ) { return 1; }
 inline int  omp_get_thread_num (   ) { return 0; }
+#endif
 #endif
 
 #include "SimulationNBodyV1.h"
@@ -27,12 +30,24 @@ template <typename T>
 SimulationNBodyV1<T>::SimulationNBodyV1(const unsigned long nBodies)
 	: SimulationNBody<T>(nBodies)
 {
+	this->allocateBuffers();
 }
 
 template <typename T>
 SimulationNBodyV1<T>::SimulationNBodyV1(const std::string inputFileName)
 	: SimulationNBody<T>(inputFileName)
 {
+	this->allocateBuffers();
+}
+
+template <typename T>
+void SimulationNBodyV1<T>::allocateBuffers()
+{
+	this->accelerations.x = new T[this->bodies.getN()];
+	this->accelerations.y = new T[this->bodies.getN()];
+	this->accelerations.z = new T[this->bodies.getN()];
+
+	this->closestNeighborDist = new T[this->bodies.getN()];
 }
 
 template <typename T>
@@ -60,8 +75,8 @@ void SimulationNBodyV1<T>::computeBodiesAcceleration()
 	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
 		for(unsigned long jBody = 0; jBody < this->bodies.getN(); jBody++)
 			if(iBody != jBody)
-				this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
-				//this->computeAccelerationBetweenTwoBodies(iBody, jBody);
+				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
+				this->computeAccelerationBetweenTwoBodies(iBody, jBody);
 }
 
 // 23 flops
@@ -92,14 +107,7 @@ void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodiesNaive(const unsign
 	}
 
 	// compute the force value between iBody and jBody: || F || = G.mi.mj / Dij²
-	const T force = this->G * (masses[iBody] * masses[jBody] / (dist * dist)); // 4 flops
-
-	/*
-	std::cout << "masses[jBody] * masses[iBody] = " << (masses[jBody] * masses[iBody]) << std::endl;
-
-	std::cout << "force = " << this->G << " * " << masses[iBody] << " * " << masses[jBody] << " / (" << dist << " * " << dist << ") = "
-	          << (this->G * masses[iBody] * masses[jBody] / (dist * dist)) << std::endl  << std::endl;
-	*/
+	const T force = (this->G * masses[iBody] * masses[jBody] / (dist * dist)); // 4 flops
 
 	// compute the acceleration value: || a || = || F || / mi
 	const T acc = force / masses[iBody]; // 1 flop
