@@ -38,6 +38,7 @@ string        InputFileName;
 string        OutputBaseName;
 unsigned long NBodies;
 unsigned long NIterations;
+unsigned int  ImplId     = 10;
 bool          Verbose    = false;
 bool          GSEnable   = false;
 bool          VisuEnable = true;
@@ -87,6 +88,8 @@ void argsReader(int argc, char** argv)
 	docArgs  ["-nv"]   = "no visualization (disable visu).";
 	faculArgs["-vdt"]   = "";
 	docArgs  ["-vdt"]   = "enable variable time step.";
+	faculArgs["-im"]   = "ImplId";
+	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13 or 20).";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
@@ -133,6 +136,8 @@ void argsReader(int argc, char** argv)
 		VisuEnable = false;
 	if(argsReader.existArgument("-vdt"))
 		DtVariable = true;
+	if(argsReader.existArgument("-im"))
+		ImplId = stoi(argsReader.getArgument("-im"));
 }
 
 template <typename T>
@@ -158,25 +163,70 @@ string strDate(T timestamp)
 	       to_string(rest)    + "s";
 }
 
+template <typename T>
+SimulationNBody<T>* selectImplementationAndAllocateSimulation()
+{
+	SimulationNBody<floatType> *simu;
+
+	switch(ImplId)
+	{
+		case 10:
+			cout << "Selected implementation: V1 - O(n²)" << endl << endl;
+			if(InputFileName.empty())
+				simu = new SimulationNBodyV1<T>(NBodies);
+			else
+				simu = new SimulationNBodyV1<T>(InputFileName);
+			break;
+		case 11:
+			cout << "Selected implementation: V1 + cache blocking - O(n²)" << endl << endl;
+			if(InputFileName.empty())
+				simu = new SimulationNBodyV1CB<T>(NBodies);
+			else
+				simu = new SimulationNBodyV1CB<T>(InputFileName);
+			break;
+		case 12:
+			cout << "Selected implementation: V1 + vectors - O(n²)" << endl << endl;
+			if(InputFileName.empty())
+				simu = new SimulationNBodyV1Vectors<T>(NBodies);
+			else
+				simu = new SimulationNBodyV1Vectors<T>(InputFileName);
+			break;
+		case 13:
+			cout << "Selected implementation: V1 + intrinsics - O(n²)" << endl << endl;
+			if(InputFileName.empty())
+				simu = new SimulationNBodyV1Intrinsics<T>(NBodies);
+			else
+				simu = new SimulationNBodyV1Intrinsics<T>(InputFileName);
+			break;
+		case 20:
+			cout << "Selected implementation: V2 - O(n²/2)" << endl << endl;
+			if(InputFileName.empty())
+				simu = new SimulationNBodyV2<T>(NBodies);
+			else
+				simu = new SimulationNBodyV2<T>(InputFileName);
+			break;
+		default:
+			cout << "This implementation code does not exist... Exiting." << endl;
+			exit(-1);
+			break;
+	}
+
+	return simu;
+}
+
 int main(int argc, char** argv)
 {
-	Perf perfIte, perfTotal;
-
 	// read arguments from the command line
 	// usage: ./nbody -f fileName -i nIterations [-v] [-w] ...
 	// usage: ./nbody -n nBodies  -i nIterations [-v] [-w] ...
 	argsReader(argc, argv);
 
 	// create the n-body simulation
-	SimulationNBody<floatType> *simu;
-	if(InputFileName.empty())
-		simu = new SimulationNBodyV1Intrinsics<floatType>(NBodies);
-	else
-		simu = new SimulationNBodyV1Intrinsics<floatType>(InputFileName);
+	SimulationNBody<floatType> *simu = selectImplementationAndAllocateSimulation<floatType>();
 	const unsigned long n = simu->getBodies().getN();
 	NBodies = n;
 
-	// compute MB used for this simulation
+	// get MB used for this simulation
 	float Mbytes = simu->getAllocatedBytes() / 1024.f / 1024.f;
 
 	// display simulation configuration
@@ -234,6 +284,7 @@ int main(int argc, char** argv)
 		simu->setDtConstant(Dt);
 
 	// loop over the iterations
+	Perf perfIte, perfTotal;
 	floatType physicTime = 0.0;
 	unsigned long iIte;
 	for(iIte = 1; iIte <= NIterations && !visu->windowShouldClose(); iIte++)
@@ -268,6 +319,7 @@ int main(int argc, char** argv)
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 	     << "(" << perfTotal.getGflops(simu->getFlopsPerIte() * (iIte -1)) << " Gflop/s)" << endl;
 
+	// free resources
 	delete visu;
 	delete simu;
 
