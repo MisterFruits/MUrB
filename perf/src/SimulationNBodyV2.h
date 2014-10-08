@@ -15,18 +15,27 @@
 template <typename T = double>
 class SimulationNBodyV2 : public SimulationNBody<T>
 {
+private:
+	unsigned nMaxThreads;
+
 public:
 	SimulationNBodyV2(const unsigned long nBodies);
 	SimulationNBodyV2(const std::string inputFileName);
 	virtual ~SimulationNBodyV2();
 
 protected:
-	virtual void allocateBuffers();
 	virtual void initIteration();
 	virtual void computeBodiesAcceleration();
 
-	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
-	inline void computeAccelerationBetweenTwoBodies     (const unsigned long iBody, const unsigned long jBody);
+	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody,
+	                                                     const unsigned long &jBody,
+	                                                     const unsigned      &tid);
+	inline void computeAccelerationBetweenTwoBodies(const unsigned long &iBody,
+	                                                const unsigned long &jBody,
+	                                                const unsigned      &tid);
+
+private:
+	void reAllocateBuffers();
 };
 
 #include "SimulationNBodyV2.hxx"

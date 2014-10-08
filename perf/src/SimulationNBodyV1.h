@@ -21,12 +21,11 @@ public:
 	virtual ~SimulationNBodyV1();
 
 protected:
-	virtual void allocateBuffers();
 	virtual void initIteration();
 	virtual void computeBodiesAcceleration();
 
-	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody);
-	inline void computeAccelerationBetweenTwoBodies     (const unsigned long iBody, const unsigned long jBody);
+	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody, const unsigned long &jBody);
+	inline void computeAccelerationBetweenTwoBodies     (const unsigned long &iBody, const unsigned long &jBody);
 };
 
 #include "SimulationNBodyV1.hxx"

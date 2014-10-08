@@ -22,6 +22,7 @@ SimulationNBody<T>::SimulationNBody(const unsigned long nBodies)
 	  dtConstant         (false)
 {
 	assert(nBodies > 0);
+	this->allocateBuffers();
 }
 
 template <typename T>
@@ -31,20 +32,39 @@ SimulationNBody<T>::SimulationNBody(const std::string inputFileName)
 	  dt                 (std::numeric_limits<T>::infinity()),
 	  dtConstant         (false)
 {
+	this->allocateBuffers();
 }
 
 template <typename T>
 SimulationNBody<T>::~SimulationNBody()
 {
-	if(this->accelerations.x)
+	if(this->accelerations.x != nullptr) {
 		delete[] this->accelerations.x;
-	if(this->accelerations.y)
+		this->accelerations.x = nullptr;
+	}
+	if(this->accelerations.y != nullptr) {
 		delete[] this->accelerations.y;
-	if(this->accelerations.z)
+		this->accelerations.y = nullptr;
+	}
+	if(this->accelerations.z != nullptr) {
 		delete[] this->accelerations.z;
+		this->accelerations.z = nullptr;
+	}
 
-	if(this->closestNeighborDist)
+	if(this->closestNeighborDist != nullptr) {
 		delete[] this->closestNeighborDist;
+		this->closestNeighborDist = nullptr;
+	}
+}
+
+template <typename T>
+void SimulationNBody<T>::allocateBuffers()
+{
+	this->accelerations.x = new T[this->bodies.getN()];
+	this->accelerations.y = new T[this->bodies.getN()];
+	this->accelerations.z = new T[this->bodies.getN()];
+
+	this->closestNeighborDist = new T[this->bodies.getN()];
 }
 
 template <typename T>

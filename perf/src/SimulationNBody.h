@@ -40,11 +40,11 @@ public:
 	void computeOneIteration();
 
 protected:
-	virtual void allocateBuffers()           = 0;
 	virtual void initIteration()             = 0;
 	virtual void computeBodiesAcceleration() = 0;
 
 private:
+	void allocateBuffers();
 	void findTimeStep();
 	inline T computeTimeStep(const unsigned long iBody);
 };

@@ -28,37 +28,55 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 template <typename T>
 SimulationNBodyV2<T>::SimulationNBodyV2(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies)
+	: SimulationNBody<T>(nBodies), nMaxThreads(omp_get_max_threads())
 {
-	this->allocateBuffers();
+	this->reAllocateBuffers();
 }
 
 template <typename T>
 SimulationNBodyV2<T>::SimulationNBodyV2(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName)
+	: SimulationNBody<T>(inputFileName) , nMaxThreads(omp_get_max_threads())
 {
-	this->allocateBuffers();
+	this->reAllocateBuffers();
 }
 
 template <typename T>
 SimulationNBodyV2<T>::~SimulationNBodyV2()
 {
+	if(this->accelerations.x != nullptr) {
+		delete[] this->accelerations.x;
+		this->accelerations.x = nullptr;
+	}
+	if(this->accelerations.y != nullptr) {
+		delete[] this->accelerations.y;
+		this->accelerations.y = nullptr;
+	}
+	if(this->accelerations.z != nullptr) {
+		delete[] this->accelerations.z;
+		this->accelerations.z = nullptr;
+	}
 }
 
 template <typename T>
-void SimulationNBodyV2<T>::allocateBuffers()
+void SimulationNBodyV2<T>::reAllocateBuffers()
 {
-	this->accelerations.x = new T[this->bodies.getN() * omp_get_max_threads()];
-	this->accelerations.y = new T[this->bodies.getN() * omp_get_max_threads()];
-	this->accelerations.z = new T[this->bodies.getN() * omp_get_max_threads()];
+	// TODO: this is not optimal to deallocate and to reallocate data
+	if(this->accelerations.x != nullptr)
+		delete[] this->accelerations.x;
+	if(this->accelerations.y != nullptr)
+		delete[] this->accelerations.y;
+	if(this->accelerations.z != nullptr)
+		delete[] this->accelerations.z;
 
-	this->closestNeighborDist = new T[this->bodies.getN()];
+	this->accelerations.x = new T[this->bodies.getN() * this->nMaxThreads];
+	this->accelerations.y = new T[this->bodies.getN() * this->nMaxThreads];
+	this->accelerations.z = new T[this->bodies.getN() * this->nMaxThreads];
 }
 
 template <typename T>
 void SimulationNBodyV2<T>::initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN() * omp_get_max_threads(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies.getN() * this->nMaxThreads; iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
@@ -72,15 +90,20 @@ void SimulationNBodyV2<T>::initIteration()
 template <typename T>
 void SimulationNBodyV2<T>::computeBodiesAcceleration()
 {
-#pragma omp parallel for schedule(runtime)
+#pragma omp parallel
+{
+	const unsigned tid = omp_get_thread_num();
+
+#pragma for schedule(runtime)
 	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
 		for(unsigned long jBody = iBody +1; jBody < this->bodies.getN(); jBody++)
-			//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
-			this->computeAccelerationBetweenTwoBodies(iBody, jBody);
+			//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody, tid);
+			this->computeAccelerationBetweenTwoBodies(iBody, jBody, tid);
+}
 
-	if(omp_get_max_threads() > 1)
+	if(this->nMaxThreads > 1)
 		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-			for(unsigned short iThread = 1; iThread < omp_get_max_threads(); iThread++)
+			for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
 			{
 				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * this->bodies.getN()];
 				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * this->bodies.getN()];
@@ -90,7 +113,9 @@ void SimulationNBodyV2<T>::computeBodiesAcceleration()
 
 // 32 flops
 template <typename T>
-void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody)
+void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody,
+                                                                    const unsigned long &jBody,
+                                                                    const unsigned      &tid)
 {
 	assert(iBody != jBody);
 
@@ -122,16 +147,16 @@ void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodiesNaive(const unsign
 	T acc = force / masses[iBody]; // 1 flop
 
 	// normalize and add acceleration value into acceleration vector: a += || a ||.u
-	this->accelerations.x[iBody + omp_get_thread_num() * this->bodies.getN()] += acc * (diffPosX / dist); // 3 flops
-	this->accelerations.y[iBody + omp_get_thread_num() * this->bodies.getN()] += acc * (diffPosY / dist); // 3 flops
-	this->accelerations.z[iBody + omp_get_thread_num() * this->bodies.getN()] += acc * (diffPosZ / dist); // 3 flops
+	this->accelerations.x[iBody + tid * this->bodies.getN()] += acc * (diffPosX / dist); // 3 flops
+	this->accelerations.y[iBody + tid * this->bodies.getN()] += acc * (diffPosY / dist); // 3 flops
+	this->accelerations.z[iBody + tid * this->bodies.getN()] += acc * (diffPosZ / dist); // 3 flops
 
 	// compute the acceleration value: || a || = || F || / mj
 	acc = force / masses[jBody]; // 1 flop
 
-	this->accelerations.x[jBody + omp_get_thread_num() * this->bodies.getN()] -= acc * (diffPosX / dist); // 3 flops
-	this->accelerations.y[jBody + omp_get_thread_num() * this->bodies.getN()] -= acc * (diffPosY / dist); // 3 flops
-	this->accelerations.z[jBody + omp_get_thread_num() * this->bodies.getN()] -= acc * (diffPosZ / dist); // 3 flops
+	this->accelerations.x[jBody + tid * this->bodies.getN()] -= acc * (diffPosX / dist); // 3 flops
+	this->accelerations.y[jBody + tid * this->bodies.getN()] -= acc * (diffPosY / dist); // 3 flops
+	this->accelerations.z[jBody + tid * this->bodies.getN()] -= acc * (diffPosZ / dist); // 3 flops
 
 	if(!this->dtConstant)
 	{
@@ -147,7 +172,9 @@ void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodiesNaive(const unsign
 
 // 25 flops
 template <typename T>
-void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
+void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(const unsigned long &iBody,
+                                                               const unsigned long &jBody,
+                                                               const unsigned      &tid)
 {
 	assert(iBody != jBody);
 
@@ -167,14 +194,14 @@ void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(const unsigned lo
 	const T force = this->G / (squareDist * dist); // 2 flops
 
 	T acc = force * masses[jBody]; // 1 flop
-	this->accelerations.x[iBody + omp_get_thread_num() * this->bodies.getN()] += acc * diffPosX; // 2 flops
-	this->accelerations.y[iBody + omp_get_thread_num() * this->bodies.getN()] += acc * diffPosY; // 2 flops
-	this->accelerations.z[iBody + omp_get_thread_num() * this->bodies.getN()] += acc * diffPosZ; // 2 flops
+	this->accelerations.x[iBody + tid * this->bodies.getN()] += acc * diffPosX; // 2 flops
+	this->accelerations.y[iBody + tid * this->bodies.getN()] += acc * diffPosY; // 2 flops
+	this->accelerations.z[iBody + tid * this->bodies.getN()] += acc * diffPosZ; // 2 flops
 
 	acc = force * masses[iBody]; // 1 flop
-	this->accelerations.x[jBody + omp_get_thread_num() * this->bodies.getN()] -= acc * diffPosX; // 2 flops
-	this->accelerations.y[jBody + omp_get_thread_num() * this->bodies.getN()] -= acc * diffPosY; // 2 flops
-	this->accelerations.z[jBody + omp_get_thread_num() * this->bodies.getN()] -= acc * diffPosZ; // 2 flops
+	this->accelerations.x[jBody + tid * this->bodies.getN()] -= acc * diffPosX; // 2 flops
+	this->accelerations.y[jBody + tid * this->bodies.getN()] -= acc * diffPosY; // 2 flops
+	this->accelerations.z[jBody + tid * this->bodies.getN()] -= acc * diffPosZ; // 2 flops
 
 	if(!this->dtConstant)
 	{

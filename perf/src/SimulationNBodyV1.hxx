@@ -30,29 +30,17 @@ template <typename T>
 SimulationNBodyV1<T>::SimulationNBodyV1(const unsigned long nBodies)
 	: SimulationNBody<T>(nBodies)
 {
-	this->allocateBuffers();
 }
 
 template <typename T>
 SimulationNBodyV1<T>::SimulationNBodyV1(const std::string inputFileName)
 	: SimulationNBody<T>(inputFileName)
 {
-	this->allocateBuffers();
 }
 
 template <typename T>
 SimulationNBodyV1<T>::~SimulationNBodyV1()
 {
-}
-
-template <typename T>
-void SimulationNBodyV1<T>::allocateBuffers()
-{
-	this->accelerations.x = new T[this->bodies.getN()];
-	this->accelerations.y = new T[this->bodies.getN()];
-	this->accelerations.z = new T[this->bodies.getN()];
-
-	this->closestNeighborDist = new T[this->bodies.getN()];
 }
 
 template <typename T>
@@ -81,7 +69,7 @@ void SimulationNBodyV1<T>::computeBodiesAcceleration()
 
 // 23 flops
 template <typename T>
-void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long iBody, const unsigned long jBody)
+void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody, const unsigned long &jBody)
 {
 	assert(iBody != jBody);
 
@@ -124,7 +112,7 @@ void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodiesNaive(const unsign
 
 // 18 flops
 template <typename T>
-void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(const unsigned long iBody, const unsigned long jBody)
+void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(const unsigned long &iBody, const unsigned long &jBody)
 {
 	assert(iBody != jBody);
 
