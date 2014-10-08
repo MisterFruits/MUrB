@@ -20,7 +20,8 @@ namespace mipp //My Intrinsics Plus Plus => mipp
 // ------------------------------------------------------------------------------------------ myIntrinsics vector sizes
 // --------------------------------------------------------------------------------------------------------------------
 
-#ifdef __ARM_NEON__ // ----------------------------------------------------------------------------------- ARM NEON-128
+// ------------------------------------------------------------------------------------------------------- ARM NEON-128
+#ifdef __ARM_NEON__
 	#define REQUIRED_ALIGNEMENT 16
 	static const unsigned RequiredAlignement = REQUIRED_ALIGNEMENT;
 
@@ -28,8 +29,8 @@ namespace mipp //My Intrinsics Plus Plus => mipp
 	static const unsigned VectorSizeBit = VECTOR_SIZE_BIT;
 
 	using vec = float32x4_t;
-
-#elif defined(__AVX__) // --------------------------------------------------------------------------------- X86 AVX-256
+// -------------------------------------------------------------------------------------------------------- X86 AVX-256
+#elif defined(__AVX__)
 	#define REQUIRED_ALIGNEMENT 32
 	static const unsigned RequiredAlignement = REQUIRED_ALIGNEMENT;
 
@@ -38,7 +39,8 @@ namespace mipp //My Intrinsics Plus Plus => mipp
 
 	using vec = __m256;
 
-#elif defined(__SSE2__) // -------------------------------------------------------------------------------- X86 SSE-128
+// -------------------------------------------------------------------------------------------------------- X86 SSE-128
+#elif defined(__SSE2__)
 	#define REQUIRED_ALIGNEMENT 16
 	static const unsigned RequiredAlignement = REQUIRED_ALIGNEMENT;
 
@@ -150,8 +152,9 @@ inline vec rot(const vec v1) {
 // --------------------------------------------------------------------------------------- myIntrinsics implementations
 // --------------------------------------------------------------------------------------------------------------------
 
-#ifdef __ARM_NEON__ // ----------------------------------------------------------------------------------- ARM NEON-128
-	// ----------------------------------------------------------------------------------------------------------------
+// ------------------------------------------------------------------------------------------------------- ARM NEON-128
+// --------------------------------------------------------------------------------------------------------------------
+#ifdef __ARM_NEON__
 
 	/* intrinsics NEON-128 headers (float)
 	float32x4_t vld1q_f32    (const float32_t *);        // load
@@ -169,14 +172,12 @@ inline vec rot(const vec v1) {
 	// ----------------------------------------------------------------------------------------------------------- load
 	template <>
 	inline vec load<float>(const float *mem_addr) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		return vld1q_f32(mem_addr);
 	}
 
 	// ---------------------------------------------------------------------------------------------------------- store
 	template <>
 	inline void store<float>(float *mem_addr, const vec v) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		vst1q_f32(mem_addr, v);
 	}
 
@@ -247,8 +248,9 @@ inline vec rot(const vec v1) {
 		return vextq_f32(v1, v1, 1);
 	}
 
-#elif defined(__AVX__)// ---------------------------------------------------------------------------------- X86 AVX-256
-	// ----------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------- X86 AVX-256
+// --------------------------------------------------------------------------------------------------------------------
+#elif defined(__AVX__)
 
 	/* intrinsics AVX headers (float)                               intrinsics AVX headers (double)
 	__m256 _mm256_load_ps        (float const *mem_addr);        __m256d _mm256_load_pd        (double const *mem_addr);
@@ -269,26 +271,22 @@ inline vec rot(const vec v1) {
 	// ----------------------------------------------------------------------------------------------------------- load
 	template <>
 	inline vec load<float>(const float *mem_addr) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		return _mm256_load_ps(mem_addr);
 	}
 
 	template <>
 	inline vec load<double>(const double *mem_addr) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		return (__m256) _mm256_load_pd(mem_addr);
 	}
 
 	// ---------------------------------------------------------------------------------------------------------- store
 	template <>
 	inline void store<float>(float *mem_addr, const vec v) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		_mm256_store_ps(mem_addr, v);
 	}
 
 	template <>
 	inline void store<double>(double *mem_addr, const vec v) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		_mm256_store_pd(mem_addr, (__m256d) v);
 	}
 
@@ -431,20 +429,25 @@ inline vec rot(const vec v1) {
 	#else
 		template <>
 		inline vec rot<float>(const vec v1) {
-			// make a rotation in:[7, 6, 5, 4, 3, 2 , 1, 0] => out:[0, 7, 6, 5, 4, 3, 2, 1]
+			// make a rotation in:[7, 6, 5, 4, 3, 2 , 1, 0] =>  out:[0, 7, 6, 5, 4, 3, 2, 1]
 			//
 			//   -> _mm256_permute_ps(a, _MM_SHUFFLE(0, 3, 2, 1)) # rotation per lane of 128 bits
-			//           lane 0        lane 1             lane 0        lane 1
-			//      in[7, 6, 5, 4, | 3, 2, 1, 0] => out[4, 5, 6, 7, | 0, 3, 2, 1]
+			//            lane 0        lane 1
+			//       in[7, 6, 5, 4, | 3, 2, 1, 0] =>
+			//      out[4, 5, 6, 7, | 0, 3, 2, 1]
 			//
 			//   -> _mm256_permute2f128_ps(a, a, _MM_SHUFFLE(0, 0, 0, 1)) # switch lanes
-			//           lane 0        lane 1             lane 0        lane 1
-			//      in[7, 6, 5, 4, | 3, 2, 1, 0] => out[3, 2, 1, 0, | 7, 6, 5, 4]
+			//            lane 0        lane 1
+			//       in[7, 6, 5, 4, | 3, 2, 1, 0] =>
+			//      out[3, 2, 1, 0, | 7, 6, 5, 4]
 			//
 			//   -> _mm256_blend_ps(a, b, _MM_SHUFFLE(2, 0, 2, 0))
-			//      ina[7a, 6a, 5a, 4a, 3a, 2a, 1a, 0a] and inb[7b, 6b, 5b, 4b, 3b, 2b, 1b, 0b] => out[7b, 6a, 5a, 4a, 3b, 2a, 1a, 0a]
+			//         ina[7a, 6a, 5a, 4a, 3a, 2a, 1a, 0a]
+			//         inb[7b, 6b, 5b, 4b, 3b, 2b, 1b, 0b] =>
+			//         out[7b, 6a, 5a, 4a, 3b, 2a, 1a, 0a]
 			vec rTmp = _mm256_permute_ps(v1, _MM_SHUFFLE(0, 3, 2, 1));
-			return _mm256_blend_ps(rTmp, _mm256_permute2f128_ps(rTmp, rTmp, _MM_SHUFFLE(0, 0, 0, 1)),
+			return _mm256_blend_ps(rTmp,
+			                       _mm256_permute2f128_ps(rTmp, rTmp, _MM_SHUFFLE(0, 0, 0, 1)),
 			                       _MM_SHUFFLE(2, 0, 2, 0));
 		}
 
@@ -453,23 +456,29 @@ inline vec rot(const vec v1) {
 			// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
 			//
 			//   -> _mm256_permute_pd(a, _MM_SHUFFLE(1, 1, 1, 1)) # rotation per lane of 128 bits
-			//          l0      l1           l0      l1
-			//      in[3, 2, | 1, 0] => out[2, 3, | 0, 1]
+			//           l0      l1
+			//       in[3, 2, | 1, 0] =>
+			//      out[2, 3, | 0, 1]
 			//
 			//   -> _mm256_permute2f128_pd(a, a, _MM_SHUFFLE(0, 0, 0, 1)) # switch lanes
-			//          l0     l1             l0     l1
-			//      in[3, 2, | 1, 0] => out[1, 0, | 3, 2]
+			//           l0     l1
+			//       in[3, 2, | 1, 0] =>
+			//      out[1, 0, | 3, 2]
 			//
 			//   -> _mm256_blend_pd(a, b, _MM_SHUFFLE(0, 0, 2, 2))
 			//      ina[3a, 2a, 1a, 0a] and inb[3b, 2b, 1b, 0b] => out[3b, 2a, 1b, 0a]
 			vec rTmp = (__m256) _mm256_permute_pd((__m256d) v1, _MM_SHUFFLE(1, 1, 1, 1));
-			return (__m256) _mm256_blend_pd((__m256d) rTmp, _mm256_permute2f128_pd((__m256d) rTmp, (__m256d) rTmp, _MM_SHUFFLE(0, 0, 0, 1)),
+			return (__m256) _mm256_blend_pd((__m256d) rTmp,
+			                                _mm256_permute2f128_pd((__m256d) rTmp,
+			                                                       (__m256d) rTmp,
+			                                                       _MM_SHUFFLE(0, 0, 0, 1)),
 			                                _MM_SHUFFLE(0, 0, 2, 2));
 		}
 	#endif
 
-#elif defined(__SSE2__)// --------------------------------------------------------------------------------- X86 SSE-128
-	// ----------------------------------------------------------------------------------------------------------------
+// -------------------------------------------------------------------------------------------------------- X86 SSE-128
+// --------------------------------------------------------------------------------------------------------------------
+#elif defined(__SSE2__)
 
 	/* intrinsics SSE2-128 headers (float)                intrinsics SSE2-128 headers (double)
 	__m128  _mm_load_ps  (float const *mem_addr);      __m128d _mm_load_pd  (double const *mem_addr);
@@ -491,26 +500,22 @@ inline vec rot(const vec v1) {
 	// ----------------------------------------------------------------------------------------------------------- load
 	template <>
 	inline vec load<float>(const float *mem_addr) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		return _mm_load_ps(mem_addr);
 	}
 
 	template <>
 	inline vec load<double>(const double *mem_addr) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		return (__m128) _mm_load_pd(mem_addr);
 	}
 
 	// ---------------------------------------------------------------------------------------------------------- store
 	template <>
 	inline void store<float>(float *mem_addr, const vec v) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		_mm_store_ps(mem_addr, v);
 	}
 
 	template <>
 	inline void store<double>(double *mem_addr, const vec v) {
-		assert(alignof(mem_addr) == (mipp::RequiredAlignement));
 		_mm_store_pd(mem_addr, (__m128d) v);
 	}
 

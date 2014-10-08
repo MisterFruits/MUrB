@@ -18,10 +18,11 @@
 
 template <typename T>
 Bodies<T>::Bodies(const unsigned long n)
-	: n       (n),
-	  masses  (NULL),
-	  radiuses(NULL),
-	  nVecs   (ceil((T) n / (T) mipp::vectorSize<T>()))
+	: n             (n),
+	  masses        (NULL),
+	  radiuses      (NULL),
+	  nVecs         (ceil((T) n / (T) mipp::vectorSize<T>())),
+	  allocatedBytes(0)
 {
 	assert(n > 0);
 	this->initRandomly();
@@ -29,20 +30,22 @@ Bodies<T>::Bodies(const unsigned long n)
 
 template <typename T>
 Bodies<T>::Bodies(const std::string inputFileName)
-	: n       (0),
-	  masses  (NULL),
-	  radiuses(NULL),
-	  nVecs   (0)
+	: n             (0),
+	  masses        (NULL),
+	  radiuses      (NULL),
+	  nVecs         (0),
+	  allocatedBytes(0)
 {
 	this->initFromFile(inputFileName);
 }
 
 template <typename T>
 Bodies<T>::Bodies(const Bodies<T>& bodies)
-	: n       (bodies.n),
-	  masses  (bodies.masses),
-	  radiuses(bodies.radiuses),
-	  nVecs   (bodies.nVecs)
+	: n             (bodies.n),
+	  masses        (bodies.masses),
+	  radiuses      (bodies.radiuses),
+	  nVecs         (bodies.nVecs),
+	  allocatedBytes(bodies.allocatedBytes)
 {
 	this->positions.x = bodies.positions.x;
 	this->positions.y = bodies.positions.y;
@@ -89,6 +92,8 @@ void Bodies<T>::allocateBuffers()
 	this->velocities.y = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
 	this->velocities.z = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
 #endif
+
+	this->allocatedBytes = (this->n + padding) * sizeof(T) * 8;
 }
 
 template <typename T>
@@ -226,6 +231,12 @@ template <typename T>
 const T* Bodies<T>::getVelocitiesZ()
 {
 	return const_cast<const T*>(this->velocities.z);
+}
+
+template <typename T>
+const float& Bodies<T>::getAllocatedBytes()
+{
+	return this->allocatedBytes;
 }
 
 template <typename T>

@@ -30,29 +30,31 @@ template <typename T>
 SimulationNBodyV1Intrinsics<T>::SimulationNBodyV1Intrinsics(const unsigned long nBodies)
 	: SimulationNBody<T>(nBodies)
 {
+	this->init();
 }
 
 template <typename T>
 SimulationNBodyV1Intrinsics<T>::SimulationNBodyV1Intrinsics(const std::string inputFileName)
 	: SimulationNBody<T>(inputFileName)
 {
+	this->init();
+}
+
+template <typename T>
+void SimulationNBodyV1Intrinsics<T>::init()
+{
+	this->flopsPerIte = 19 * (this->bodies.getN() -1) * this->bodies.getN();
+}
+
+template <>
+void SimulationNBodyV1Intrinsics<float>::init()
+{
+	this->flopsPerIte = 20 * (this->bodies.getN() -1) * this->bodies.getN();
 }
 
 template <typename T>
 SimulationNBodyV1Intrinsics<T>::~SimulationNBodyV1Intrinsics()
 {
-}
-
-template <typename T>
-const float SimulationNBodyV1Intrinsics<T>::getFlopsPerIte()
-{
-	return 19 * (this->bodies.getN() -1) * this->bodies.getN();
-}
-
-template <>
-const float SimulationNBodyV1Intrinsics<float>::getFlopsPerIte()
-{
-	return 20 * (this->bodies.getN() -1) * this->bodies.getN();
 }
 
 template <typename T>
@@ -68,9 +70,27 @@ void SimulationNBodyV1Intrinsics<T>::initIteration()
 	}
 }
 
+template <>
+void SimulationNBodyV1Intrinsics<float>::initIteration()
+{
+	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	{
+		this->accelerations.x[iBody] = 0.0;
+		this->accelerations.y[iBody] = 0.0;
+		this->accelerations.z[iBody] = 0.0;
+
+		this->closestNeighborDist[iBody] = 0.0;
+	}
+}
+
 template <typename T>
 void SimulationNBodyV1Intrinsics<T>::_computeBodiesAcceleration()
 {
+	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
+	//       dynamic time step is broken.
+	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
+	assert(this->dtConstant || (this->bodies.getN() % mipp::vectorSize<T>() == 0));
+
 	const T *masses = this->getBodies().getMasses();
 
 	const T *positionsX = this->getBodies().getPositionsX();

@@ -41,6 +41,7 @@ unsigned long NIterations;
 bool          Verbose    = false;
 bool          GSEnable   = false;
 bool          VisuEnable = true;
+bool          DtVariable = false;
 floatType     Dt         = 3600; //in sec, 3600 sec = 1 hour
 unsigned int  WinWidth   = 800;
 unsigned int  WinHeight  = 600;
@@ -84,6 +85,8 @@ void argsReader(int argc, char** argv)
 	docArgs  ["-wh"]   = "the height of the window in pixel (default is " + to_string(WinHeight) + ").";
 	faculArgs["-nv"]   = "";
 	docArgs  ["-nv"]   = "no visualization (disable visu).";
+	faculArgs["-vdt"]   = "";
+	docArgs  ["-vdt"]   = "enable variable time step.";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
@@ -128,6 +131,8 @@ void argsReader(int argc, char** argv)
 		WinHeight = stoi(argsReader.getArgument("-wh"));
 	if(argsReader.existArgument("-nv"))
 		VisuEnable = false;
+	if(argsReader.existArgument("-vdt"))
+		DtVariable = true;
 }
 
 template <typename T>
@@ -172,7 +177,7 @@ int main(int argc, char** argv)
 	NBodies = n;
 
 	// compute MB used for this simulation
-	float Mbytes = (12 * sizeof(floatType) * NBodies) / 1024.f / 1024.f;
+	float Mbytes = simu->getAllocatedBytes() / 1024.f / 1024.f;
 
 	// display simulation configuration
 	cout << "n-body simulation started !" << endl;
@@ -188,7 +193,8 @@ int main(int argc, char** argv)
 	cout <<     "  -> verbose          : " << Verbose << endl;
 	cout <<     "  -> precision        : " << ((sizeof(floatType) == 4) ? "simple": "double") << endl;
 	cout <<     "  -> mem. used        : " << Mbytes << " MB" << endl;
-	cout <<     "  -> geometry shader  : " << ((GSEnable) ? "enable" : "disable") << endl << endl;
+	cout <<     "  -> geometry shader  : " << ((GSEnable) ? "enable" : "disable") << endl;
+	cout <<     "  -> time step        : " << ((DtVariable) ? "variable" : to_string(Dt) + " sec") << endl << endl;
 
 	// initialize visualization of bodies (with spheres in space)
 	OGLSpheresVisu<floatType> *visu;
@@ -223,8 +229,9 @@ int main(int argc, char** argv)
 		simu->getBodies().writeIntoFile(outputFileName);
 	}
 
-	// constant time step (easier for the visualization)
-	simu->setDtConstant(Dt);
+	// time step selection
+	if(!DtVariable)
+		simu->setDtConstant(Dt);
 
 	// loop over the iterations
 	floatType physicTime = 0.0;

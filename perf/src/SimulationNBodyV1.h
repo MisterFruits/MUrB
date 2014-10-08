@@ -20,14 +20,15 @@ public:
 	SimulationNBodyV1(const std::string inputFileName);
 	virtual ~SimulationNBodyV1();
 
-	virtual const float getFlopsPerIte();
-
 protected:
 	virtual void initIteration();
 	virtual void computeBodiesAcceleration();
 
 	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody, const unsigned long &jBody);
 	inline void computeAccelerationBetweenTwoBodies     (const unsigned long &iBody, const unsigned long &jBody);
+
+private:
+	void init();
 };
 
 #include "SimulationNBodyV1.hxx"

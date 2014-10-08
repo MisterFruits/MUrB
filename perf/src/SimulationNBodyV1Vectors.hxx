@@ -32,23 +32,25 @@ template <typename T>
 SimulationNBodyV1Vectors<T>::SimulationNBodyV1Vectors(const unsigned long nBodies)
 	: SimulationNBody<T>(nBodies)
 {
+	this->init();
 }
 
 template <typename T>
 SimulationNBodyV1Vectors<T>::SimulationNBodyV1Vectors(const std::string inputFileName)
 	: SimulationNBody<T>(inputFileName)
 {
+	this->init();
+}
+
+template <typename T>
+void SimulationNBodyV1Vectors<T>::init()
+{
+	this->flopsPerIte = 18 * (this->bodies.getN() -1) * this->bodies.getN();
 }
 
 template <typename T>
 SimulationNBodyV1Vectors<T>::~SimulationNBodyV1Vectors()
 {
-}
-
-template <typename T>
-const float SimulationNBodyV1Vectors<T>::getFlopsPerIte()
-{
-	return 18 * (this->bodies.getN() -1) * this->bodies.getN();
 }
 
 template <typename T>

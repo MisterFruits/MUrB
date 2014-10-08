@@ -58,13 +58,6 @@ SimulationNBodyV2<T>::~SimulationNBodyV2()
 }
 
 template <typename T>
-const float SimulationNBodyV2<T>::getFlopsPerIte()
-{
-	return 25 * (this->bodies.getN() * 0.5) * this->bodies.getN();
-}
-
-
-template <typename T>
 void SimulationNBodyV2<T>::reAllocateBuffers()
 {
 	if(this->nMaxThreads > 1)
@@ -82,7 +75,11 @@ void SimulationNBodyV2<T>::reAllocateBuffers()
 		this->accelerations.x = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
 		this->accelerations.y = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
 		this->accelerations.z = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
+
+		this->allocatedBytes += (this->bodies.getN() + padding) * sizeof(T) * (this->nMaxThreads - 1) * 3;
 	}
+
+	this->flopsPerIte = 25 * (this->bodies.getN() * 0.5) * this->bodies.getN();
 }
 
 template <typename T>

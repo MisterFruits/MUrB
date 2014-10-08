@@ -22,6 +22,9 @@ protected:
 	vector3<T> accelerations;
 	T         *closestNeighborDist;
 	bool       dtConstant;
+	// stats
+	float      flopsPerIte;
+	float      allocatedBytes;
 
 private:
 	T          dt;
@@ -36,10 +39,10 @@ public:
 	inline Bodies<T>& getBodies();
 	inline void setDtConstant(T dtVal);
 	inline void setDtVariable();
-	inline T getDt();
+	inline const T& getDt();
+	inline const float& getFlopsPerIte();
+	inline const float& getAllocatedBytes();
 	void computeOneIteration();
-
-	virtual const float getFlopsPerIte()     = 0;
 
 protected:
 	virtual void initIteration()             = 0;

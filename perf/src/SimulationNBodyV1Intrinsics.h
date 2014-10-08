@@ -22,8 +22,6 @@ public:
 	SimulationNBodyV1Intrinsics(const std::string inputFileName);
 	virtual ~SimulationNBodyV1Intrinsics();
 
-	virtual const float getFlopsPerIte();
-
 protected:
 	virtual void initIteration();
 	virtual void computeBodiesAcceleration();
@@ -41,6 +39,7 @@ protected:
 	                                                       const mipp::vec &rJPosY,
 	                                                       const mipp::vec &rJPosZ);
 private:
+	void init();
 	virtual void _computeBodiesAcceleration();
 };
 

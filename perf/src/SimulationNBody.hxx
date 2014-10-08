@@ -21,7 +21,9 @@ SimulationNBody<T>::SimulationNBody(const unsigned long nBodies)
 	: bodies(nBodies),
 	  closestNeighborDist(NULL),
 	  dt                 (std::numeric_limits<T>::infinity()),
-	  dtConstant         (false)
+	  dtConstant         (false),
+	  flopsPerIte        (0),
+	  allocatedBytes     (bodies.getAllocatedBytes())
 {
 	assert(nBodies > 0);
 	this->allocateBuffers();
@@ -32,7 +34,9 @@ SimulationNBody<T>::SimulationNBody(const std::string inputFileName)
 	: bodies             (inputFileName),
 	  closestNeighborDist(NULL),
 	  dt                 (std::numeric_limits<T>::infinity()),
-	  dtConstant         (false)
+	  dtConstant         (false),
+	  flopsPerIte        (0),
+	  allocatedBytes     (bodies.getAllocatedBytes())
 {
 	this->allocateBuffers();
 }
@@ -97,6 +101,8 @@ void SimulationNBody<T>::allocateBuffers()
 
 	this->closestNeighborDist = (T*)_mm_malloc((this->bodies.getN() + padding) * sizeof(T), mipp::RequiredAlignement);
 #endif
+
+	this->allocatedBytes += (this->bodies.getN() + padding) * sizeof(T) * 4;
 }
 
 template <typename T>
@@ -120,9 +126,21 @@ void SimulationNBody<T>::setDtVariable()
 }
 
 template <typename T>
-T SimulationNBody<T>:: getDt()
+const T& SimulationNBody<T>::getDt()
 {
 	return this->dt;
+}
+
+template <typename T>
+const float& SimulationNBody<T>::getFlopsPerIte()
+{
+	return this->flopsPerIte;
+}
+
+template <typename T>
+const float& SimulationNBody<T>::getAllocatedBytes()
+{
+	return this->allocatedBytes;
 }
 
 template <typename T>
@@ -138,6 +156,9 @@ void SimulationNBody<T>::computeOneIteration()
 template <typename T>
 void SimulationNBody<T>::findTimeStep()
 {
+	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
+	//       dynamic time step is broken.
+	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
 	if(!this->dtConstant)
 	{
 		this->dt = std::numeric_limits<T>::infinity();

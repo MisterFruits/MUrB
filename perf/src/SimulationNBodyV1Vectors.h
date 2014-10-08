@@ -20,8 +20,6 @@ public:
 	SimulationNBodyV1Vectors(const std::string inputFileName);
 	virtual ~SimulationNBodyV1Vectors();
 
-	virtual const float getFlopsPerIte();
-
 protected:
 	virtual void initIteration();
 	virtual void computeBodiesAcceleration();
@@ -31,6 +29,9 @@ protected:
 	                                                      T &iClosNeiDist,
 	                                                const T &jMasses,
 	                                                const T &jPosX, const T &jPosY, const T &jPosZ);
+
+private:
+	void init();
 };
 
 #include "SimulationNBodyV1Vectors.hxx"

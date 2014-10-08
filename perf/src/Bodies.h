@@ -28,6 +28,8 @@ private:
 	vector3<T>    positions;
 	vector3<T>    velocities;
 	unsigned long nVecs;
+	// stats
+	float         allocatedBytes;
 
 public:
 	Bodies(const unsigned long n);
@@ -48,6 +50,7 @@ public:
 	inline const T* getVelocitiesX();
 	inline const T* getVelocitiesY();
 	inline const T* getVelocitiesZ();
+	inline const float& getAllocatedBytes();
 
 	void updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt);
 
