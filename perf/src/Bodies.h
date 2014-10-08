@@ -27,6 +27,7 @@ private:
 	T            *radiuses;
 	vector3<T>    positions;
 	vector3<T>    velocities;
+	unsigned long nVecs;
 
 public:
 	Bodies(const unsigned long n);
@@ -38,6 +39,7 @@ public:
 	Bodies<T>& operator=(const Bodies<T>& bodies);
 
 	inline const unsigned long& getN();
+	inline const unsigned long& getNVecs();
 	inline const T* getMasses();
 	inline const T* getRadiuses();
 	inline const T* getPositionsX();

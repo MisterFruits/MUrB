@@ -39,6 +39,8 @@ public:
 	inline T getDt();
 	void computeOneIteration();
 
+	virtual const float getFlopsPerIte()     = 0;
+
 protected:
 	virtual void initIteration()             = 0;
 	virtual void computeBodiesAcceleration() = 0;

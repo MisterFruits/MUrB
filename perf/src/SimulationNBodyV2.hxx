@@ -58,6 +58,13 @@ SimulationNBodyV2<T>::~SimulationNBodyV2()
 }
 
 template <typename T>
+const float SimulationNBodyV2<T>::getFlopsPerIte()
+{
+	return 25 * (this->bodies.getN() * 0.5) * this->bodies.getN();
+}
+
+
+template <typename T>
 void SimulationNBodyV2<T>::reAllocateBuffers()
 {
 	// TODO: this is not optimal to deallocate and to reallocate data
@@ -68,9 +75,11 @@ void SimulationNBodyV2<T>::reAllocateBuffers()
 	if(this->accelerations.z != nullptr)
 		delete[] this->accelerations.z;
 
-	this->accelerations.x = new T[this->bodies.getN() * this->nMaxThreads];
-	this->accelerations.y = new T[this->bodies.getN() * this->nMaxThreads];
-	this->accelerations.z = new T[this->bodies.getN() * this->nMaxThreads];
+	const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies->getN();
+
+	this->accelerations.x = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
+	this->accelerations.y = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
+	this->accelerations.z = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
 }
 
 template <typename T>
