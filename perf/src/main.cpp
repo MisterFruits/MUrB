@@ -31,6 +31,7 @@ using namespace std;
 #include "SimulationNBodyV1.h"
 #include "SimulationNBodyV1CB.h"
 #include "SimulationNBodyV2.h"
+#include "SimulationNBodyV2CB.h"
 
 string        InputFileName;
 string        OutputBaseName;
