@@ -44,6 +44,12 @@ SimulationNBodyV1<T>::~SimulationNBodyV1()
 }
 
 template <typename T>
+const float SimulationNBodyV1<T>::getFlopsPerIte()
+{
+	return 18 * (this->bodies.getN() -1) * this->bodies.getN();
+}
+
+template <typename T>
 void SimulationNBodyV1<T>::initIteration()
 {
 	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)

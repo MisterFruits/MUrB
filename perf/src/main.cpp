@@ -30,6 +30,8 @@ using namespace std;
 #include "SimulationNBody.h"
 #include "SimulationNBodyV1.h"
 #include "SimulationNBodyV1CB.h"
+#include "SimulationNBodyV1Vectors.h"
+#include "SimulationNBodyV1Intrinsics.h"
 #include "SimulationNBodyV2.h"
 #include "SimulationNBodyV2CB.h"
 
@@ -164,17 +166,14 @@ int main(int argc, char** argv)
 	// create the n-body simulation
 	SimulationNBody<floatType> *simu;
 	if(InputFileName.empty())
-		simu = new SimulationNBodyV2<floatType>(NBodies);
+		simu = new SimulationNBodyV1Intrinsics<floatType>(NBodies);
 	else
-		simu = new SimulationNBodyV2<floatType>(InputFileName);
+		simu = new SimulationNBodyV1Intrinsics<floatType>(InputFileName);
 	const unsigned long n = simu->getBodies().getN();
 	NBodies = n;
 
 	// compute MB used for this simulation
 	float Mbytes = (12 * sizeof(floatType) * NBodies) / 1024.f / 1024.f;
-
-	// compute flops per iteration
-	float flopsPerIte = 0.5f * (float) NBodies * (float) ((NBodies -1) * 25); // V2 (non-naive)
 
 	// display simulation configuration
 	cout << "n-body simulation started !" << endl;
@@ -248,7 +247,7 @@ int main(int argc, char** argv)
 		// display the status of this iteration
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
-				 << "(" << perfIte.getGflops(flopsPerIte)  << " Gflop/s), "
+				 << "(" << perfIte.getGflops(simu->getFlopsPerIte())  << " Gflop/s), "
 				 << "physic time: " << strDate(physicTime) << endl;
 
 		// write iteration results into file
@@ -261,7 +260,7 @@ int main(int argc, char** argv)
 	cout << "Simulation ended." << endl << endl;
 
 	cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
-	     << "(" << perfTotal.getGflops(flopsPerIte * (iIte -1)) << " Gflop/s)" << endl;
+	     << "(" << perfTotal.getGflops(simu->getFlopsPerIte() * (iIte -1)) << " Gflop/s)" << endl;
 
 	delete visu;
 	delete simu;

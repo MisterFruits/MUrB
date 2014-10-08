@@ -20,6 +20,8 @@ public:
 	SimulationNBodyV1(const std::string inputFileName);
 	virtual ~SimulationNBodyV1();
 
+	virtual const float getFlopsPerIte();
+
 protected:
 	virtual void initIteration();
 	virtual void computeBodiesAcceleration();
