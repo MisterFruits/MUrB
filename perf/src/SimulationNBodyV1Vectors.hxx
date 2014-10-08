@@ -134,7 +134,6 @@ void SimulationNBodyV1Vectors<T>::computeAccelerationBetweenTwoBodies(const T &i
 	const T diffPosZ = jPosZ - iPosZ; // 1 flop
 	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
 	const T dist = std::sqrt(squareDist); // 1 flop
-	assert(dist != 0);
 
 	const T acc = this->G * jMasses / (squareDist * dist); // 3 flops
 	iAccsX += acc * diffPosX; // 2 flop
