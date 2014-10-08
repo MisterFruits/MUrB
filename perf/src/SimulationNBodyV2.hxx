@@ -77,7 +77,7 @@ void SimulationNBodyV2<T>::reAllocateBuffers()
 		if(this->accelerations.z != nullptr)
 			delete[] this->accelerations.z;
 
-		const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies->getN();
+		const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies.getN();
 
 		this->accelerations.x = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
 		this->accelerations.y = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
