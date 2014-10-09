@@ -286,7 +286,19 @@ void Bodies<T>::initRandomly()
 	// fill the bodies in the padding zone
 	const unsigned long padding = (this->nVecs * mipp::vectorSize<T>()) - this->n;
 	for(unsigned long iBody = this->n; iBody < this->n + padding; iBody++)
-		this->setBody(iBody, 0, 0, 0, 0, 0, 0, 0, 0);
+	{
+		T posX, posY, posZ, velocityX, velocityY, velocityZ;
+
+		posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+		posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+		posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+
+		velocityX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		velocityY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		velocityZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+
+		this->setBody(iBody, 0, 0, posX, posY, posZ, velocityX, velocityY, velocityZ);
+	}
 }
 
 template <typename T>
@@ -378,7 +390,19 @@ bool Bodies<T>::read(std::istream& stream)
 	// fill the bodies in the padding zone
 	const unsigned long padding = (this->nVecs * mipp::vectorSize<T>()) - this->n;
 	for(unsigned long iBody = this->n; iBody < this->n + padding; iBody++)
-		this->setBody(iBody, 0, 0, 0, 0, 0, 0, 0, 0);
+	{
+		T posX, posY, posZ, velocityX, velocityY, velocityZ;
+
+		posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+		posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+		posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+
+		velocityX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		velocityY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		velocityZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+
+		this->setBody(iBody, 0, 0, posX, posY, posZ, velocityX, velocityY, velocityZ);
+	}
 
 	return true;
 }
