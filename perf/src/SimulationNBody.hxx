@@ -20,10 +20,10 @@ template <typename T>
 SimulationNBody<T>::SimulationNBody(const unsigned long nBodies)
 	: bodies(nBodies),
 	  closestNeighborDist(NULL),
-	  dt                 (std::numeric_limits<T>::infinity()),
 	  dtConstant         (false),
 	  flopsPerIte        (0),
-	  allocatedBytes     (bodies.getAllocatedBytes())
+	  allocatedBytes     (bodies.getAllocatedBytes()),
+	  dt                 (std::numeric_limits<T>::infinity())
 {
 	assert(nBodies > 0);
 	this->allocateBuffers();
@@ -33,10 +33,10 @@ template <typename T>
 SimulationNBody<T>::SimulationNBody(const std::string inputFileName)
 	: bodies             (inputFileName),
 	  closestNeighborDist(NULL),
-	  dt                 (std::numeric_limits<T>::infinity()),
 	  dtConstant         (false),
 	  flopsPerIte        (0),
-	  allocatedBytes     (bodies.getAllocatedBytes())
+	  allocatedBytes     (bodies.getAllocatedBytes()),
+	  dt                 (std::numeric_limits<T>::infinity())
 {
 	this->allocateBuffers();
 }
