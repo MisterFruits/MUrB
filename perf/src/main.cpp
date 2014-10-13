@@ -166,9 +166,9 @@ int main(int argc, char** argv)
 	// create the n-body simulation
 	SimulationNBody<floatType> *simu;
 	if(InputFileName.empty())
-		simu = new SimulationNBodyV1Intrinsics<floatType>(NBodies);
+		simu = new SimulationNBodyV2CB<floatType>(NBodies);
 	else
-		simu = new SimulationNBodyV1Intrinsics<floatType>(InputFileName);
+		simu = new SimulationNBodyV2CB<floatType>(InputFileName);
 	const unsigned long n = simu->getBodies().getN();
 	NBodies = n;
 

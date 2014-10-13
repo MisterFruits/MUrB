@@ -15,8 +15,8 @@
 template <typename T = double>
 class SimulationNBodyV2 : public SimulationNBody<T>
 {
-private:
-	unsigned nMaxThreads;
+//private:
+//	unsigned nMaxThreads;
 
 public:
 	SimulationNBodyV2(const unsigned long nBodies);
@@ -26,6 +26,7 @@ public:
 	virtual const float getFlopsPerIte();
 
 protected:
+	unsigned nMaxThreads;
 	virtual void initIteration();
 	virtual void computeBodiesAcceleration();
 
