@@ -111,7 +111,6 @@ void SimulationNBodyV2<T>::computeBodiesAcceleration()
 }
 
 	if(this->nMaxThreads > 1)
-	{
 		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
 			for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
 			{
@@ -119,7 +118,6 @@ void SimulationNBodyV2<T>::computeBodiesAcceleration()
 				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * this->bodies.getN()];
 				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * this->bodies.getN()];
 			}
-	}
 }
 
 // 32 flops
