@@ -413,12 +413,11 @@ inline vec rot(const vec v1) {
 	#endif
 
 	// ------------------------------------------------------------------------------------------------------------ rot
-	#ifdef __AVX2TODO__
+	#ifdef __AVX2__
 		template <>
 		inline vec rot<float>(const vec v1) {
 			// make a rotation in:[7, 6, 5, 4, 3, 2 , 1, 0] => out:[0, 7, 6, 5, 4, 3, 2, 1]
-			// TODO: this intrinsic does not work well :-(
-			return _mm256_permute8x32_ps (v1, _mm256_setr_epi32(0, 7, 6, 5, 4, 3, 2, 1));
+			return _mm256_permutevar8x32_ps(v1, _mm256_setr_epi32(7, 0, 1, 2, 3, 4, 5, 6));
 		}
 
 		template <>
