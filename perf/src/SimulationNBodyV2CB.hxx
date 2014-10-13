@@ -54,11 +54,13 @@ void SimulationNBodyV2CB<T>::computeBodiesAcceleration()
 		const unsigned tid = omp_get_thread_num();
 
 #pragma omp for schedule(runtime)
-		for(unsigned long iBody = jOff + 1 ; iBody < this->bodies.getN(); iBody++)
-			for(unsigned long jBody = jOff ; jBody < jOff + blockSize; jBody++)
-				if(iBody > jBody)
-					//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody, tid);
-					this->computeAccelerationBetweenTwoBodies(iBody, jBody, tid);
+		for(unsigned long iBody = jOff +1; iBody < this->bodies.getN(); iBody++)
+		{
+			unsigned long jEnd = std::min(jOff + blockSize, iBody);
+			for(unsigned long jBody = jOff; jBody < jEnd; jBody++)
+				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody, tid);
+				this->computeAccelerationBetweenTwoBodies(iBody, jBody, tid);
+		}
 }
 	}
 
@@ -72,5 +74,4 @@ void SimulationNBodyV2CB<T>::computeBodiesAcceleration()
 				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * this->bodies.getN()];
 			}
 	}
-
 }
