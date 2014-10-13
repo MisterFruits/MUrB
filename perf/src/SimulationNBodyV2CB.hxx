@@ -43,52 +43,37 @@ SimulationNBodyV2CB<T>::~SimulationNBodyV2CB()
 }
 
 /*
-	AI  = (23 * blockSize * nBodies * nBlocks)  / ((4 * blockSize + 7 * nBodies) * nBlocks) <=>
-	AI  = (23 * blockSize * nBodies)            /  (4 * blockSize + 7 * nBodies)            <=>
-	AI  = (23 * blockSize * nBlock * blockSize) /  (4 * blockSize + 7 * nBlock * blockSize) <=>
-	AI  = (23 * nBlock * blockSize²)            / ((4 + 7 * nBlock) * blockSize)            <=>
-	AI  = (23 * nBlock * blockSize)             /  (4 + 7 * nBlock)                         <=>
-	AI ~= (23 * nBlock * blockSize)             /      (7 * nBlock)                         <=>
-	AI ~= (23 * blockSize)                      /       7
-	-------------------------------------------------------------------------------------------
-	OI  = AI                                    /      sizeof(T)                            <=>
-	OI  = (23 * blockSize)                      / (7 * sizeof(T))
-*/
+ * TODO: gérer le cas ou nBodies n'est pas un multiple de blockSize
+ */
 template <typename T>
 void SimulationNBodyV2CB<T>::computeBodiesAcceleration()
 {
-	unsigned long blockSize = 500;
-	// flops  = 23 * blockSize * nBodies      * nBlocks
-	// memops = (4 * blockSize + 7 * nBodies) * nBlocks
+	unsigned long blockSize = 512;
 	for(unsigned long jOff = 0; jOff < this->bodies.getN(); jOff += blockSize)
 	{
-	//	blockSize = std::min(blockSize, this->bodies.getN() - jOff);
-		// flops  = 23 * blockSize * nBodies
-		// memops =  4 * blockSize + 7 * nBodies
-	#pragma omp parallel 
+		//blockSize = std::min(blockSize, this->bodies.getN() - jOff);
+#pragma omp parallel
+{
+		const unsigned tid = omp_get_thread_num();
+
+#pragma omp for schedule(runtime)
+		for(unsigned long iBody = jOff + 1 ; iBody < this->bodies.getN(); iBody++)
+			for(unsigned long jBody = jOff ; jBody < jOff + blockSize; jBody++)
+				if(iBody > jBody)
+					//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody, tid);
+					this->computeAccelerationBetweenTwoBodies(iBody, jBody, tid);
+}
+	}
+
+	if(this->nMaxThreads > 1)
 	{
-			const unsigned tid = omp_get_thread_num(); 
-
-	#pragma omp for schedule(runtime)
-			for(unsigned long iBody = jOff + 1 ; iBody < this->bodies.getN(); iBody++)
-				// flops  = 23 * blockSize
-				// memops =  4 * blockSize + 7
-				for(unsigned long jBody = jOff ; jBody < jOff + blockSize; jBody++)
-					if(iBody > jBody)
-						//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
-						this->computeAccelerationBetweenTwoBodies(iBody, jBody, tid);
+		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+			for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
+			{
+				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * this->bodies.getN()];
+				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * this->bodies.getN()];
+				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * this->bodies.getN()];
+			}
 	}
-	}
-
-        if(this->nMaxThreads > 1)
-        {   
-                for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-                        for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
-                        {   
-                                this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * this->bodies.getN()];
-                                this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * this->bodies.getN()];
-                                this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * this->bodies.getN()];
-                        }   
-        }   
 
 }
