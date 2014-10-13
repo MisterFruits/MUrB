@@ -15,7 +15,7 @@
 template <typename T = double>
 class SimulationNBodyV2 : public SimulationNBody<T>
 {
-private:
+protected:
 	unsigned nMaxThreads;
 
 public:

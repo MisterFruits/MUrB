@@ -33,6 +33,7 @@ using namespace std;
 #include "SimulationNBodyV1Vectors.h"
 #include "SimulationNBodyV1Intrinsics.h"
 #include "SimulationNBodyV2.h"
+#include "SimulationNBodyV2CB.h"
 
 string        InputFileName;
 string        OutputBaseName;
@@ -89,7 +90,7 @@ void argsReader(int argc, char** argv)
 	faculArgs["-vdt"]   = "";
 	docArgs  ["-vdt"]   = "enable variable time step.";
 	faculArgs["-im"]   = "ImplId";
-	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13 or 20).";
+	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20 or 21).";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
@@ -204,6 +205,13 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2<T>(NBodies);
 			else
 				simu = new SimulationNBodyV2<T>(InputFileName);
+			break;
+		case 21:
+			cout << "Selected implementation: V2 + cache blocking - O(n²/2)" << endl << endl;
+			if(InputFileName.empty())
+				simu = new SimulationNBodyV2CB<T>(NBodies);
+			else
+				simu = new SimulationNBodyV2CB<T>(InputFileName);
 			break;
 		default:
 			cout << "This implementation code does not exist... Exiting." << endl;
