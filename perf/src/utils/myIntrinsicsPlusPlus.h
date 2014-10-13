@@ -415,7 +415,7 @@ inline vec rot(const vec v1) {
 	#endif
 
 	// ------------------------------------------------------------------------------------------------------------ rot
-	#ifdef __AVX2__
+	#ifdef __AVX2TODO__
 		template <>
 		inline vec rot<float>(const vec v1) {
 			// make a rotation in:[7, 6, 5, 4, 3, 2 , 1, 0] => out:[0, 7, 6, 5, 4, 3, 2, 1]
@@ -462,9 +462,9 @@ inline vec rot(const vec v1) {
 			//
 			//   -> _mm256_blend_pd(a, b, _MM_SHUFFLE(0, 0, 2, 2))
 			//      ina[3a, 2a, 1a, 0a] and inb[3b, 2b, 1b, 0b] => out[3b, 2a, 1b, 0a]
-			vec rTmp = (_mm256) _mm256_permute_pd((_mm256d) v1, _MM_SHUFFLE(1, 1, 1, 1))
-			return _mm256_blend_pd(rTmp, _mm256_permute2f128_pd(rTmp, rTmp, _MM_SHUFFLE(0, 0, 0, 1)),
-			                       _MM_SHUFFLE(0, 0, 2, 2));
+			vec rTmp = (__m256) _mm256_permute_pd((__m256d) v1, _MM_SHUFFLE(1, 1, 1, 1));
+			return (__m256) _mm256_blend_pd((__m256d) rTmp, _mm256_permute2f128_pd((__m256d) rTmp, (__m256d) rTmp, _MM_SHUFFLE(0, 0, 0, 1)),
+			                                _MM_SHUFFLE(0, 0, 2, 2));
 		}
 	#endif
 
