@@ -42,16 +42,13 @@ SimulationNBodyV2CB<T>::~SimulationNBodyV2CB()
 {
 }
 
-/*
- * TODO: gérer le cas ou nBodies n'est pas un multiple de blockSize
- */
 template <typename T>
 void SimulationNBodyV2CB<T>::computeBodiesAcceleration()
 {
 	unsigned long blockSize = 512;
 	for(unsigned long jOff = 0; jOff < this->bodies.getN(); jOff += blockSize)
 	{
-		//blockSize = std::min(blockSize, this->bodies.getN() - jOff);
+		blockSize = std::min(blockSize, this->bodies.getN() - jOff);
 #pragma omp parallel
 {
 		const unsigned tid = omp_get_thread_num();
