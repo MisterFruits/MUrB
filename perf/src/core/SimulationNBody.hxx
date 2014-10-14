@@ -105,7 +105,7 @@ void SimulationNBody<T>::allocateBuffers()
 	this->accelerations.y = new T[this->bodies.getN() + this->bodies.getPadding()];
 	this->accelerations.z = new T[this->bodies.getN() + this->bodies.getPadding()];
 
-	this->closestNeighborDist = new T[this->bodies.getN() + padding];
+	this->closestNeighborDist = new T[this->bodies.getN() + this->bodies.getPadding()];
 #else
 	this->accelerations.x = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
 	                                       mipp::RequiredAlignement);
