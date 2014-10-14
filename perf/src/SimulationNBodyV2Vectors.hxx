@@ -86,90 +86,89 @@ void SimulationNBodyV2Vectors<T>::reAllocateBuffers()
 template <typename T>
 void SimulationNBodyV2Vectors<T>::initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies.getN() * this->nMaxThreads; iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
 		this->accelerations.z[iBody] = 0.0;
-
-		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
 	}
+
+	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
 }
 
 template <typename T>
 void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 {
+	const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies.getN();
+
 	const T *masses = this->getBodies().getMasses();
 
 	const T *positionsX = this->getBodies().getPositionsX();
 	const T *positionsY = this->getBodies().getPositionsY();
 	const T *positionsZ = this->getBodies().getPositionsZ();
 
-	const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies.getN();
-
 #pragma omp parallel
 {
-		const unsigned long stride = omp_get_thread_num()* (this->bodies.getN() + padding);
+		const unsigned long thStride = omp_get_thread_num() * (this->bodies.getN() + padding);
 
-#pragma omp for schedule(runtime) firstprivate(stride)
+#pragma omp for schedule(runtime)
 	for(unsigned long iVec = 0; iVec < this->bodies.getNVecs(); iVec++)
 	{
-
-		//const unsigned long stride = 0;
-		const unsigned long iVecOff = iVec * mipp::vectorSize<T>(); 
+		const unsigned long iVecOff = iVec * mipp::vectorSize<T>();
   
-	
-				/* Computation of the vector number iVec with itself */
-				for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+		// computation of the vector number iVec with itself
+		for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+		{
+			const unsigned long iBody = iVecPos + iVecOff;
+			for(unsigned short jVecPos = iVecPos +1; jVecPos < mipp::vectorSize<T>(); jVecPos++)
+			{
+				const unsigned long jBody = jVecPos + iVecOff;
+					this->computeAccelerationBetweenTwoBodies(positionsX               [iBody           ],
+															  positionsY               [iBody           ],
+															  positionsZ               [iBody           ],
+															  this->accelerations.x    [iBody + thStride],
+															  this->accelerations.y    [iBody + thStride],
+															  this->accelerations.z    [iBody + thStride],
+															  this->closestNeighborDist[iBody           ],
+															  masses                   [iBody           ],
+															  positionsX               [jBody           ],
+															  positionsY               [jBody           ],
+															  positionsZ               [jBody           ],
+															  this->accelerations.x    [jBody + thStride],
+															  this->accelerations.y    [jBody + thStride],
+															  this->accelerations.z    [jBody + thStride],
+															  this->closestNeighborDist[jBody           ],
+															  masses                   [jBody           ]);
+			}
+		}
+
+		// computation of the vector number iVec with the following other vectors
+		for(unsigned long jVec = iVec +1; jVec < this->bodies.getNVecs(); jVec++)
+			for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+			{
+				const unsigned long iBody = iVecPos + iVecOff;
+				for(unsigned short jVecPos = 0; jVecPos < mipp::vectorSize<T>(); jVecPos++)
 				{
-					const unsigned long iBody = iVecPos + iVecOff;
-					for(unsigned short jVecPos = iVecPos+1; jVecPos < mipp::vectorSize<T>(); jVecPos++)
-					{
-						const unsigned long jBody = jVecPos + iVecOff;
-							this->computeAccelerationBetweenTwoBodies(positionsX               [iBody],
-							                                          positionsY               [iBody],
-							                                          positionsZ               [iBody],
-							                                          this->accelerations.x    [iBody + stride],
-							                                          this->accelerations.y    [iBody + stride],
-							                                          this->accelerations.z    [iBody + stride],
-							                                          this->closestNeighborDist[iBody],
-							                                          masses                   [iBody],
-							                                          positionsX               [jBody],
-							                                          positionsY               [jBody],
-							                                          positionsZ               [jBody],
-						                                          	this->accelerations.x    [jBody + stride],
-						                                          	this->accelerations.y    [jBody + stride],
-						                                          	this->accelerations.z    [jBody + stride],
-						                                          	this->closestNeighborDist[jBody],
-							                                          masses                   [jBody]);
-					}
+					const unsigned long jBody = jVecPos + jVec * mipp::vectorSize<T>();
+					this->computeAccelerationBetweenTwoBodies(positionsX               [iBody           ],
+					                                          positionsY               [iBody           ],
+					                                          positionsZ               [iBody           ],
+					                                          this->accelerations.x    [iBody + thStride],
+					                                          this->accelerations.y    [iBody + thStride],
+					                                          this->accelerations.z    [iBody + thStride],
+					                                          this->closestNeighborDist[iBody           ],
+					                                          masses                   [iBody           ],
+					                                          positionsX               [jBody           ],
+					                                          positionsY               [jBody           ],
+					                                          positionsZ               [jBody           ],
+					                                          this->accelerations.x    [jBody + thStride],
+					                                          this->accelerations.y    [jBody + thStride],
+					                                          this->accelerations.z    [jBody + thStride],
+					                                          this->closestNeighborDist[jBody           ],
+					                                          masses                   [jBody           ]);
 				}
-		/* Computation of the vector number iVec with the following other vectors */
-		for(unsigned long jVec = iVec+1; jVec < this->bodies.getNVecs(); jVec++)
-				for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
-				{
-					const unsigned long iBody = iVecPos + iVecOff;
-					for(unsigned short jVecPos = 0; jVecPos < mipp::vectorSize<T>(); jVecPos++)
-					{
-						const unsigned long jBody = jVecPos + jVec * mipp::vectorSize<T>();
-						this->computeAccelerationBetweenTwoBodies(positionsX               [iBody],
-						                                          positionsY               [iBody],
-						                                          positionsZ               [iBody],
-						                                          this->accelerations.x    [iBody + stride],
-						                                          this->accelerations.y    [iBody + stride],
-						                                          this->accelerations.z    [iBody + stride],
-						                                          this->closestNeighborDist[iBody],
-						                                          masses                   [iBody],
-						                                          positionsX               [jBody],
-						                                          positionsY               [jBody],
-						                                          positionsZ               [jBody],
-						                                          this->accelerations.x    [jBody + stride],
-						                                          this->accelerations.y    [jBody + stride],
-						                                          this->accelerations.z    [jBody + stride],
-						                                          this->closestNeighborDist[jBody],
-							                                        masses                   [jBody]);
-					}
-				}
+			}
 	}
 }
 
@@ -177,9 +176,9 @@ void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
 			for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
 			{
-				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * (this->bodies.getN()+padding)];
-				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * (this->bodies.getN()+padding)];
-				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * (this->bodies.getN()+padding)];
+				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * (this->bodies.getN() + padding)];
+				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * (this->bodies.getN() + padding)];
+				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * (this->bodies.getN() + padding)];
 			}
 }
 
@@ -217,7 +216,8 @@ void SimulationNBodyV2Vectors<T>::computeAccelerationBetweenTwoBodies(const T &i
 	if(!this->dtConstant)
 	{
 		iClosNeiDist = std::min(iClosNeiDist, dist);
-	#pragma omp critical
-		jClosNeiDist = std::min(jClosNeiDist, dist);
+		if(dist < jClosNeiDist)
+#pragma omp critical
+			jClosNeiDist = std::min(jClosNeiDist, dist);
 	}
 }
