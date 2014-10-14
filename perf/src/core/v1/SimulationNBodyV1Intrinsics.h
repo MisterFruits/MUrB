@@ -10,9 +10,9 @@
 
 #include <string>
 
-#include "utils/myIntrinsicsPlusPlus.h"
+#include "../../utils/myIntrinsicsPlusPlus.h"
 
-#include "SimulationNBody.h"
+#include "../SimulationNBody.h"
 
 template <typename T = double>
 class SimulationNBodyV1Intrinsics : public SimulationNBody<T>

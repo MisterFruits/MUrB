@@ -26,15 +26,15 @@ using namespace std;
 #include "utils/Perf.h"
 #include "utils/ArgumentsReader.h"
 
-#include "Bodies.h"
-#include "SimulationNBody.h"
-#include "SimulationNBodyV1.h"
-#include "SimulationNBodyV1CB.h"
-#include "SimulationNBodyV1Vectors.h"
-#include "SimulationNBodyV1Intrinsics.h"
-#include "SimulationNBodyV2.h"
-#include "SimulationNBodyV2CB.h"
-#include "SimulationNBodyV2Vectors.h"
+#include "core/Bodies.h"
+#include "core/SimulationNBody.h"
+#include "core/v1/SimulationNBodyV1.h"
+#include "core/v1/SimulationNBodyV1CB.h"
+#include "core/v1/SimulationNBodyV1Vectors.h"
+#include "core/v1/SimulationNBodyV1Intrinsics.h"
+#include "core/v2/SimulationNBodyV2.h"
+#include "core/v2/SimulationNBodyV2CB.h"
+#include "core/v2/SimulationNBodyV2Vectors.h"
 
 string        InputFileName;
 string        OutputBaseName;

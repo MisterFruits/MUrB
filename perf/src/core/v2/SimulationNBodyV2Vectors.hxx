@@ -23,7 +23,7 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "utils/myIntrinsicsPlusPlus.h"
+#include "../../utils/myIntrinsicsPlusPlus.h"
 
 #include "SimulationNBodyV2Vectors.h"
 
@@ -110,7 +110,7 @@ void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 
 #pragma omp parallel
 {
-		const unsigned long thStride = omp_get_thread_num() * (this->bodies.getN() + padding);
+	const unsigned long thStride = omp_get_thread_num() * (this->bodies.getN() + padding);
 
 #pragma omp for schedule(runtime)
 	for(unsigned long iVec = 0; iVec < this->bodies.getNVecs(); iVec++)
@@ -125,21 +125,21 @@ void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 			{
 				const unsigned long jBody = jVecPos + iVecOff;
 					this->computeAccelerationBetweenTwoBodies(positionsX               [iBody           ],
-															  positionsY               [iBody           ],
-															  positionsZ               [iBody           ],
-															  this->accelerations.x    [iBody + thStride],
-															  this->accelerations.y    [iBody + thStride],
-															  this->accelerations.z    [iBody + thStride],
-															  this->closestNeighborDist[iBody           ],
-															  masses                   [iBody           ],
-															  positionsX               [jBody           ],
-															  positionsY               [jBody           ],
-															  positionsZ               [jBody           ],
-															  this->accelerations.x    [jBody + thStride],
-															  this->accelerations.y    [jBody + thStride],
-															  this->accelerations.z    [jBody + thStride],
-															  this->closestNeighborDist[jBody           ],
-															  masses                   [jBody           ]);
+					                                          positionsY               [iBody           ],
+					                                          positionsZ               [iBody           ],
+					                                          this->accelerations.x    [iBody + thStride],
+					                                          this->accelerations.y    [iBody + thStride],
+					                                          this->accelerations.z    [iBody + thStride],
+					                                          this->closestNeighborDist[iBody           ],
+					                                          masses                   [iBody           ],
+					                                          positionsX               [jBody           ],
+					                                          positionsY               [jBody           ],
+					                                          positionsZ               [jBody           ],
+					                                          this->accelerations.x    [jBody + thStride],
+					                                          this->accelerations.y    [jBody + thStride],
+					                                          this->accelerations.z    [jBody + thStride],
+					                                          this->closestNeighborDist[jBody           ],
+					                                          masses                   [jBody           ]);
 			}
 		}
 

@@ -12,7 +12,7 @@
 #include <fstream>
 #include <iostream>
 
-#include "utils/myIntrinsicsPlusPlus.h"
+#include "../utils/myIntrinsicsPlusPlus.h"
 
 #include "SimulationNBody.h"
 

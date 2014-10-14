@@ -24,7 +24,7 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "utils/myIntrinsicsPlusPlus.h"
+#include "../../utils/myIntrinsicsPlusPlus.h"
 
 #include "SimulationNBodyV1Vectors.h"
 
