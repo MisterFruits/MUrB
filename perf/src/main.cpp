@@ -91,7 +91,7 @@ void argsReader(int argc, char** argv)
 	faculArgs["-vdt"]   = "";
 	docArgs  ["-vdt"]   = "enable variable time step.";
 	faculArgs["-im"]   = "ImplId";
-	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20 or 21).";
+	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20, 21 or 22).";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
