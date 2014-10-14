@@ -29,14 +29,14 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 template <typename T>
 SimulationNBodyV2Vectors<T>::SimulationNBodyV2Vectors(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies), nMaxThreads(omp_get_max_threads())
+	: SimulationNBody<T>(nBodies)
 {
 	this->reAllocateBuffers();
 }
 
 template <typename T>
 SimulationNBodyV2Vectors<T>::SimulationNBodyV2Vectors(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName), nMaxThreads(omp_get_max_threads())
+	: SimulationNBody<T>(inputFileName)
 {
 	this->reAllocateBuffers();
 }
@@ -71,13 +71,12 @@ void SimulationNBodyV2Vectors<T>::reAllocateBuffers()
 		if(this->accelerations.z != nullptr)
 			delete[] this->accelerations.z;
 
-		const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies.getN();
+		this->accelerations.x = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
+		this->accelerations.y = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
+		this->accelerations.z = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
 
-		this->accelerations.x = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
-		this->accelerations.y = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
-		this->accelerations.z = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
-
-		this->allocatedBytes += (this->bodies.getN() + padding) * sizeof(T) * (this->nMaxThreads - 1) * 3;
+		this->allocatedBytes += (this->bodies.getN() + this->bodies.getPadding()) *
+		                        sizeof(T) * (this->nMaxThreads - 1) * 3;
 	}
 
 	this->flopsPerIte = 25 * (this->bodies.getN() * 0.5) * this->bodies.getN();
@@ -100,8 +99,6 @@ void SimulationNBodyV2Vectors<T>::initIteration()
 template <typename T>
 void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 {
-	const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies.getN();
-
 	const T *masses = this->getBodies().getMasses();
 
 	const T *positionsX = this->getBodies().getPositionsX();
@@ -110,7 +107,7 @@ void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 
 #pragma omp parallel
 {
-	const unsigned long thStride = omp_get_thread_num() * (this->bodies.getN() + padding);
+	const unsigned long thStride = omp_get_thread_num() * (this->bodies.getN() + this->bodies.getPadding());
 
 #pragma omp for schedule(runtime)
 	for(unsigned long iVec = 0; iVec < this->bodies.getNVecs(); iVec++)
@@ -176,9 +173,12 @@ void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
 			for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
 			{
-				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * (this->bodies.getN() + padding)];
-				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * (this->bodies.getN() + padding)];
-				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * (this->bodies.getN() + padding)];
+				this->accelerations.x[iBody] +=
+				            this->accelerations.x[iBody + iThread * (this->bodies.getN() + this->bodies.getPadding())];
+				this->accelerations.y[iBody] +=
+				            this->accelerations.y[iBody + iThread * (this->bodies.getN() + this->bodies.getPadding())];
+				this->accelerations.z[iBody] +=
+				            this->accelerations.z[iBody + iThread * (this->bodies.getN() + this->bodies.getPadding())];
 			}
 }
 

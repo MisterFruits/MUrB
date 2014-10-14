@@ -23,11 +23,12 @@ class Bodies
 {
 private:
 	unsigned long n;
-	T            *masses;
-	T            *radiuses;
-	vector3<T>    positions;
-	vector3<T>    velocities;
-	unsigned long nVecs;
+	T             *masses;
+	T             *radiuses;
+	vector3<T>     positions;
+	vector3<T>     velocities;
+	unsigned long  nVecs;
+	unsigned short padding;
 	// stats
 	float         allocatedBytes;
 
@@ -42,6 +43,7 @@ public:
 
 	inline const unsigned long& getN();
 	inline const unsigned long& getNVecs();
+	inline const unsigned short& getPadding();
 	inline const T* getMasses();
 	inline const T* getRadiuses();
 	inline const T* getPositionsX();

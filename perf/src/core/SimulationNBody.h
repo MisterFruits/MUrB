@@ -25,6 +25,7 @@ protected:
 	// stats
 	float      flopsPerIte;
 	float      allocatedBytes;
+	unsigned   nMaxThreads;
 
 private:
 	T          dt;

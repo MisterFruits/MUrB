@@ -12,6 +12,18 @@
 #include <fstream>
 #include <iostream>
 
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#ifndef _MYOPENMP
+#define _MYOPENMP
+inline void omp_set_num_threads(int) {           }
+inline int  omp_get_num_threads(   ) { return 1; }
+inline int  omp_get_max_threads(   ) { return 1; }
+inline int  omp_get_thread_num (   ) { return 0; }
+#endif
+#endif
+
 #include "../utils/myIntrinsicsPlusPlus.h"
 
 #include "SimulationNBody.h"
@@ -23,6 +35,7 @@ SimulationNBody<T>::SimulationNBody(const unsigned long nBodies)
 	  dtConstant         (false),
 	  flopsPerIte        (0),
 	  allocatedBytes     (bodies.getAllocatedBytes()),
+	  nMaxThreads        (omp_get_max_threads()),
 	  dt                 (std::numeric_limits<T>::infinity())
 {
 	assert(nBodies > 0);
@@ -36,6 +49,7 @@ SimulationNBody<T>::SimulationNBody(const std::string inputFileName)
 	  dtConstant         (false),
 	  flopsPerIte        (0),
 	  allocatedBytes     (bodies.getAllocatedBytes()),
+	  nMaxThreads        (omp_get_max_threads()),
 	  dt                 (std::numeric_limits<T>::infinity())
 {
 	this->allocateBuffers();

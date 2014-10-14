@@ -22,6 +22,7 @@ Bodies<T>::Bodies(const unsigned long n)
 	  masses        (NULL),
 	  radiuses      (NULL),
 	  nVecs         (ceil((T) n / (T) mipp::vectorSize<T>())),
+	  padding       ((this->nVecs * mipp::vectorSize<T>()) - this->n),
 	  allocatedBytes(0)
 {
 	assert(n > 0);
@@ -34,6 +35,7 @@ Bodies<T>::Bodies(const std::string inputFileName)
 	  masses        (NULL),
 	  radiuses      (NULL),
 	  nVecs         (0),
+	  padding       (0),
 	  allocatedBytes(0)
 {
 	this->initFromFile(inputFileName);
@@ -45,6 +47,7 @@ Bodies<T>::Bodies(const Bodies<T>& bodies)
 	  masses        (bodies.masses),
 	  radiuses      (bodies.radiuses),
 	  nVecs         (bodies.nVecs),
+	  padding       (bodies.padding),
 	  allocatedBytes(bodies.allocatedBytes)
 {
 	this->positions.x = bodies.positions.x;
@@ -65,35 +68,33 @@ Bodies<T>& Bodies<T>::operator=(const Bodies<T>& bodies)
 template <typename T>
 void Bodies<T>::allocateBuffers()
 {
-	const unsigned long padding = (this->nVecs * mipp::vectorSize<T>()) - this->n;
-
 #ifdef __ARM_NEON__
-	this->masses = new T[this->n + padding];
+	this->masses = new T[this->n + this->padding];
 
-	this->radiuses = new T[this->n + padding];
+	this->radiuses = new T[this->n + this->padding];
 
-	this->positions.x = new T[this->n + padding];
-	this->positions.y = new T[this->n + padding];
-	this->positions.z = new T[this->n + padding];
+	this->positions.x = new T[this->n + this->padding];
+	this->positions.y = new T[this->n + this->padding];
+	this->positions.z = new T[this->n + this->padding];
 
-	this->velocities.x = new T[this->n + padding];
-	this->velocities.y = new T[this->n + padding];
-	this->velocities.z = new T[this->n + padding];
+	this->velocities.x = new T[this->n + this->padding];
+	this->velocities.y = new T[this->n + this->padding];
+	this->velocities.z = new T[this->n + this->padding];
 #else
-	this->masses = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
+	this->masses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 
-	this->radiuses = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
+	this->radiuses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 
-	this->positions.x = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
-	this->positions.y = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
-	this->positions.z = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
+	this->positions.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->positions.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->positions.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 
-	this->velocities.x = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
-	this->velocities.y = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
-	this->velocities.z = (T*)_mm_malloc((this->n + padding) * sizeof(T), mipp::RequiredAlignement);
+	this->velocities.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->velocities.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->velocities.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 #endif
 
-	this->allocatedBytes = (this->n + padding) * sizeof(T) * 8;
+	this->allocatedBytes = (this->n + this->padding) * sizeof(T) * 8;
 }
 
 template <typename T>
@@ -183,6 +184,12 @@ template <typename T>
 const unsigned long& Bodies<T>::getNVecs()
 {
 	return const_cast<const unsigned long&>(this->nVecs);
+}
+
+template <typename T>
+const unsigned short& Bodies<T>::getPadding()
+{
+	return const_cast<const unsigned short&>(this->padding);
 }
 
 template <typename T>
@@ -284,8 +291,7 @@ void Bodies<T>::initRandomly()
 	}
 
 	// fill the bodies in the padding zone
-	const unsigned long padding = (this->nVecs * mipp::vectorSize<T>()) - this->n;
-	for(unsigned long iBody = this->n; iBody < this->n + padding; iBody++)
+	for(unsigned long iBody = this->n; iBody < this->n + this->padding; iBody++)
 	{
 		T posX, posY, posZ, velocityX, velocityY, velocityZ;
 
@@ -358,7 +364,8 @@ bool Bodies<T>::read(std::istream& stream)
 	this->n = 0;
 	stream >> this->n;
 
-	this->nVecs = ceil((T) this->n / (T) mipp::vectorSize<T>());
+	this->nVecs   = ceil((T) this->n / (T) mipp::vectorSize<T>());
+	this->padding = (this->nVecs * mipp::vectorSize<T>()) - this->n;
 
 	if(this->n)
 		this->allocateBuffers();
@@ -388,8 +395,7 @@ bool Bodies<T>::read(std::istream& stream)
 	}
 
 	// fill the bodies in the padding zone
-	const unsigned long padding = (this->nVecs * mipp::vectorSize<T>()) - this->n;
-	for(unsigned long iBody = this->n; iBody < this->n + padding; iBody++)
+	for(unsigned long iBody = this->n; iBody < this->n + this->padding; iBody++)
 	{
 		T posX, posY, posZ, velocityX, velocityY, velocityZ;
 

@@ -15,9 +15,6 @@
 template <typename T = double>
 class SimulationNBodyV2 : public SimulationNBody<T>
 {
-protected:
-	unsigned nMaxThreads;
-
 public:
 	SimulationNBodyV2(const unsigned long nBodies);
 	SimulationNBodyV2(const std::string inputFileName);
