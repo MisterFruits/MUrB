@@ -1,7 +1,6 @@
 /*
  * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
+ * Gabriel Hautreux, CINES, gabrielhautreux@gmail.com
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
@@ -26,35 +25,66 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #include "utils/myIntrinsicsPlusPlus.h"
 
-#include "SimulationNBodyV1Vectors.h"
+#include "SimulationNBodyV2Vectors.h"
 
 template <typename T>
-SimulationNBodyV1Vectors<T>::SimulationNBodyV1Vectors(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies)
+SimulationNBodyV2Vectors<T>::SimulationNBodyV2Vectors(const unsigned long nBodies)
+	: SimulationNBody<T>(nBodies), nMaxThreads(omp_get_max_threads())
 {
-	this->init();
+	this->reAllocateBuffers();
 }
 
 template <typename T>
-SimulationNBodyV1Vectors<T>::SimulationNBodyV1Vectors(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName)
+SimulationNBodyV2Vectors<T>::SimulationNBodyV2Vectors(const std::string inputFileName)
+	: SimulationNBody<T>(inputFileName), nMaxThreads(omp_get_max_threads())
 {
-	this->init();
+	this->reAllocateBuffers();
 }
 
 template <typename T>
-void SimulationNBodyV1Vectors<T>::init()
+SimulationNBodyV2Vectors<T>::~SimulationNBodyV2Vectors()
 {
-	this->flopsPerIte = 18 * (this->bodies.getN() -1) * this->bodies.getN();
+	if(this->accelerations.x != nullptr) {
+		delete[] this->accelerations.x;
+		this->accelerations.x = nullptr;
+	}
+	if(this->accelerations.y != nullptr) {
+		delete[] this->accelerations.y;
+		this->accelerations.y = nullptr;
+	}
+	if(this->accelerations.z != nullptr) {
+		delete[] this->accelerations.z;
+		this->accelerations.z = nullptr;
+	}
 }
 
 template <typename T>
-SimulationNBodyV1Vectors<T>::~SimulationNBodyV1Vectors()
+void SimulationNBodyV2Vectors<T>::reAllocateBuffers()
 {
+	if(this->nMaxThreads > 1)
+	{
+		// TODO: this is not optimal to deallocate and to reallocate data
+		if(this->accelerations.x != nullptr)
+			delete[] this->accelerations.x;
+		if(this->accelerations.y != nullptr)
+			delete[] this->accelerations.y;
+		if(this->accelerations.z != nullptr)
+			delete[] this->accelerations.z;
+
+		const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies.getN();
+
+		this->accelerations.x = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
+		this->accelerations.y = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
+		this->accelerations.z = new T[(this->bodies.getN() + padding) * this->nMaxThreads];
+
+		this->allocatedBytes += (this->bodies.getN() + padding) * sizeof(T) * (this->nMaxThreads - 1) * 3;
+	}
+
+	this->flopsPerIte = 25 * (this->bodies.getN() * 0.5) * this->bodies.getN();
 }
 
 template <typename T>
-void SimulationNBodyV1Vectors<T>::initIteration()
+void SimulationNBodyV2Vectors<T>::initIteration()
 {
 	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
 	{
@@ -67,7 +97,7 @@ void SimulationNBodyV1Vectors<T>::initIteration()
 }
 
 template <typename T>
-void SimulationNBodyV1Vectors<T>::computeBodiesAcceleration()
+void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 {
 	const T *masses = this->getBodies().getMasses();
 
@@ -75,59 +105,94 @@ void SimulationNBodyV1Vectors<T>::computeBodiesAcceleration()
 	const T *positionsY = this->getBodies().getPositionsY();
 	const T *positionsZ = this->getBodies().getPositionsZ();
 
-#pragma omp parallel for schedule(runtime)
+	const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->bodies.getN();
+
+#pragma omp parallel
+{
+		const unsigned long stride = omp_get_thread_num()* (this->bodies.getN() + padding);
+
+#pragma omp for schedule(runtime) firstprivate(stride)
 	for(unsigned long iVec = 0; iVec < this->bodies.getNVecs(); iVec++)
-		for(unsigned long jVec = 0; jVec < this->bodies.getNVecs(); jVec++)
-			if(iVec != jVec)
+	{
+
+		//const unsigned long stride = 0;
+		const unsigned long iVecOff = iVec * mipp::vectorSize<T>(); 
+  
+	
+				/* Computation of the vector number iVec with itself */
 				for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
 				{
-					const unsigned long iBody = iVecPos + iVec * mipp::vectorSize<T>();
+					const unsigned long iBody = iVecPos + iVecOff;
+					for(unsigned short jVecPos = iVecPos+1; jVecPos < mipp::vectorSize<T>(); jVecPos++)
+					{
+						const unsigned long jBody = jVecPos + iVecOff;
+							this->computeAccelerationBetweenTwoBodies(positionsX               [iBody],
+							                                          positionsY               [iBody],
+							                                          positionsZ               [iBody],
+							                                          this->accelerations.x    [iBody + stride],
+							                                          this->accelerations.y    [iBody + stride],
+							                                          this->accelerations.z    [iBody + stride],
+							                                          this->closestNeighborDist[iBody],
+							                                          masses                   [iBody],
+							                                          positionsX               [jBody],
+							                                          positionsY               [jBody],
+							                                          positionsZ               [jBody],
+						                                          	this->accelerations.x    [jBody + stride],
+						                                          	this->accelerations.y    [jBody + stride],
+						                                          	this->accelerations.z    [jBody + stride],
+						                                          	this->closestNeighborDist[jBody],
+							                                          masses                   [jBody]);
+					}
+				}
+		/* Computation of the vector number iVec with the following other vectors */
+		for(unsigned long jVec = iVec+1; jVec < this->bodies.getNVecs(); jVec++)
+				for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+				{
+					const unsigned long iBody = iVecPos + iVecOff;
 					for(unsigned short jVecPos = 0; jVecPos < mipp::vectorSize<T>(); jVecPos++)
 					{
 						const unsigned long jBody = jVecPos + jVec * mipp::vectorSize<T>();
 						this->computeAccelerationBetweenTwoBodies(positionsX               [iBody],
 						                                          positionsY               [iBody],
 						                                          positionsZ               [iBody],
-						                                          this->accelerations.x    [iBody],
-						                                          this->accelerations.y    [iBody],
-						                                          this->accelerations.z    [iBody],
+						                                          this->accelerations.x    [iBody + stride],
+						                                          this->accelerations.y    [iBody + stride],
+						                                          this->accelerations.z    [iBody + stride],
 						                                          this->closestNeighborDist[iBody],
-						                                          masses                   [jBody],
+						                                          masses                   [iBody],
 						                                          positionsX               [jBody],
 						                                          positionsY               [jBody],
-						                                          positionsZ               [jBody]);
+						                                          positionsZ               [jBody],
+						                                          this->accelerations.x    [jBody + stride],
+						                                          this->accelerations.y    [jBody + stride],
+						                                          this->accelerations.z    [jBody + stride],
+						                                          this->closestNeighborDist[jBody],
+							                                        masses                   [jBody]);
 					}
 				}
-			else
-				for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
-				{
-					const unsigned long iBody = iVecPos + iVec * mipp::vectorSize<T>();
-					for(unsigned short jVecPos = 0; jVecPos < mipp::vectorSize<T>(); jVecPos++)
-					{
-						const unsigned long jBody = jVecPos + jVec * mipp::vectorSize<T>();
-						if(iVecPos != jVecPos)
-							this->computeAccelerationBetweenTwoBodies(positionsX               [iBody],
-							                                          positionsY               [iBody],
-							                                          positionsZ               [iBody],
-							                                          this->accelerations.x    [iBody],
-							                                          this->accelerations.y    [iBody],
-							                                          this->accelerations.z    [iBody],
-							                                          this->closestNeighborDist[iBody],
-							                                          masses                   [jBody],
-							                                          positionsX               [jBody],
-							                                          positionsY               [jBody],
-							                                          positionsZ               [jBody]);
-					}
-				}
+	}
 }
 
-// 18 flops
+	if(this->nMaxThreads > 1)
+		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+			for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
+			{
+				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * (this->bodies.getN()+padding)];
+				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * (this->bodies.getN()+padding)];
+				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * (this->bodies.getN()+padding)];
+			}
+}
+
+// 25 flops
 template <typename T>
-void SimulationNBodyV1Vectors<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
+void SimulationNBodyV2Vectors<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
                                                                             T &iAccsX,      T &iAccsY,      T &iAccsZ,
                                                                             T &iClosNeiDist,
-                                                                      const T &jMasses,
-                                                                      const T &jPosX, const T &jPosY, const T &jPosZ)
+                                                                      const T &iMasses,
+                                                                      const T &jPosX, const T &jPosY, const T &jPosZ,
+                                                                            T &jAccsX,      T &jAccsY,      T &jAccsZ,
+                                                                            T &jClosNeiDist,
+                                                                      const T &jMasses)
 {
 	const T diffPosX = jPosX - iPosX; // 1 flop
 	const T diffPosY = jPosY - iPosY; // 1 flop
@@ -135,16 +200,24 @@ void SimulationNBodyV1Vectors<T>::computeAccelerationBetweenTwoBodies(const T &i
 	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
 	const T dist = std::sqrt(squareDist); // 1 flop
 
-	const T acc = this->G * jMasses / (squareDist * dist); // 3 flops
+	const T force = this->G / (squareDist * dist); // 2 flops
+
+	T acc = force * jMasses; // 1 flop
+
 	iAccsX += acc * diffPosX; // 2 flop
 	iAccsY += acc * diffPosY; // 2 flop
 	iAccsZ += acc * diffPosZ; // 2 flop
 
-	/*
+	acc = force * iMasses; // 1 flop
+
+	jAccsX -= acc * diffPosX; // 2 flop
+	jAccsY -= acc * diffPosY; // 2 flop
+	jAccsZ -= acc * diffPosZ; // 2 flop
+	
 	if(!this->dtConstant)
-		// min
-		if(dist < iClosNeiDist)
-			iClosNeiDist = dist;
-	*/
-	iClosNeiDist = std::min(iClosNeiDist, dist);
+	{
+		iClosNeiDist = std::min(iClosNeiDist, dist);
+	#pragma omp critical
+		jClosNeiDist = std::min(jClosNeiDist, dist);
+	}
 }
