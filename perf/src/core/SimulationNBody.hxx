@@ -30,7 +30,7 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 template <typename T>
 SimulationNBody<T>::SimulationNBody(const unsigned long nBodies)
-	: bodies(nBodies),
+	: bodies             (nBodies),
 	  closestNeighborDist(NULL),
 	  dtConstant         (false),
 	  flopsPerIte        (0),
@@ -100,23 +100,25 @@ SimulationNBody<T>::~SimulationNBody()
 template <typename T>
 void SimulationNBody<T>::allocateBuffers()
 {
-	const unsigned long padding = (this->bodies.getNVecs() * mipp::vectorSize<T>()) - this->getBodies().getN();
-
 #ifdef __ARM_NEON__
-	this->accelerations.x = new T[this->bodies.getN() + padding];
-	this->accelerations.y = new T[this->bodies.getN() + padding];
-	this->accelerations.z = new T[this->bodies.getN() + padding];
+	this->accelerations.x = new T[this->bodies.getN() + this->bodies.getPadding()];
+	this->accelerations.y = new T[this->bodies.getN() + this->bodies.getPadding()];
+	this->accelerations.z = new T[this->bodies.getN() + this->bodies.getPadding()];
 
 	this->closestNeighborDist = new T[this->bodies.getN() + padding];
 #else
-	this->accelerations.x = (T*)_mm_malloc((this->bodies.getN() + padding) * sizeof(T), mipp::RequiredAlignement);
-	this->accelerations.y = (T*)_mm_malloc((this->bodies.getN() + padding) * sizeof(T), mipp::RequiredAlignement);
-	this->accelerations.z = (T*)_mm_malloc((this->bodies.getN() + padding) * sizeof(T), mipp::RequiredAlignement);
+	this->accelerations.x = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
+	                                       mipp::RequiredAlignement);
+	this->accelerations.y = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
+	                                       mipp::RequiredAlignement);
+	this->accelerations.z = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
+	                                       mipp::RequiredAlignement);
 
-	this->closestNeighborDist = (T*)_mm_malloc((this->bodies.getN() + padding) * sizeof(T), mipp::RequiredAlignement);
+	this->closestNeighborDist = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
+	                                           mipp::RequiredAlignement);
 #endif
 
-	this->allocatedBytes += (this->bodies.getN() + padding) * sizeof(T) * 4;
+	this->allocatedBytes += (this->bodies.getN() + this->bodies.getPadding()) * sizeof(T) * 4;
 }
 
 template <typename T>

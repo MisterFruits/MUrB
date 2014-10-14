@@ -44,6 +44,7 @@ SimulationNBodyV2Vectors<T>::SimulationNBodyV2Vectors(const std::string inputFil
 template <typename T>
 SimulationNBodyV2Vectors<T>::~SimulationNBodyV2Vectors()
 {
+#ifdef __ARM_NEON__
 	if(this->accelerations.x != nullptr) {
 		delete[] this->accelerations.x;
 		this->accelerations.x = nullptr;
@@ -56,6 +57,20 @@ SimulationNBodyV2Vectors<T>::~SimulationNBodyV2Vectors()
 		delete[] this->accelerations.z;
 		this->accelerations.z = nullptr;
 	}
+#else
+	if(this->accelerations.x != nullptr) {
+		_mm_free(this->accelerations.x);
+		this->accelerations.x = nullptr;
+	}
+	if(this->accelerations.y != nullptr) {
+		_mm_free(this->accelerations.y);
+		this->accelerations.y = nullptr;
+	}
+	if(this->accelerations.z != nullptr) {
+		_mm_free(this->accelerations.z);
+		this->accelerations.z = nullptr;
+	}
+#endif
 }
 
 template <typename T>
@@ -64,6 +79,7 @@ void SimulationNBodyV2Vectors<T>::reAllocateBuffers()
 	if(this->nMaxThreads > 1)
 	{
 		// TODO: this is not optimal to deallocate and to reallocate data
+#ifdef __ARM_NEON__
 		if(this->accelerations.x != nullptr)
 			delete[] this->accelerations.x;
 		if(this->accelerations.y != nullptr)
@@ -74,7 +90,21 @@ void SimulationNBodyV2Vectors<T>::reAllocateBuffers()
 		this->accelerations.x = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
 		this->accelerations.y = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
 		this->accelerations.z = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
+#else
+		if(this->accelerations.x != nullptr)
+			_mm_free(this->accelerations.x);
+		if(this->accelerations.y != nullptr)
+			_mm_free(this->accelerations.y);
+		if(this->accelerations.z != nullptr)
+			_mm_free(this->accelerations.z);
 
+		this->accelerations.x = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) *
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		this->accelerations.y = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) *
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		this->accelerations.z = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) *
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+#endif
 		this->allocatedBytes += (this->bodies.getN() + this->bodies.getPadding()) *
 		                        sizeof(T) * (this->nMaxThreads - 1) * 3;
 	}
