@@ -62,91 +62,78 @@ template <typename T>
 inline vec load(const T *mem_addr) {
 	std::cerr << "mipp::load is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline void store(T *mem_addr, const vec v) {
 	std::cerr << "mipp::store is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec set1(const T val) {
 	std::cerr << "mipp::set1 is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec add(const vec v1, const vec v2) {
 	std::cerr << "mipp::add is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec sub(const vec v1, const vec v2) {
 	std::cerr << "mipp::sub is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec mul(const vec v1, const vec v2) {
 	std::cerr << "mipp::mul is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec div(const vec v1, const vec v2) {
 	std::cerr << "mipp::div is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec min(const vec v1, const vec v2) {
 	std::cerr << "mipp::min is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec max(const vec v1, const vec v2) {
 	std::cerr << "mipp::max is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec sqrt(const vec v1) {
 	std::cerr << "mipp::sqrt is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec rsqrt(const vec v1) {
 	std::cerr << "mipp::rsqrt is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec fmadd(const vec v1, const vec v2, const vec v3) {
 	std::cerr << "mipp::fmadd is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec rot(const vec v1) {
 	std::cerr << "mipp::rot is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 // --------------------------------------------------------------------------------------- myIntrinsics implementations
