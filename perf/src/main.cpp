@@ -35,6 +35,7 @@ using namespace std;
 #include "core/v2/SimulationNBodyV2.h"
 #include "core/v2/SimulationNBodyV2CB.h"
 #include "core/v2/SimulationNBodyV2Vectors.h"
+#include "core/v2/SimulationNBodyV2Intrinsics.h"
 
 string        InputFileName;
 string        OutputBaseName;
@@ -220,6 +221,13 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2Vectors<T>(NBodies);
 			else
 				simu = new SimulationNBodyV2Vectors<T>(InputFileName);
+			break;
+		case 23:
+			cout << "Selected implementation: V2 + intrinsics - O(n²/2)" << endl << endl;
+			if(InputFileName.empty())
+				simu = new SimulationNBodyV2Intrinsics<T>(NBodies);
+			else
+				simu = new SimulationNBodyV2Intrinsics<T>(InputFileName);
 			break;
 		default:
 			cout << "This implementation code does not exist... Exiting." << endl;

@@ -171,7 +171,8 @@ void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 		}
 
 		// computation of the vector number iVec with the following other vectors
-		for(unsigned long jVec = iVec +1; jVec < this->bodies.getNVecs(); jVec++)
+		for(unsigned long jVec = iVec +1; jVec < this->bodies.getNVecs(); jVec++){
+					const unsigned long jo = jVec * mipp::vectorSize<T>();
 			for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
 			{
 				const unsigned long iBody = iVecPos + iVecOff;
@@ -196,6 +197,7 @@ void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 					                                          masses                   [jBody           ]);
 				}
 			}
+	}
 	}
 }
 
