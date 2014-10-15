@@ -151,22 +151,22 @@ void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
 			for(unsigned short jVecPos = iVecPos +1; jVecPos < mipp::vectorSize<T>(); jVecPos++)
 			{
 				const unsigned long jBody = jVecPos + iVecOff;
-					this->computeAccelerationBetweenTwoBodies(positionsX               [iBody           ],
-					                                          positionsY               [iBody           ],
-					                                          positionsZ               [iBody           ],
-					                                          this->accelerations.x    [iBody + thStride],
-					                                          this->accelerations.y    [iBody + thStride],
-					                                          this->accelerations.z    [iBody + thStride],
-					                                          this->closestNeighborDist[iBody           ],
-					                                          masses                   [iBody           ],
-					                                          positionsX               [jBody           ],
-					                                          positionsY               [jBody           ],
-					                                          positionsZ               [jBody           ],
-					                                          this->accelerations.x    [jBody + thStride],
-					                                          this->accelerations.y    [jBody + thStride],
-					                                          this->accelerations.z    [jBody + thStride],
-					                                          this->closestNeighborDist[jBody           ],
-					                                          masses                   [jBody           ]);
+				this->computeAccelerationBetweenTwoBodies(positionsX               [iBody           ],
+				                                          positionsY               [iBody           ],
+				                                          positionsZ               [iBody           ],
+				                                          this->accelerations.x    [iBody + thStride],
+				                                          this->accelerations.y    [iBody + thStride],
+				                                          this->accelerations.z    [iBody + thStride],
+				                                          this->closestNeighborDist[iBody           ],
+				                                          masses                   [iBody           ],
+				                                          positionsX               [jBody           ],
+				                                          positionsY               [jBody           ],
+				                                          positionsZ               [jBody           ],
+				                                          this->accelerations.x    [jBody + thStride],
+				                                          this->accelerations.y    [jBody + thStride],
+				                                          this->accelerations.z    [jBody + thStride],
+				                                          this->closestNeighborDist[jBody           ],
+				                                          masses                   [jBody           ]);
 			}
 		}
 
