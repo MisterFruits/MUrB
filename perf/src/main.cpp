@@ -222,7 +222,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2Vectors<T>(InputFileName);
 			break;
 		default:
-			cout << "This implementation code does not exist... Exiting." << endl;
+			cout << "This code implementation does not exist... Exiting." << endl;
 			exit(-1);
 			break;
 	}
