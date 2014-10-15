@@ -230,7 +230,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2Intrinsics<T>(InputFileName);
 			break;
 		default:
-			cout << "This implementation code does not exist... Exiting." << endl;
+			cout << "This code implementation does not exist... Exiting." << endl;
 			exit(-1);
 			break;
 	}
@@ -254,21 +254,21 @@ int main(int argc, char** argv)
 	float Mbytes = simu->getAllocatedBytes() / 1024.f / 1024.f;
 
 	// display simulation configuration
-	cout << "n-body simulation started !" << endl;
-	cout << "---------------------------" << endl;
+	cout << "n-body simulation configuration:" << endl;
+	cout << "--------------------------------" << endl;
 	if(!InputFileName.empty())
-		cout << "  -> inputFileName    : " << InputFileName << endl;
+		cout << "  -> input file name    : " << InputFileName << endl;
 	else
-		cout << "  -> random mode      : enable" << endl;
+		cout << "  -> random mode        : enable" << endl;
 	if(!OutputBaseName.empty())
-		cout << "  -> outputFileName(s): " << OutputBaseName << ".*.dat" << endl;
-	cout <<     "  -> nBodies          : " << NBodies << endl;
-	cout <<     "  -> nIterations      : " << NIterations << endl;
-	cout <<     "  -> verbose          : " << Verbose << endl;
-	cout <<     "  -> precision        : " << ((sizeof(floatType) == 4) ? "simple": "double") << endl;
-	cout <<     "  -> mem. used        : " << Mbytes << " MB" << endl;
-	cout <<     "  -> geometry shader  : " << ((GSEnable) ? "enable" : "disable") << endl;
-	cout <<     "  -> time step        : " << ((DtVariable) ? "variable" : to_string(Dt) + " sec") << endl << endl;
+		cout << "  -> output file name(s): " << OutputBaseName << ".*.dat" << endl;
+	cout <<     "  -> nb. of bodies      : " << NBodies << endl;
+	cout <<     "  -> nb. of iterations  : " << NIterations << endl;
+	cout <<     "  -> verbose mode       : " << ((Verbose) ? "enable" : "disable") << endl;
+	cout <<     "  -> precision          : " << ((sizeof(floatType) == 4) ? "simple" : "double") << endl;
+	cout <<     "  -> mem. allocated     : " << Mbytes << " MB" << endl;
+	cout <<     "  -> geometry shader    : " << ((GSEnable) ? "enable" : "disable") << endl;
+	cout <<     "  -> time step          : " << ((DtVariable) ? "variable" : to_string(Dt) + " sec") << endl << endl;
 
 	// initialize visualization of bodies (with spheres in space)
 	OGLSpheresVisu<floatType> *visu;
@@ -328,8 +328,8 @@ int main(int argc, char** argv)
 		// display the status of this iteration
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
-				 << "(" << perfIte.getGflops(simu->getFlopsPerIte())  << " Gflop/s), "
-				 << "physic time: " << strDate(physicTime) << endl;
+			     << "(" << perfIte.getGflops(simu->getFlopsPerIte())  << " Gflop/s), "
+			     << "physic time: " << strDate(physicTime) << endl;
 
 		// write iteration results into file
 		if(!OutputBaseName.empty())
