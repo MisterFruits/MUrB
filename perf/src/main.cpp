@@ -320,8 +320,8 @@ int main(int argc, char** argv)
 		// display the status of this iteration
 		if(Verbose)
 			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
-				 << "(" << perfIte.getGflops(simu->getFlopsPerIte())  << " Gflop/s), "
-				 << "physic time: " << strDate(physicTime) << endl;
+			     << "(" << perfIte.getGflops(simu->getFlopsPerIte())  << " Gflop/s), "
+			     << "physic time: " << strDate(physicTime) << endl;
 
 		// write iteration results into file
 		if(!OutputBaseName.empty())
