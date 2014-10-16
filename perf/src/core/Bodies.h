@@ -76,8 +76,6 @@ private:
 	void allocateBuffers();
 	void initRandomly(const unsigned long randInit = 0);
 	void initFromFile(const std::string inputFileName);
-
-	static inline bool fileExists(const std::string &fileName);
 };
 
 template <typename T>
