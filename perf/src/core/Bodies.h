@@ -62,8 +62,9 @@ public:
 
 	void updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt);
 
-	void write(std::ostream& stream);
+	void write(std::ostream& stream, bool writeN = true);
 	void writeIntoFile(const std::string outputFileName);
+	void writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies = 0);
 
 private:
 	void deallocateBuffers();

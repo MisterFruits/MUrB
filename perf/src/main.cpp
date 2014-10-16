@@ -55,6 +55,7 @@ namespace MPI
 		virtual            ~Comm    (       ) {            };
 		static inline int  Get_rank (       ) { return 0;  };
 		static inline int  Get_size (       ) { return 1;  };
+		static inline void Barrier  (       ) {            };
 		static inline void Abort    (int val) { exit(val); };
 	};
 
@@ -302,38 +303,71 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 }
 
 template <typename T>
-OGLSpheresVisu<T>* selectImplementationAndAllocateVisu(SimulationNBody<floatType> *simu)
+OGLSpheresVisu<T>* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 {
 	OGLSpheresVisu<T>* visu;
 
-	if(!MPI::COMM_WORLD.Get_rank())
-	{
-		if(VisuEnable)
-		{
-			const floatType *positionsX = simu->getBodies().getPositionsX();
-			const floatType *positionsY = simu->getBodies().getPositionsY();
-			const floatType *positionsZ = simu->getBodies().getPositionsZ();
-			const floatType *radiuses   = simu->getBodies().getRadiuses();
+	// only the MPI proc 0 can display the bodies
+	if(MPI::COMM_WORLD.Get_rank())
+		VisuEnable = false;
 
-			if(GSEnable) // geometry shader = better performances on dedicated GPUs
-				visu = new OGLSpheresVisuGS<floatType>("n-body (geometry shader)", WinWidth, WinHeight,
-													   positionsX, positionsY, positionsZ,
-													   radiuses,
-													   NBodies);
-			else
-				visu = new OGLSpheresVisuInst<floatType>("n-body (instancing)", WinWidth, WinHeight,
-														 positionsX, positionsY, positionsZ,
-														 radiuses,
-														 NBodies);
-			cout << endl;
-		}
+	if(VisuEnable)
+	{
+		const T *positionsX = simu->getBodies().getPositionsX();
+		const T *positionsY = simu->getBodies().getPositionsY();
+		const T *positionsZ = simu->getBodies().getPositionsZ();
+		const T *radiuses   = simu->getBodies().getRadiuses();
+
+		if(GSEnable) // geometry shader = better performances on dedicated GPUs
+			visu = new OGLSpheresVisuGS<T>("n-body (geometry shader)", WinWidth, WinHeight,
+			                               positionsX, positionsY, positionsZ,
+			                               radiuses,
+			                               NBodies);
 		else
-			visu = new OGLSpheresVisuNo<floatType>();
+			visu = new OGLSpheresVisuInst<T>("n-body (instancing)", WinWidth, WinHeight,
+			                                 positionsX, positionsY, positionsZ,
+			                                 radiuses,
+			                                 NBodies);
+		cout << endl;
 	}
 	else
-		visu = new OGLSpheresVisuNo<floatType>();
+		visu = new OGLSpheresVisuNo<T>();
+
 
 	return visu;
+}
+
+template <typename T>
+void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
+{
+	string extension = RootOutputFileName.substr(RootOutputFileName.find_last_of(".") + 1);
+	string outputFileName;
+
+	// each process MPI writes its bodies in a common file
+	// TODO: bad perfs
+	if(extension == "dat")
+	{
+		string realRootOutputFileName = RootOutputFileName.substr(0, RootOutputFileName.find_last_of("."));
+		outputFileName = realRootOutputFileName + ".i" + to_string(iIte) + ".p0.dat";
+
+		unsigned long MPINBodies = 0;
+		if(!MPI::COMM_WORLD.Get_rank())
+			MPINBodies = simu->getBodies().getN() * MPI::COMM_WORLD.Get_size();
+
+		for(unsigned long iRank = 0; iRank < MPI::COMM_WORLD.Get_size(); iRank++)
+		{
+			if(iRank == MPI::COMM_WORLD.Get_rank())
+				simu->getBodies().writeIntoFileMPI(outputFileName, MPINBodies);
+
+			MPI::COMM_WORLD.Barrier();
+		}
+	}
+	else // each process MPI writes its bodies in separate files
+	{
+		outputFileName = RootOutputFileName + ".i" + to_string(iIte) +
+		                                      ".p" + to_string(MPI::COMM_WORLD.Get_rank()) + ".dat";
+		simu->getBodies().writeIntoFile(outputFileName);
+	}
 }
 
 int main(int argc, char** argv)
@@ -363,7 +397,7 @@ int main(int argc, char** argv)
 		else
 			cout << "  -> random mode           : enable" << endl;
 		if(!RootOutputFileName.empty())
-			cout << "  -> output file name(s)   : " << RootOutputFileName << ".p*.*.dat" << endl;
+			cout << "  -> output file name(s)   : " << RootOutputFileName << ".i*.p*.dat" << endl;
 		cout <<     "  -> total nb. of bodies   : " << NBodies * MPI::COMM_WORLD.Get_size() << endl;
 		cout <<     "  -> nb. of bodies per proc: " << NBodies << endl;
 		cout <<     "  -> nb. of iterations     : " << NIterations << endl;
@@ -383,10 +417,7 @@ int main(int argc, char** argv)
 
 	// write initial bodies into file
 	if(!RootOutputFileName.empty())
-	{
-		std::string outputFileName = RootOutputFileName + ".p" + to_string(MPI::COMM_WORLD.Get_rank()) + ".0.dat";
-		simu->getBodies().writeIntoFile(outputFileName);
-	}
+		writeBodies<floatType>(simu, 0);
 
 	// time step selection
 	if(!DtVariable)
@@ -418,10 +449,7 @@ int main(int argc, char** argv)
 
 		// write iteration results into file
 		if(!RootOutputFileName.empty())
-		{
-			std::string outputFileName = RootOutputFileName + ".p" + to_string(MPI::COMM_WORLD.Get_rank()) + "." + to_string(iIte) + ".dat";
-			simu->getBodies().writeIntoFile(outputFileName);
-		}
+			writeBodies<floatType>(simu, iIte);
 	}
 	if(!MPI::COMM_WORLD.Get_rank())
 		cout << "Simulation ended." << endl << endl;

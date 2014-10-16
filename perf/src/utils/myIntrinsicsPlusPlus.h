@@ -134,14 +134,12 @@ template <typename T>
 inline vec fnmadd(const vec v1, const vec v2, const vec v3) {
 	std::cerr << "mipp::fnmadd is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
 inline vec fmsub(const vec v1, const vec v2, const vec v3) {
 	std::cerr << "mipp::fmsub is undefined! Program halting..." << std::endl;
 	exit(-1);
-	return nullptr;
 }
 
 template <typename T>
@@ -428,7 +426,7 @@ inline vec rot(const vec v1) {
 		}
 	#endif
 
-	// ---------------------------------------------------------------------------------------------------------- fnmadd
+	// --------------------------------------------------------------------------------------------------------- fnmadd
 	#ifdef __AVX2__
 		template <>
 		inline vec fnmadd<float>(const vec v1, const vec v2, const vec v3) {
@@ -691,7 +689,7 @@ inline vec rot(const vec v1) {
 		return mipp::add<double>(v3, mipp::mul<double>(v1, v2));
 	}
 
-	// ---------------------------------------------------------------------------------------------------------- fnmadd
+	// --------------------------------------------------------------------------------------------------------- fnmadd
 	template <>
 	inline vec fnmadd<float>(const vec v1, const vec v2, const vec v3) {
 		return mipp::sub<float>(v3, mipp::mul<float>(v1, v2));

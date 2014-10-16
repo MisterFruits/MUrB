@@ -11,6 +11,7 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <sys/stat.h>
 
 #include "../utils/myIntrinsicsPlusPlus.h"
 
@@ -431,9 +432,10 @@ bool Bodies<T>::read(std::istream& stream)
 }
 
 template <typename T>
-void Bodies<T>::write(std::ostream& stream)
+void Bodies<T>::write(std::ostream& stream, bool writeN)
 {
-	stream << this->n << std::endl;
+	if(writeN)
+		stream << this->n << std::endl;
 
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 		stream << this->masses      [iBody] << " "
@@ -457,6 +459,31 @@ void Bodies<T>::writeIntoFile(const std::string outputFileName)
 	}
 
 	this->write(bodiesFile);
+
+	bodiesFile.close();
+}
+
+template <typename T>
+void Bodies<T>::writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies)
+{
+	std::fstream bodiesFile;
+
+	if(MPINBodies)
+		bodiesFile.open(outputFileName.c_str(), std::fstream::out | std::fstream::trunc);
+	else
+		bodiesFile.open(outputFileName.c_str(), std::fstream::out | std::fstream::app);
+
+	if(!bodiesFile.is_open())
+	{
+		std::cout << "Can't open \"" << outputFileName << "\" file (writing). Exiting..." << std::endl;
+		exit(-1);
+	}
+
+	if(MPINBodies)
+		bodiesFile << MPINBodies << std::endl;
+
+	bool writeN = false;
+	this->write(bodiesFile, writeN);
 
 	bodiesFile.close();
 }
