@@ -46,7 +46,8 @@ protected:
 	                                                             mipp::vec &rJAccY,
 	                                                             mipp::vec &rJAccZ,
 	                                                             mipp::vec &rJClosNeiDist,
-	                                                       const mipp::vec &rJMass);
+	                                                       const mipp::vec &rJMass,
+																												 const bool  dtConstant );
 private:
 	void reAllocateBuffers();
 	virtual void _computeBodiesAcceleration();

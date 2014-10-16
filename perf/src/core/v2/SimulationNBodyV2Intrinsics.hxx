@@ -187,21 +187,21 @@ void SimulationNBodyV2Intrinsics<T>::_computeBodiesAcceleration()
 			{
 				const unsigned long jBody = jVecPos + iVecOff;
 					this->computeAccelerationBetweenTwoBodiesSelf(positionsX               [iBody           ],
-					                                          positionsY               [iBody           ],
-					                                          positionsZ               [iBody           ],
-					                                          this->accelerations.x    [iBody + thStride],
-					                                          this->accelerations.y    [iBody + thStride],
-					                                          this->accelerations.z    [iBody + thStride],
-					                                          this->closestNeighborDist[iBody           ],
-					                                          masses                   [iBody           ],
-					                                          positionsX               [jBody           ],
-					                                          positionsY               [jBody           ],
-					                                          positionsZ               [jBody           ],
-					                                          this->accelerations.x    [jBody + thStride],
-					                                          this->accelerations.y    [jBody + thStride],
-					                                          this->accelerations.z    [jBody + thStride],
-					                                          this->closestNeighborDist[jBody           ],
-					                                          masses                   [jBody           ]);
+					                                      		    positionsY               [iBody           ],
+					                                         		 	positionsZ               [iBody           ],
+					                                          		this->accelerations.x    [iBody + thStride],
+					                                    		      this->accelerations.y    [iBody + thStride],
+					                                        		  this->accelerations.z    [iBody + thStride],
+					  			                             			    this->closestNeighborDist[iBody           ],
+							                                          masses                   [iBody           ],
+								                                        positionsX               [jBody           ],
+					                                         			positionsY               [jBody           ],
+					                                          		positionsZ               [jBody           ],
+					                                          		this->accelerations.x    [jBody + thStride],
+					                                          		this->accelerations.y    [jBody + thStride],
+					                                          		this->accelerations.z    [jBody + thStride],
+					                                          		this->closestNeighborDist[jBody           ],
+					                                          		masses                   [jBody           ]);
 			}
 		}
 
@@ -215,13 +215,14 @@ void SimulationNBodyV2Intrinsics<T>::_computeBodiesAcceleration()
 		mipp::vec rIAccX = mipp::load<T>(this->accelerations.x + iVecOff + thStride);
 		mipp::vec rIAccY = mipp::load<T>(this->accelerations.y + iVecOff + thStride);
 		mipp::vec rIAccZ = mipp::load<T>(this->accelerations.z + iVecOff + thStride);
-		mipp::vec rIClosNeiDist = mipp::load<T>(this->closestNeighborDist + iVecOff);
+		mipp::vec rIClosNeiDist;
+		if(!this->dtConstant)
+			rIClosNeiDist = mipp::load<T>(this->closestNeighborDist + iVecOff);
 		
 		// computation of the vector number iVec with the following other vectors
 		for(unsigned long jVec = iVec +1; jVec < this->bodies.getNVecs(); jVec++)
 		{
 			const unsigned long jVecOff = jVec * mipp::vectorSize<T>();
-				
 			mipp::vec rJMass = mipp::load<T>(masses     + jVecOff);
 			mipp::vec rJPosX = mipp::load<T>(positionsX + jVecOff); 
 			mipp::vec rJPosY = mipp::load<T>(positionsY + jVecOff);
@@ -230,7 +231,10 @@ void SimulationNBodyV2Intrinsics<T>::_computeBodiesAcceleration()
 			mipp::vec rJAccX = mipp::load<T>(this->accelerations.x + jVecOff + thStride);
 			mipp::vec rJAccY = mipp::load<T>(this->accelerations.y + jVecOff + thStride);
 			mipp::vec rJAccZ = mipp::load<T>(this->accelerations.z + jVecOff + thStride);
-			mipp::vec rJClosNeiDist = mipp::load<T>(this->closestNeighborDist + jVecOff);
+			mipp::vec rJClosNeiDist;
+			if(!this->dtConstant)
+				rJClosNeiDist = mipp::load<T>(this->closestNeighborDist + jVecOff);
+				
 
 	
 			for(unsigned short iRot = 0; iRot < mipp::vectorSize<T>(); iRot++)
@@ -243,7 +247,7 @@ void SimulationNBodyV2Intrinsics<T>::_computeBodiesAcceleration()
 																											rJPosX, rJPosY, rJPosZ,
 																											rJAccX, rJAccY, rJAccZ,
                       	                              rJClosNeiDist,
-                        	                            rJMass);
+                        	                            rJMass, this->dtConstant);
 
 
 				
@@ -253,6 +257,7 @@ void SimulationNBodyV2Intrinsics<T>::_computeBodiesAcceleration()
 				rJClosNeiDist = mipp::rot<T>(rJClosNeiDist);
 				
 			}
+			
 			mipp::store<T>(this->accelerations.x + jVecOff + thStride, rJAccX);
 			mipp::store<T>(this->accelerations.y + jVecOff + thStride, rJAccY);
 			mipp::store<T>(this->accelerations.z + jVecOff + thStride, rJAccZ);
@@ -268,7 +273,8 @@ void SimulationNBodyV2Intrinsics<T>::_computeBodiesAcceleration()
 		mipp::store<T>(this->accelerations.y + iVecOff + thStride, rIAccY);
 		mipp::store<T>(this->accelerations.z + iVecOff + thStride, rIAccZ);
 
-		mipp::store<T>(this->closestNeighborDist + iVecOff, rIClosNeiDist);
+		if(!this->dtConstant)
+			mipp::store<T>(this->closestNeighborDist + iVecOff, rIClosNeiDist);
 	}
 }
 
@@ -359,7 +365,8 @@ void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(const m
 	                                                 									           mipp::vec &rJAccY,
 	                                      				                               mipp::vec &rJAccZ,
 	                                              								               mipp::vec &rJClosNeiDist,
-	                                                  								     const mipp::vec &rJMass)
+	                                                  								     const mipp::vec &rJMass,
+	                                                  								     const bool dtConstant	)
 {
 	//const T diffPosX = jPosX - iPosX; // 1 flop
   mipp::vec rDiffPosX = mipp::sub<T>(rJPosX, rIPosX);
@@ -403,7 +410,8 @@ void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(const m
 	rJAccZ = mipp::fnmadd<T>(rAcc, rDiffPosZ, rJAccZ);
 
 	//  min(iClosNeiDist, dist);
-	rIClosNeiDist = mipp::min<T>(rDist, rIClosNeiDist);
+	if(!dtConstant)
+		rIClosNeiDist = mipp::min<T>(rDist, rIClosNeiDist);
 	
 }
 
@@ -425,7 +433,8 @@ void SimulationNBodyV2Intrinsics<float>::computeAccelerationBetweenTwoBodies(con
 	                                                 									           mipp::vec &rJAccY,
 	                                      				                               mipp::vec &rJAccZ,
 	                                              								               mipp::vec &rJClosNeiDist,
-	                                                  								     const mipp::vec &rJMass)
+	                                                  								     const mipp::vec &rJMass,
+	                                                  								     const bool dtConstant	)
 {
 	//const T diffPosX = jPosX - iPosX; // 1 flop
   mipp::vec rDiffPosX = mipp::sub<float>(rJPosX, rIPosX);
@@ -467,7 +476,8 @@ void SimulationNBodyV2Intrinsics<float>::computeAccelerationBetweenTwoBodies(con
 	rJAccY = mipp::fnmadd<float>(rAcc, rDiffPosY, rJAccY);
 	//jAccsZ -= acc * diffPosZ; // 2 flop
 	rJAccZ = mipp::fnmadd<float>(rAcc, rDiffPosZ, rJAccZ);
-
+	
 	//  min(iClosNeiDist, dist);
-	rIClosNeiDist = mipp::max<float>(rInvDist, rIClosNeiDist);
+	if(!dtConstant)
+		rIClosNeiDist = mipp::max<float>(rInvDist, rIClosNeiDist);
 }
