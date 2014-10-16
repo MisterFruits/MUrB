@@ -134,9 +134,6 @@ void SimulationNBodyV2Intrinsics<T>::_initIteration()
 		this->accelerations.y[iBody] = 0.0;
 		this->accelerations.z[iBody] = 0.0;
 	}
-
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
 }
 
 template <typename T>
@@ -166,7 +163,7 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 	const T *positionsY = this->getBodies().getPositionsY();
 	const T *positionsZ = this->getBodies().getPositionsZ();
 
-  const mipp::vec rG = mipp::set1<T>(this->G);
+	const mipp::vec rG = mipp::set1<T>(this->G);
 
 #pragma omp parallel firstprivate(rG)
 {
@@ -255,10 +252,9 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 			mipp::store<T>(this->accelerations.z + jVecOff + thStride, rJAccZ);
 		
 			if(!this->dtConstant)
-			{
+				//TODO: this critical section is bad for performances when we use variable time step
 #pragma omp critical
 				mipp::store<T>(this->closestNeighborDist + jVecOff, rJClosNeiDist);
-			}
 		}
 
 		mipp::store<T>(this->accelerations.x + iVecOff + thStride, rIAccX);
@@ -399,7 +395,7 @@ void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(const m
 	//jAccsZ -= acc * diffPosZ; // 2 flop
 	rJAccZ = mipp::fnmadd<T>(rAcc, rDiffPosZ, rJAccZ);
 
-	//  min(iClosNeiDist, dist);
+	//min(iClosNeiDist, dist);
 	if(!dtConstant)
 		rIClosNeiDist = mipp::min<T>(rDist, rIClosNeiDist);
 }
