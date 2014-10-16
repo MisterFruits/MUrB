@@ -469,10 +469,7 @@ void Bodies<T>::writeIntoFileMPI(const std::string outputFileName, const unsigne
 	std::fstream bodiesFile;
 
 	if(MPINBodies)
-	{
 		bodiesFile.open(outputFileName.c_str(), std::fstream::out | std::fstream::trunc);
-		bodiesFile << MPINBodies << std::endl;
-	}
 	else
 		bodiesFile.open(outputFileName.c_str(), std::fstream::out | std::fstream::app);
 
@@ -481,6 +478,9 @@ void Bodies<T>::writeIntoFileMPI(const std::string outputFileName, const unsigne
 		std::cout << "Can't open \"" << outputFileName << "\" file (writing). Exiting..." << std::endl;
 		exit(-1);
 	}
+
+	if(MPINBodies)
+		bodiesFile << MPINBodies << std::endl;
 
 	bool writeN = false;
 	this->write(bodiesFile, writeN);
