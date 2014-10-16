@@ -10,10 +10,10 @@
 
 #include <string>
 
-#include "../SimulationNBody.h"
+#include "../SimulationNBodyLocal.h"
 
 template <typename T = double>
-class SimulationNBodyV1 : public SimulationNBody<T>
+class SimulationNBodyV1 : public SimulationNBodyLocal<T>
 {
 public:
 	SimulationNBodyV1(const unsigned long nBodies);
@@ -22,7 +22,7 @@ public:
 
 protected:
 	virtual void initIteration();
-	virtual void computeBodiesAcceleration();
+	virtual void computeLocalBodiesAcceleration();
 
 	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody, const unsigned long &jBody);
 	inline void computeAccelerationBetweenTwoBodies     (const unsigned long &iBody, const unsigned long &jBody);

@@ -29,14 +29,14 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 template <typename T>
 SimulationNBodyV2Vectors<T>::SimulationNBodyV2Vectors(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies)
+	: SimulationNBodyLocal<T>(nBodies)
 {
 	this->reAllocateBuffers();
 }
 
 template <typename T>
 SimulationNBodyV2Vectors<T>::SimulationNBodyV2Vectors(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName)
+	: SimulationNBodyLocal<T>(inputFileName)
 {
 	this->reAllocateBuffers();
 }
@@ -127,7 +127,7 @@ void SimulationNBodyV2Vectors<T>::initIteration()
 }
 
 template <typename T>
-void SimulationNBodyV2Vectors<T>::computeBodiesAcceleration()
+void SimulationNBodyV2Vectors<T>::computeLocalBodiesAcceleration()
 {
 	const T *masses = this->getBodies().getMasses();
 

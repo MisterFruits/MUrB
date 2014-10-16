@@ -28,14 +28,14 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 template <typename T>
 SimulationNBodyV1Intrinsics<T>::SimulationNBodyV1Intrinsics(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies)
+	: SimulationNBodyLocal<T>(nBodies)
 {
 	this->init();
 }
 
 template <typename T>
 SimulationNBodyV1Intrinsics<T>::SimulationNBodyV1Intrinsics(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName)
+	: SimulationNBodyLocal<T>(inputFileName)
 {
 	this->init();
 }
@@ -84,7 +84,7 @@ void SimulationNBodyV1Intrinsics<float>::initIteration()
 }
 
 template <typename T>
-void SimulationNBodyV1Intrinsics<T>::_computeBodiesAcceleration()
+void SimulationNBodyV1Intrinsics<T>::_computeLocalBodiesAcceleration()
 {
 	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
 	//       dynamic time step is broken.
@@ -166,9 +166,9 @@ void SimulationNBodyV1Intrinsics<T>::_computeBodiesAcceleration()
 }
 
 template <typename T>
-void SimulationNBodyV1Intrinsics<T>::computeBodiesAcceleration()
+void SimulationNBodyV1Intrinsics<T>::computeLocalBodiesAcceleration()
 {
-	this->_computeBodiesAcceleration();
+	this->_computeLocalBodiesAcceleration();
 }
 
 template <>

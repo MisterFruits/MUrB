@@ -28,14 +28,14 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 template <typename T>
 SimulationNBodyV2<T>::SimulationNBodyV2(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies)
+	: SimulationNBodyLocal<T>(nBodies)
 {
 	this->reAllocateBuffers();
 }
 
 template <typename T>
 SimulationNBodyV2<T>::SimulationNBodyV2(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName)
+	: SimulationNBodyLocal<T>(inputFileName)
 {
 	this->reAllocateBuffers();
 }
@@ -126,7 +126,7 @@ void SimulationNBodyV2<T>::initIteration()
 }
 
 template <typename T>
-void SimulationNBodyV2<T>::computeBodiesAcceleration()
+void SimulationNBodyV2<T>::computeLocalBodiesAcceleration()
 {
 #pragma omp parallel
 {

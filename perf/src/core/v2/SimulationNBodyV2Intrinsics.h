@@ -12,10 +12,10 @@
 
 #include "../../utils/myIntrinsicsPlusPlus.h"
 
-#include "../SimulationNBody.h"
+#include "../SimulationNBodyLocal.h"
 
 template <typename T = double>
-class SimulationNBodyV1Intrinsics : public SimulationNBody<T>
+class SimulationNBodyV1Intrinsics : public SimulationNBodyLocal<T>
 {
 public:
 	SimulationNBodyV1Intrinsics(const unsigned long nBodies);
@@ -24,7 +24,7 @@ public:
 
 protected:
 	virtual void initIteration();
-	virtual void computeBodiesAcceleration();
+	virtual void computeLocalBodiesAcceleration();
 
 	static inline void computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
 	                                                       const mipp::vec &rIPosX,
@@ -40,7 +40,7 @@ protected:
 	                                                       const mipp::vec &rJPosZ);
 private:
 	void init();
-	virtual void _computeBodiesAcceleration();
+	virtual void _computeLocalBodiesAcceleration();
 };
 
 #include "SimulationNBodyV1Intrinsics.hxx"

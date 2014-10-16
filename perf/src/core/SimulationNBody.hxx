@@ -29,16 +29,15 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #include "SimulationNBody.h"
 
 template <typename T>
-SimulationNBody<T>::SimulationNBody(const unsigned long nBodies)
-	: bodies             (nBodies),
+SimulationNBody<T>::SimulationNBody(const unsigned long nBodies, const unsigned long randInit)
+	: bodies             (nBodies, randInit),
 	  closestNeighborDist(NULL),
 	  dtConstant         (false),
+	  dt                 (std::numeric_limits<T>::infinity()),
 	  flopsPerIte        (0),
 	  allocatedBytes     (bodies.getAllocatedBytes()),
-	  nMaxThreads        (omp_get_max_threads()),
-	  dt                 (std::numeric_limits<T>::infinity())
+	  nMaxThreads        (omp_get_max_threads())
 {
-	assert(nBodies > 0);
 	this->allocateBuffers();
 }
 
@@ -47,10 +46,10 @@ SimulationNBody<T>::SimulationNBody(const std::string inputFileName)
 	: bodies             (inputFileName),
 	  closestNeighborDist(NULL),
 	  dtConstant         (false),
+	  dt                 (std::numeric_limits<T>::infinity()),
 	  flopsPerIte        (0),
 	  allocatedBytes     (bodies.getAllocatedBytes()),
-	  nMaxThreads        (omp_get_max_threads()),
-	  dt                 (std::numeric_limits<T>::infinity())
+	  nMaxThreads        (omp_get_max_threads())
 {
 	this->allocateBuffers();
 }
@@ -157,35 +156,6 @@ template <typename T>
 const float& SimulationNBody<T>::getAllocatedBytes()
 {
 	return this->allocatedBytes;
-}
-
-template <typename T>
-void SimulationNBody<T>::computeOneIteration()
-{
-	this->initIteration();
-	this->computeBodiesAcceleration();
-	if(!this->dtConstant)
-		this->findTimeStep();
-	this->bodies.updatePositionsAndVelocities(this->accelerations, this->dt);
-}
-
-template <typename T>
-void SimulationNBody<T>::findTimeStep()
-{
-	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
-	//       dynamic time step is broken.
-	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
-	if(!this->dtConstant)
-	{
-		this->dt = std::numeric_limits<T>::infinity();
-		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-		{
-			const T newDt = computeTimeStep(iBody);
-
-			if(newDt < this->dt)
-				this->dt = newDt;
-		}
-	}
 }
 
 template <typename T>

@@ -43,7 +43,7 @@ SimulationNBodyV2CB<T>::~SimulationNBodyV2CB()
 }
 
 template <typename T>
-void SimulationNBodyV2CB<T>::computeBodiesAcceleration()
+void SimulationNBodyV2CB<T>::computeLocalBodiesAcceleration()
 {
 	unsigned long blockSize = 512;
 	for(unsigned long jOff = 0; jOff < this->bodies.getN(); jOff += blockSize)

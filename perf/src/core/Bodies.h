@@ -10,6 +10,9 @@
 
 #include <string>
 
+template <typename T>
+class SimulationNBodyMPI;
+
 template <typename T = double>
 struct vector3
 {
@@ -21,8 +24,10 @@ struct vector3
 template <typename T = double>
 class Bodies
 {
+	friend SimulationNBodyMPI<T>;
+
 private:
-	unsigned long n;
+	unsigned long  n;
 	T             *masses;
 	T             *radiuses;
 	vector3<T>     positions;
@@ -30,16 +35,17 @@ private:
 	unsigned long  nVecs;
 	unsigned short padding;
 	// stats
-	float         allocatedBytes;
+	float          allocatedBytes;
 
 public:
-	Bodies(const unsigned long n);
+	Bodies(const unsigned long n, const unsigned long randInit = 0);
 	Bodies(const std::string inputFileName);
 	Bodies(const Bodies<T>& bodies);
 
 	virtual ~Bodies();
 
 	Bodies<T>& operator=(const Bodies<T>& bodies);
+	void hardCopy(const Bodies<T>& bodies);
 
 	inline const unsigned long& getN();
 	inline const unsigned long& getNVecs();
@@ -60,13 +66,14 @@ public:
 	void writeIntoFile(const std::string outputFileName);
 
 private:
+	void deallocateBuffers();
 	inline void setBody(const unsigned long &iBody,
 	                    const T &mass, const T &radius,
 	                    const T &posX, const T &posY, const T &posZ,
 	                    const T &velocityX, const T &velocityY, const T &velocityZ);
 	bool read(std::istream& stream);
 	void allocateBuffers();
-	void initRandomly();
+	void initRandomly(const unsigned long randInit = 0);
 	void initFromFile(const std::string inputFileName);
 };
 

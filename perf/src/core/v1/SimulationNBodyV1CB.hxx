@@ -56,7 +56,7 @@ SimulationNBodyV1CB<T>::~SimulationNBodyV1CB()
 	OI  = (23 * blockSize)                      / (7 * sizeof(T))
 */
 template <typename T>
-void SimulationNBodyV1CB<T>::computeBodiesAcceleration()
+void SimulationNBodyV1CB<T>::computeLocalBodiesAcceleration()
 {
 	unsigned long blockSize = 512;
 	// flops  = 23 * blockSize * nBodies      * nBlocks

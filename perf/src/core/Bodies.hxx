@@ -17,7 +17,7 @@
 #include "Bodies.h"
 
 template <typename T>
-Bodies<T>::Bodies(const unsigned long n)
+Bodies<T>::Bodies(const unsigned long n, const unsigned long randInit)
 	: n             (n),
 	  masses        (NULL),
 	  radiuses      (NULL),
@@ -26,7 +26,7 @@ Bodies<T>::Bodies(const unsigned long n)
 	  allocatedBytes(0)
 {
 	assert(n > 0);
-	this->initRandomly();
+	this->initRandomly(randInit);
 }
 
 template <typename T>
@@ -60,9 +60,26 @@ Bodies<T>::Bodies(const Bodies<T>& bodies)
 }
 
 template <typename T>
-Bodies<T>& Bodies<T>::operator=(const Bodies<T>& bodies)
+void Bodies<T>::hardCopy(const Bodies<T>& bodies)
 {
-	return Bodies<T>(bodies);
+	assert((this->n + this->padding) == (bodies.n + bodies.padding));
+
+	this->n              = bodies.n;
+	this->padding        = bodies.padding;
+	this->nVecs          = bodies.nVecs;
+	this->allocatedBytes = bodies.allocatedBytes;
+
+	for(unsigned long iBody = 0; iBody < this->n + this->padding; iBody++)
+	{
+		this->masses      [iBody] = bodies.masses      [iBody];
+		this->radiuses    [iBody] = bodies.radiuses    [iBody];
+		this->positions.x [iBody] = bodies.positions.x [iBody];
+		this->positions.y [iBody] = bodies.positions.y [iBody];
+		this->positions.z [iBody] = bodies.positions.z [iBody];
+		this->velocities.x[iBody] = bodies.velocities.x[iBody];
+		this->velocities.y[iBody] = bodies.velocities.y[iBody];
+		this->velocities.z[iBody] = bodies.velocities.z[iBody];
+	}
 }
 
 template <typename T>
@@ -266,11 +283,11 @@ void Bodies<T>::setBody(const unsigned long &iBody,
 }
 
 template <typename T>
-void Bodies<T>::initRandomly()
+void Bodies<T>::initRandomly(const unsigned long randInit)
 {
 	this->allocateBuffers();
 
-	srand(123);
+	srand(randInit);
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
 		T mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ;

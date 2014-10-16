@@ -22,16 +22,14 @@ protected:
 	vector3<T> accelerations;
 	T         *closestNeighborDist;
 	bool       dtConstant;
+	T          dt;
 	// stats
 	float      flopsPerIte;
 	float      allocatedBytes;
 	unsigned   nMaxThreads;
 
-private:
-	T          dt;
-
 protected:
-	SimulationNBody(const unsigned long nBodies);
+	SimulationNBody(const unsigned long nBodies, const unsigned long randInit = 0);
 	SimulationNBody(const std::string inputFileName);
 
 public:
@@ -43,16 +41,16 @@ public:
 	inline const T& getDt();
 	inline const float& getFlopsPerIte();
 	inline const float& getAllocatedBytes();
-	void computeOneIteration();
+
+	virtual void computeOneIteration() = 0;
 
 protected:
-	virtual void initIteration()             = 0;
-	virtual void computeBodiesAcceleration() = 0;
+	virtual void initIteration() = 0;
+	virtual void findTimeStep()  = 0;
+	inline T computeTimeStep(const unsigned long iBody);
 
 private:
 	void allocateBuffers();
-	void findTimeStep();
-	inline T computeTimeStep(const unsigned long iBody);
 };
 
 #include "SimulationNBody.hxx"

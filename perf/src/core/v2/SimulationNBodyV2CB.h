@@ -20,7 +20,7 @@ public:
 	virtual ~SimulationNBodyV2CB();
 
 protected:
-	virtual void computeBodiesAcceleration();
+	virtual void computeLocalBodiesAcceleration();
 };
 
 #include "SimulationNBodyV2CB.hxx"
