@@ -35,6 +35,7 @@ using namespace std;
 #include "core/v2/SimulationNBodyV2.h"
 #include "core/v2/SimulationNBodyV2CB.h"
 #include "core/v2/SimulationNBodyV2Vectors.h"
+#include "core/v2/SimulationNBodyV2Intrinsics.h"
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -117,7 +118,7 @@ void argsReader(int argc, char** argv)
 	faculArgs["-vdt"]   = "";
 	docArgs  ["-vdt"]   = "enable variable time step.";
 	faculArgs["-im"]   = "ImplId";
-	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20, 21, 22 or 100).";
+	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20, 21, 22, 23 or 100).";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
@@ -255,6 +256,13 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2Vectors<T>(NBodies);
 			else
 				simu = new SimulationNBodyV2Vectors<T>(inputFileName);
+			break;
+		case 23:
+			cout << "Selected implementation: V2 + intrinsics - O(n²/2)" << endl << endl;
+			if(RootInputFileName.empty())
+				simu = new SimulationNBodyV2Intrinsics<T>(NBodies);
+			else
+				simu = new SimulationNBodyV2Intrinsics<T>(inputFileName);
 			break;
 #ifndef NO_MPI
 		case 100:

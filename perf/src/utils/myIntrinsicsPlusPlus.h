@@ -131,6 +131,20 @@ inline vec fmadd(const vec v1, const vec v2, const vec v3) {
 }
 
 template <typename T>
+inline vec fnmadd(const vec v1, const vec v2, const vec v3) {
+	std::cerr << "mipp::fnmadd is undefined! Program halting..." << std::endl;
+	exit(-1);
+	return nullptr;
+}
+
+template <typename T>
+inline vec fmsub(const vec v1, const vec v2, const vec v3) {
+	std::cerr << "mipp::fmsub is undefined! Program halting..." << std::endl;
+	exit(-1);
+	return nullptr;
+}
+
+template <typename T>
 inline vec rot(const vec v1) {
 	std::cerr << "mipp::rot is undefined! Program halting..." << std::endl;
 	exit(-1);
@@ -228,6 +242,19 @@ inline vec rot(const vec v1) {
 		return mipp::add<float>(v3, mipp::mul<float>(v1, v2));
 	}
 
+	// ---------------------------------------------------------------------------------------------------------- fnmadd
+	template <>
+	inline vec fnmadd<float>(const vec v1, const vec v2, const vec v3) {
+		return mipp::sub<float>(v3, mipp::mul<float>(v1, v2));
+	}
+
+
+	// ---------------------------------------------------------------------------------------------------------- fmsub
+	template <>
+	inline vec fmsub<float>(const vec v1, const vec v2, const vec v3) {
+		return mipp::sub<float>(mipp::mul<float>(v1, v2), v3);
+	}
+
 	// ------------------------------------------------------------------------------------------------------------ rot
 	template <>
 	inline vec rot<float>(const vec v1) {
@@ -240,19 +267,21 @@ inline vec rot(const vec v1) {
 #elif defined(__AVX__)
 
 	/* intrinsics AVX headers (float)                               intrinsics AVX headers (double)
-	__m256 _mm256_load_ps        (float const *mem_addr);        __m256d _mm256_load_pd        (double const *mem_addr);
-	__m256 _mm256_set1_ps        (float a);                      __m256d _mm256_set1_pd        (double a);
-	__m256 _mm256_add_ps         (__m256 a, __m256 b);           __m256d _mm256_add_pd         (__m256d a, __m256d b);
-	__m256 _mm256_sub_ps         (__m256 a, __m256 b);           __m256d _mm256_sub_pd         (__m256d a, __m256d b);
-	__m256 _mm256_mul_ps         (__m256 a, __m256 b);           __m256d _mm256_mul_pd         (__m256d a, __m256d b);
-	__m256 _mm256_div_ps         (__m256 a, __m256 b);           __m256d _mm256_div_pd         (__m256d a, __m256d b);
-	__m256 _mm256_min_ps         (__m256 a, __m256 b);           __m256d _mm256_min_pd         (__m256d a, __m256d b);
-	__m256 _mm256_max_ps         (__m256 a, __m256 b);           __m256d _mm256_max_pd         (__m256d a, __m256d b);
-	__m256 _mm256_sqrt_ps        (__m256 a);                     __m256d _mm256_sqrt_pd        (__m256d a);
+	__m256 _mm256_load_ps        (float const *mem_addr);         __m256d _mm256_load_pd        (double const *mem_addr);
+	__m256 _mm256_set1_ps        (float a);                       __m256d _mm256_set1_pd        (double a);
+	__m256 _mm256_add_ps         (__m256 a, __m256 b);            __m256d _mm256_add_pd         (__m256d a, __m256d b);
+	__m256 _mm256_sub_ps         (__m256 a, __m256 b);            __m256d _mm256_sub_pd         (__m256d a, __m256d b);
+	__m256 _mm256_mul_ps         (__m256 a, __m256 b);            __m256d _mm256_mul_pd         (__m256d a, __m256d b);
+	__m256 _mm256_div_ps         (__m256 a, __m256 b);            __m256d _mm256_div_pd         (__m256d a, __m256d b);
+	__m256 _mm256_min_ps         (__m256 a, __m256 b);            __m256d _mm256_min_pd         (__m256d a, __m256d b);
+	__m256 _mm256_max_ps         (__m256 a, __m256 b);            __m256d _mm256_max_pd         (__m256d a, __m256d b);
+	__m256 _mm256_sqrt_ps        (__m256 a);                      __m256d _mm256_sqrt_pd        (__m256d a);
 	__m256 _mm256_rsqrt_ps       (__m256 a);
-	__m256 _mm256_fmadd_ps       (__m256 a, __m256 b, __m256 c); __m256d _mm256_fmadd_pd       (__m256d a, __m256d b, __m256d c);
-	__m256 _mm256_permute4x64_ps (__m256d a, const int imm)      __m256d _mm256_permute4x64_pd (__m256d a, const int imm)
-	  void _mm256_store_ps       (float * mem_addr, __m256 a);     void  _mm256_store_pd       (double * mem_addr, __m256d a);
+	__m256 _mm256_fmadd_ps       (__m256 a, __m256 b, __m256 c);  __m256d _mm256_fmadd_pd       (__m256d a, __m256d b, __m256d c);
+	__m256 _mm256_fnmadd_ps       (__m256 a, __m256 b, __m256 c); __m256d _mm256_fnmadd_pd       (__m256d a, __m256d b, __m256d c);
+	__m256 _mm256_fmsub_ps       (__m256 a, __m256 b, __m256 c);  __m256d _mm256_fmsub_pd       (__m256d a, __m256d b, __m256d c);
+	__m256 _mm256_permute4x64_ps (__m256d a, const int imm)       __m256d _mm256_permute4x64_pd (__m256d a, const int imm)
+	  void _mm256_store_ps       (float * mem_addr, __m256 a);      void  _mm256_store_pd       (double * mem_addr, __m256d a);
 	*/
 
 	// ----------------------------------------------------------------------------------------------------------- load
@@ -399,6 +428,53 @@ inline vec rot(const vec v1) {
 		}
 	#endif
 
+	// ---------------------------------------------------------------------------------------------------------- fnmadd
+	#ifdef __AVX2__
+		template <>
+		inline vec fnmadd<float>(const vec v1, const vec v2, const vec v3) {
+			return _mm256_fnmadd_ps(v1, v2, v3);
+		}
+
+		template <>
+		inline vec fnmadd<double>(const vec v1, const vec v2, const vec v3) {
+			return (__m256) _mm256_fnmadd_pd((__m256d) v1, (__m256d) v2, (__m256d) v3);
+		}
+	#else
+		template <>
+		inline vec fnmadd<float>(const vec v1, const vec v2, const vec v3) {
+			return mipp::sub<float>(v3, mipp::mul<float>(v1, v2));
+		}
+
+		template <>
+		inline vec fnmadd<double>(const vec v1, const vec v2, const vec v3) {
+			return mipp::sub<double>(v3, mipp::mul<double>(v1, v2));
+		}
+	#endif
+
+
+	// ---------------------------------------------------------------------------------------------------------- fmsub
+	#ifdef __AVX2__
+		template <>
+		inline vec fmsub<float>(const vec v1, const vec v2, const vec v3) {
+			return _mm256_fmsub_ps(v1, v2, v3);
+		}
+
+		template <>
+		inline vec fmsub<double>(const vec v1, const vec v2, const vec v3) {
+			return (__m256) _mm256_fmsub_pd((__m256d) v1, (__m256d) v2, (__m256d) v3);
+		}
+	#else
+		template <>
+		inline vec fmsub<float>(const vec v1, const vec v2, const vec v3) {
+			return mipp::sub<float>(mipp::mul<float>(v1, v2), v3);
+		}
+
+		template <>
+		inline vec fmsub<double>(const vec v1, const vec v2, const vec v3) {
+			return mipp::sub<double>(mipp::mul<double>(v1, v2), v3);
+		}
+	#endif
+
 	// ------------------------------------------------------------------------------------------------------------ rot
 	#ifdef __AVX2__
 		template <>
@@ -410,7 +486,7 @@ inline vec rot(const vec v1) {
 		template <>
 		inline vec rot<double>(const vec v1) {
 			// make a rotation in:[3, 2 , 1, 0] => out:[0, 3, 2, 1]
-			return (__m256) _mm256_permute4x64_pd ((__m256d) v1, _MM_SHUFFLE(0, 3, 2, 1));
+			return (__m256) _mm256_permute4x64_pd ((__m256d) v1, _MM_SHUFFLE(2 ,1, 0, 3));
 		}
 	#else
 		template <>
@@ -613,6 +689,29 @@ inline vec rot(const vec v1) {
 	template <>
 	inline vec fmadd<double>(const vec v1, const vec v2, const vec v3) {
 		return mipp::add<double>(v3, mipp::mul<double>(v1, v2));
+	}
+
+	// ---------------------------------------------------------------------------------------------------------- fnmadd
+	template <>
+	inline vec fnmadd<float>(const vec v1, const vec v2, const vec v3) {
+		return mipp::sub<float>(v3, mipp::mul<float>(v1, v2));
+	}
+
+	template <>
+	inline vec fnmadd<double>(const vec v1, const vec v2, const vec v3) {
+		return mipp::sub<double>(v3, mipp::mul<double>(v1, v2));
+	}
+
+
+	// ---------------------------------------------------------------------------------------------------------- fmsub
+	template <>
+	inline vec fmsub<float>(const vec v1, const vec v2, const vec v3) {
+		return mipp::sub<float>(mipp::mul<float>(v1, v2), v3);
+	}
+
+	template <>
+	inline vec fmsub<double>(const vec v1, const vec v2, const vec v3) {
+		return mipp::sub<double>(mipp::mul<double>(v1, v2), v3);
 	}
 
 	// ------------------------------------------------------------------------------------------------------------ rot
