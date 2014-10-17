@@ -36,6 +36,7 @@ using namespace std;
 #include "core/v2/SimulationNBodyV2CB.h"
 #include "core/v2/SimulationNBodyV2Vectors.h"
 #include "core/v2/SimulationNBodyV2Intrinsics.h"
+#include "core/v2/SimulationNBodyV2FineTuned.h"
 
 #ifdef USE_MPI
 #include <mpi.h>
@@ -262,6 +263,13 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 			cout << "Selected implementation: V2 + intrinsics - O(n²/2)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV2Intrinsics<T>(NBodies);
+			else
+				simu = new SimulationNBodyV2Intrinsics<T>(inputFileName);
+			break;
+		case 24:
+			cout << "Selected implementation: V2 + intrinsics fine tuned - O(n²/2)" << endl << endl;
+			if(RootInputFileName.empty())
+				simu = new SimulationNBodyV2FineTuned<T>(NBodies);
 			else
 				simu = new SimulationNBodyV2Intrinsics<T>(inputFileName);
 			break;
