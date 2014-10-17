@@ -19,9 +19,12 @@ using floatType = float;
 #include <iostream>
 using namespace std;
 
-#include "ogl/OGLSpheresVisuInst.h"
+#include "ogl/SpheresVisu.h"
+#include "ogl/SpheresVisuNo.h"
+#ifdef VISU
 #include "ogl/OGLSpheresVisuGS.h"
-#include "ogl/OGLSpheresVisuNo.h"
+#include "ogl/OGLSpheresVisuInst.h"
+#endif
 
 #include "utils/Perf.h"
 #include "utils/ArgumentsReader.h"
@@ -303,14 +306,15 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 }
 
 template <typename T>
-OGLSpheresVisu<T>* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
+SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 {
-	OGLSpheresVisu<T>* visu;
+	SpheresVisu* visu;
 
 	// only the MPI proc 0 can display the bodies
 	if(MPI::COMM_WORLD.Get_rank())
 		VisuEnable = false;
 
+#ifdef VISU
 	if(VisuEnable)
 	{
 		const T *positionsX = simu->getBodies().getPositionsX();
@@ -331,7 +335,8 @@ OGLSpheresVisu<T>* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 		cout << endl;
 	}
 	else
-		visu = new OGLSpheresVisuNo<T>();
+#endif
+		visu = new SpheresVisuNo<T>();
 
 
 	return visu;
@@ -398,19 +403,19 @@ int main(int argc, char** argv)
 			cout << "  -> random mode           : enable" << endl;
 		if(!RootOutputFileName.empty())
 			cout << "  -> output file name(s)   : " << RootOutputFileName << ".i*.p*.dat" << endl;
-		cout <<     "  -> total nb. of bodies   : " << NBodies * MPI::COMM_WORLD.Get_size() << endl;
-		cout <<     "  -> nb. of bodies per proc: " << NBodies << endl;
-		cout <<     "  -> nb. of iterations     : " << NIterations << endl;
-		cout <<     "  -> verbose mode          : " << ((Verbose) ? "enable" : "disable") << endl;
-		cout <<     "  -> precision             : " << ((sizeof(floatType) == 4) ? "simple" : "double") << endl;
-		cout <<     "  -> mem. allocated        : " << Mbytes << " MB" << endl;
-		cout <<     "  -> geometry shader       : " << ((GSEnable) ? "enable" : "disable") << endl;
-		cout <<     "  -> time step             : " << ((DtVariable) ? "variable" : to_string(Dt) + " sec") << endl;
-		cout <<     "  -> nb. of MPI proc       : " << MPI::COMM_WORLD.Get_size() << endl << endl;
+		cout << "  -> total nb. of bodies   : " << NBodies * MPI::COMM_WORLD.Get_size() << endl;
+		cout << "  -> nb. of bodies per proc: " << NBodies << endl;
+		cout << "  -> nb. of iterations     : " << NIterations << endl;
+		cout << "  -> verbose mode          : " << ((Verbose) ? "enable" : "disable") << endl;
+		cout << "  -> precision             : " << ((sizeof(floatType) == 4) ? "simple" : "double") << endl;
+		cout << "  -> mem. allocated        : " << Mbytes << " MB" << endl;
+		cout << "  -> geometry shader       : " << ((GSEnable) ? "enable" : "disable") << endl;
+		cout << "  -> time step             : " << ((DtVariable) ? "variable" : to_string(Dt) + " sec") << endl;
+		cout << "  -> nb. of MPI proc       : " << MPI::COMM_WORLD.Get_size() << endl << endl;
 	}
 
 	// initialize visualization of bodies (with spheres in space)
-	OGLSpheresVisu<floatType> *visu = selectImplementationAndAllocateVisu<floatType>(simu);
+	SpheresVisu *visu = selectImplementationAndAllocateVisu<floatType>(simu);
 
 	if(!MPI::COMM_WORLD.Get_rank())
 		cout << "Simulation started..." << endl;

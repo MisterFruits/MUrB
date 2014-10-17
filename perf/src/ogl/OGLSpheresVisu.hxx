@@ -29,7 +29,8 @@ OGLSpheresVisu<T>::OGLSpheresVisu(const string winName,
                                   const T *positionsZ,
                                   const T *radius,
                                   const unsigned long nSpheres)
-	: window           (NULL),
+	: SpheresVisu(),
+	  window           (NULL),
 	  positionsX       (positionsX),
 	  positionsXBuffer (NULL),
 	  positionsY       (positionsY),
@@ -106,7 +107,8 @@ OGLSpheresVisu<T>::OGLSpheresVisu(const string winName,
 
 template <typename T>
 OGLSpheresVisu<T>::OGLSpheresVisu()
-	: window           (NULL),
+	: SpheresVisu(),
+	  window           (NULL),
 	  positionsX       (NULL),
 	  positionsXBuffer (NULL),
 	  positionsY       (NULL),

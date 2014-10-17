@@ -16,10 +16,12 @@
 
 #include <glm/glm.hpp>
 
+#include "SpheresVisu.h"
+
 #include "OGLControl.h"
 
 template <typename T = double>
-class OGLSpheresVisu {
+class OGLSpheresVisu : public SpheresVisu {
 protected:
 	GLFWwindow *window;
 
@@ -58,7 +60,7 @@ protected:
 public:
 	virtual ~OGLSpheresVisu();
 	virtual void refreshDisplay() = 0;
-	inline bool windowShouldClose();
+	bool windowShouldClose();
 
 protected:
 	bool compileShaders(const std::vector<GLenum> shadersType, const std::vector<std::string> shadersFiles);
