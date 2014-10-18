@@ -38,6 +38,7 @@ private:
 	float          allocatedBytes;
 
 public:
+	Bodies();
 	Bodies(const unsigned long n, const unsigned long randInit = 0);
 	Bodies(const std::string inputFileName);
 	Bodies(const Bodies<T>& bodies);
@@ -62,9 +63,10 @@ public:
 
 	void updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt);
 
+	bool readFromFile(const std::string inputFileName);
 	void write(std::ostream& stream, bool writeN = true);
-	void writeIntoFile(const std::string outputFileName);
-	void writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies = 0);
+	bool writeIntoFile(const std::string outputFileName);
+	bool writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies = 0);
 
 private:
 	void deallocateBuffers();
@@ -75,7 +77,7 @@ private:
 	bool read(std::istream& stream);
 	void allocateBuffers();
 	void initRandomly(const unsigned long randInit = 0);
-	void initFromFile(const std::string inputFileName);
+	bool initFromFile(const std::string inputFileName);
 };
 
 template <typename T>

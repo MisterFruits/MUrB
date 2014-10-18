@@ -5,6 +5,7 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
+#ifdef VISU
 #ifndef OGL_CONTROL_H_
 #define OGL_CONTROL_H_
 
@@ -53,3 +54,4 @@ public:
 };
 
 #endif /* OGL_CONTROL_H_ */
+#endif /* VISU */

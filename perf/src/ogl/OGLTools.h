@@ -5,6 +5,7 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
+#ifdef VISU
 #ifndef OGLTOOLS_H_
 #define OGLTOOLS_H_
 
@@ -23,3 +24,4 @@ public:
 };
 
 #endif /* OGLTOOLS_H_ */
+#endif /* VISU */

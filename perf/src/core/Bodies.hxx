@@ -18,10 +18,21 @@
 #include "Bodies.h"
 
 template <typename T>
+Bodies<T>::Bodies()
+	: n             (0),
+	  masses        (nullptr),
+	  radiuses      (nullptr),
+	  nVecs         (0),
+	  padding       (0),
+	  allocatedBytes(0)
+{
+}
+
+template <typename T>
 Bodies<T>::Bodies(const unsigned long n, const unsigned long randInit)
 	: n             (n),
-	  masses        (NULL),
-	  radiuses      (NULL),
+	  masses        (nullptr),
+	  radiuses      (nullptr),
 	  nVecs         (ceil((T) n / (T) mipp::vectorSize<T>())),
 	  padding       ((this->nVecs * mipp::vectorSize<T>()) - this->n),
 	  allocatedBytes(0)
@@ -33,13 +44,14 @@ Bodies<T>::Bodies(const unsigned long n, const unsigned long randInit)
 template <typename T>
 Bodies<T>::Bodies(const std::string inputFileName)
 	: n             (0),
-	  masses        (NULL),
-	  radiuses      (NULL),
+	  masses        (nullptr),
+	  radiuses      (nullptr),
 	  nVecs         (0),
 	  padding       (0),
 	  allocatedBytes(0)
 {
-	this->initFromFile(inputFileName);
+	if(!this->initFromFile(inputFileName))
+		exit(-1);
 }
 
 template <typename T>
@@ -326,7 +338,7 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 }
 
 template <typename T>
-void Bodies<T>::initFromFile(const std::string inputFileName)
+bool Bodies<T>::initFromFile(const std::string inputFileName)
 {
 	std::ifstream bodiesFile;
 	bodiesFile.open(inputFileName.c_str(), std::ios::in);
@@ -334,7 +346,7 @@ void Bodies<T>::initFromFile(const std::string inputFileName)
 	if(!bodiesFile.is_open())
 	{
 		std::cout << "Can't open \"" << inputFileName << "\" file (reading)." << std::endl;
-		exit(-1);
+		return false;
 	}
 
 	bool isOk = this->read(bodiesFile);
@@ -344,8 +356,10 @@ void Bodies<T>::initFromFile(const std::string inputFileName)
 	{
 		std::cout << "Something bad occurred during the reading of \"" << inputFileName
 		          << "\" file... exiting." << std::endl;
-		exit(-1);
+		return false;
 	}
+
+	return true;
 }
 
 template <typename T>
@@ -374,6 +388,13 @@ void Bodies<T>::updatePositionsAndVelocities(const vector3<T> &accelerations, T 
 
 		this->setBody(iBody, mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ);
 	}
+}
+
+template <typename T>
+bool Bodies<T>::readFromFile(const std::string inputFileName)
+{
+	assert(this->n == 0);
+	return this->initFromFile(inputFileName);
 }
 
 template <typename T>
@@ -449,22 +470,24 @@ void Bodies<T>::write(std::ostream& stream, bool writeN)
 }
 
 template <typename T>
-void Bodies<T>::writeIntoFile(const std::string outputFileName)
+bool Bodies<T>::writeIntoFile(const std::string outputFileName)
 {
 	std::fstream bodiesFile(outputFileName.c_str(), std::ios_base::out);
 	if(!bodiesFile.is_open())
 	{
 		std::cout << "Can't open \"" << outputFileName << "\" file (writing). Exiting..." << std::endl;
-		exit(-1);
+		return false;
 	}
 
 	this->write(bodiesFile);
 
 	bodiesFile.close();
+
+	return true;
 }
 
 template <typename T>
-void Bodies<T>::writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies)
+bool Bodies<T>::writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies)
 {
 	std::fstream bodiesFile;
 
@@ -476,7 +499,7 @@ void Bodies<T>::writeIntoFileMPI(const std::string outputFileName, const unsigne
 	if(!bodiesFile.is_open())
 	{
 		std::cout << "Can't open \"" << outputFileName << "\" file (writing). Exiting..." << std::endl;
-		exit(-1);
+		return false;
 	}
 
 	if(MPINBodies)
@@ -486,6 +509,8 @@ void Bodies<T>::writeIntoFileMPI(const std::string outputFileName, const unsigne
 	this->write(bodiesFile, writeN);
 
 	bodiesFile.close();
+
+	return true;
 }
 
 template <typename T>

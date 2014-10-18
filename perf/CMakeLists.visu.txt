@@ -32,7 +32,10 @@ add_executable (nbody ${source_files})
 # Add librairies for linking
 target_link_libraries(nbody glew glfw ${GLFW_LIBRARIES})
 
-# Activate C++11
+# Enable C++11
 if(CMAKE_COMPILER_IS_GNUCXX)
     add_definitions(-std=c++11)
 endif()
+
+# Enable visualization
+add_definitions(-DVISU)

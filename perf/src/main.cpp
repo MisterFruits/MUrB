@@ -200,7 +200,7 @@ string strDate(T timestamp)
 template <typename T>
 SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 {
-	SimulationNBody<floatType> *simu;
+	SimulationNBody<floatType> *simu = nullptr;
 
 	string inputFileName = RootInputFileName + ".p" + to_string(MPI::COMM_WORLD.Get_rank()) + ".dat";
 
@@ -274,7 +274,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV2FineTuned<T>(NBodies);
 			else
-				simu = new SimulationNBodyV2Intrinsics<T>(inputFileName);
+				simu = new SimulationNBodyV2FineTuned<T>(inputFileName);
 			break;
 #ifndef NO_MPI
 		case 100:
@@ -346,14 +346,17 @@ template <typename T>
 void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 {
 	string extension = RootOutputFileName.substr(RootOutputFileName.find_last_of(".") + 1);
+	string tmpFileName;
 	string outputFileName;
+
 
 	// each process MPI writes its bodies in a common file
 	// TODO: bad perfs
 	if(extension == "dat")
 	{
 		string realRootOutputFileName = RootOutputFileName.substr(0, RootOutputFileName.find_last_of("."));
-		outputFileName = realRootOutputFileName + ".i" + to_string(iIte) + ".p0.dat";
+		tmpFileName = realRootOutputFileName + ".i" + to_string(iIte);
+		outputFileName = tmpFileName + ".p0.dat";
 
 		unsigned long MPINBodies = 0;
 		if(!MPI::COMM_WORLD.Get_rank())
@@ -362,16 +365,23 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 		for(unsigned long iRank = 0; iRank < MPI::COMM_WORLD.Get_size(); iRank++)
 		{
 			if(iRank == MPI::COMM_WORLD.Get_rank())
-				simu->getBodies().writeIntoFileMPI(outputFileName, MPINBodies);
+				if(!simu->getBodies().writeIntoFileMPI(outputFileName, MPINBodies))
+					MPI::COMM_WORLD.Abort(-1);
 
 			MPI::COMM_WORLD.Barrier();
 		}
 	}
 	else // each process MPI writes its bodies in separate files
 	{
-		outputFileName = RootOutputFileName + ".i" + to_string(iIte) +
-		                                      ".p" + to_string(MPI::COMM_WORLD.Get_rank()) + ".dat";
+		tmpFileName = RootOutputFileName + ".i" + to_string(iIte);
+		outputFileName = tmpFileName + ".p" + to_string(MPI::COMM_WORLD.Get_rank()) + ".dat";
 		simu->getBodies().writeIntoFile(outputFileName);
+	}
+
+	if(Verbose && !MPI::COMM_WORLD.Get_rank())
+	{
+		tmpFileName = tmpFileName + ".p*.dat";
+		cout << "   Writing iteration n°" << iIte << " into \"" << tmpFileName << "\" file(s)." << endl;
 	}
 }
 
@@ -448,7 +458,7 @@ int main(int argc, char** argv)
 
 		// display the status of this iteration
 		if(Verbose && !MPI::COMM_WORLD.Get_rank())
-			cout << "Processing step " << iIte << " took " << perfIte.getElapsedTime() << " ms "
+			cout << "Processing iteration n°" << iIte << " took " << perfIte.getElapsedTime() << " ms "
 			     << "(" << perfIte.getGflops(simu->getFlopsPerIte()) << " Gflop/s), "
 			     << "physic time: " << strDate(physicTime) << endl;
 

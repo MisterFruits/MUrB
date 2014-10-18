@@ -5,6 +5,7 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
+#ifdef VISU
 #include "OGLControl.h"
 
 #include <glm/gtc/matrix_transform.hpp>
@@ -133,3 +134,4 @@ glm::mat4 OGLControl::getProjectionMatrix()
 {
 	return this->projectionMatrix;
 }
+#endif /* VISU */

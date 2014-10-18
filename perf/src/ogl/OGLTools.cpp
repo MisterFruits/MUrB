@@ -5,6 +5,7 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
+#ifdef VISU
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
@@ -128,3 +129,4 @@ GLuint OGLTools::linkShaders(const vector<GLuint> shaders)
 
 	return(shaderProgram);
 }
+#endif /* VISU */
