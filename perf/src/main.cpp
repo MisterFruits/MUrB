@@ -31,15 +31,15 @@ using namespace std;
 
 #include "core/Bodies.h"
 #include "core/SimulationNBody.h"
-#include "core/v1/SimulationNBodyV1.h"
-#include "core/v1/SimulationNBodyV1CB.h"
-#include "core/v1/SimulationNBodyV1Vectors.h"
-#include "core/v1/SimulationNBodyV1Intrinsics.h"
-#include "core/v2/SimulationNBodyV2.h"
-#include "core/v2/SimulationNBodyV2CB.h"
-#include "core/v2/SimulationNBodyV2Vectors.h"
-#include "core/v2/SimulationNBodyV2Intrinsics.h"
-#include "core/v2/SimulationNBodyV2FineTuned.h"
+#include "core/v1/local/SimulationNBodyV1.h"
+#include "core/v1/local/SimulationNBodyV1CB.h"
+#include "core/v1/local/SimulationNBodyV1Vectors.h"
+#include "core/v1/local/SimulationNBodyV1Intrinsics.h"
+#include "core/v2/local/SimulationNBodyV2.h"
+#include "core/v2/local/SimulationNBodyV2CB.h"
+#include "core/v2/local/SimulationNBodyV2Vectors.h"
+#include "core/v2/local/SimulationNBodyV2Intrinsics.h"
+#include "core/v2/local/SimulationNBodyV2FineTuned.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -55,7 +55,8 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "core/v1mpi/SimulationNBodyV1MPI.h"
+#include "core/v1/mpi/SimulationNBodyMPIV1.h"
+#include "core/v1/mpi/SimulationNBodyMPIV1Intrinsics.h"
 #else
 #ifndef NO_MPI
 #define NO_MPI
@@ -135,7 +136,7 @@ void argsReader(int argc, char** argv)
 	faculArgs["-vdt"]   = "";
 	docArgs  ["-vdt"]   = "enable variable time step.";
 	faculArgs["-im"]   = "ImplId";
-	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20, 21, 22, 23 or 100).";
+	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20, 21, 22, 23, 100 or 103).";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
@@ -293,9 +294,17 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 			if(!MPI::COMM_WORLD.Get_rank())
 				cout << "Selected implementation: V1 MPI - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
-				simu = new SimulationNBodyV1MPI<T>(NBodies);
+				simu = new SimulationNBodyMPIV1<T>(NBodies);
 			else
-				simu = new SimulationNBodyV1MPI<T>(inputFileName);
+				simu = new SimulationNBodyMPIV1<T>(inputFileName);
+			break;
+		case 103:
+			if(!MPI::COMM_WORLD.Get_rank())
+				cout << "Selected implementation: V1 MPI + intrinsics - O(n²)" << endl << endl;
+			if(RootInputFileName.empty())
+				simu = new SimulationNBodyMPIV1Intrinsics<T>(NBodies);
+			else
+				simu = new SimulationNBodyMPIV1Intrinsics<T>(inputFileName);
 			break;
 #endif
 		default:

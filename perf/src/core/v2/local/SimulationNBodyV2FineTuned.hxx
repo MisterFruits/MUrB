@@ -23,26 +23,24 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "../../utils/myIntrinsicsPlusPlus.h"
-
-#include "SimulationNBodyV2Intrinsics.h"
+#include "SimulationNBodyV2FineTuned.h"
 
 template <typename T>
-SimulationNBodyV2Intrinsics<T>::SimulationNBodyV2Intrinsics(const unsigned long nBodies)
+SimulationNBodyV2FineTuned<T>::SimulationNBodyV2FineTuned(const unsigned long nBodies)
 	: SimulationNBodyLocal<T>(nBodies)
 {
 	this->reAllocateBuffers();
 }
 
 template <typename T>
-SimulationNBodyV2Intrinsics<T>::SimulationNBodyV2Intrinsics(const std::string inputFileName)
+SimulationNBodyV2FineTuned<T>::SimulationNBodyV2FineTuned(const std::string inputFileName)
 	: SimulationNBodyLocal<T>(inputFileName)
 {
 	this->reAllocateBuffers();
 }
 
 template <typename T>
-SimulationNBodyV2Intrinsics<T>::~SimulationNBodyV2Intrinsics()
+SimulationNBodyV2FineTuned<T>::~SimulationNBodyV2FineTuned()
 {
 #ifdef __ARM_NEON__
 	if(this->accelerations.x != nullptr) {
@@ -74,7 +72,7 @@ SimulationNBodyV2Intrinsics<T>::~SimulationNBodyV2Intrinsics()
 }
 
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::_reAllocateBuffers()
+void SimulationNBodyV2FineTuned<T>::_reAllocateBuffers()
 {
 	if(this->nMaxThreads > 1)
 	{
@@ -112,21 +110,21 @@ void SimulationNBodyV2Intrinsics<T>::_reAllocateBuffers()
 
 
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::reAllocateBuffers()
+void SimulationNBodyV2FineTuned<T>::reAllocateBuffers()
 {
 	this->_reAllocateBuffers();
 	this->flopsPerIte = 26 * (this->bodies.getN() * 0.5) * this->bodies.getN();
 }
 
 template <>
-void SimulationNBodyV2Intrinsics<float>::reAllocateBuffers()
+void SimulationNBodyV2FineTuned<float>::reAllocateBuffers()
 {
 	this->_reAllocateBuffers();
 	this->flopsPerIte = 27 * (this->bodies.getN() * 0.5) * this->bodies.getN();
 }
 
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::_initIteration()
+void SimulationNBodyV2FineTuned<T>::_initIteration()
 {
 	for(unsigned long iBody = 0; iBody < this->bodies.getN() * this->nMaxThreads; iBody++)
 	{
@@ -134,10 +132,13 @@ void SimulationNBodyV2Intrinsics<T>::_initIteration()
 		this->accelerations.y[iBody] = 0.0;
 		this->accelerations.z[iBody] = 0.0;
 	}
+
+	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
 }
 
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::initIteration()
+void SimulationNBodyV2FineTuned<T>::initIteration()
 {
 	this->_initIteration();
 
@@ -146,7 +147,7 @@ void SimulationNBodyV2Intrinsics<T>::initIteration()
 }
 
 template <>
-void SimulationNBodyV2Intrinsics<float>::initIteration()
+void SimulationNBodyV2FineTuned<float>::initIteration()
 {
 	this->_initIteration();
 
@@ -155,7 +156,7 @@ void SimulationNBodyV2Intrinsics<float>::initIteration()
 }
 
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
+void SimulationNBodyV2FineTuned<T>::_computeLocalBodiesAcceleration()
 {
 	const T *masses = this->getBodies().getMasses();
 
@@ -163,7 +164,7 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 	const T *positionsY = this->getBodies().getPositionsY();
 	const T *positionsZ = this->getBodies().getPositionsZ();
 
-	const mipp::vec rG = mipp::set1<T>(this->G);
+  const mipp::vec rG = mipp::set1<T>(this->G);
 
 #pragma omp parallel firstprivate(rG)
 {
@@ -252,9 +253,10 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 			mipp::store<T>(this->accelerations.z + jVecOff + thStride, rJAccZ);
 		
 			if(!this->dtConstant)
-				//TODO: this critical section is bad for performances when we use variable time step
+			{
 #pragma omp critical
 				mipp::store<T>(this->closestNeighborDist + jVecOff, rJClosNeiDist);
+			}
 		}
 
 		mipp::store<T>(this->accelerations.x + iVecOff + thStride, rIAccX);
@@ -281,13 +283,13 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 
 
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::computeLocalBodiesAcceleration()
+void SimulationNBodyV2FineTuned<T>::computeLocalBodiesAcceleration()
 {
 	this->_computeLocalBodiesAcceleration();
 }
 
 template <>
-void SimulationNBodyV2Intrinsics<float>::computeLocalBodiesAcceleration()
+void SimulationNBodyV2FineTuned<float>::computeLocalBodiesAcceleration()
 {
 	this->_computeLocalBodiesAcceleration();
 
@@ -297,7 +299,7 @@ void SimulationNBodyV2Intrinsics<float>::computeLocalBodiesAcceleration()
 
 // 25 flops
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodiesSelf(const T &iPosX, const T &iPosY, const T &iPosZ,
+void SimulationNBodyV2FineTuned<T>::computeAccelerationBetweenTwoBodiesSelf(const T &iPosX, const T &iPosY, const T &iPosZ,
                                                                                    T &iAccsX,      T &iAccsY,      T &iAccsZ,
                                                                                    T &iClosNeiDist,
                                                                              const T &iMasses,
@@ -337,7 +339,7 @@ void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodiesSelf(con
 
 // 26 flops
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(const mipp::vec &rG, 
+void SimulationNBodyV2FineTuned<T>::computeAccelerationBetweenTwoBodies(const mipp::vec &rG, 
                                                                          const mipp::vec &rIPosX,
                                                                          const mipp::vec &rIPosY,
                                                                          const mipp::vec &rIPosZ,
@@ -395,14 +397,14 @@ void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(const m
 	//jAccsZ -= acc * diffPosZ; // 2 flop
 	rJAccZ = mipp::fnmadd<T>(rAcc, rDiffPosZ, rJAccZ);
 
-	//min(iClosNeiDist, dist);
+	//  min(iClosNeiDist, dist);
 	if(!dtConstant)
 		rIClosNeiDist = mipp::min<T>(rDist, rIClosNeiDist);
 }
 
 // 27 flops
 template <>
-void SimulationNBodyV2Intrinsics<float>::computeAccelerationBetweenTwoBodies(const mipp::vec &rG, 
+void SimulationNBodyV2FineTuned<float>::computeAccelerationBetweenTwoBodies(const mipp::vec &rG, 
                                                                              const mipp::vec &rIPosX,
                                                                              const mipp::vec &rIPosY,
                                                                              const mipp::vec &rIPosZ,

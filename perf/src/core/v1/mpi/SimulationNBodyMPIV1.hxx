@@ -24,35 +24,35 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "SimulationNBodyV1MPI.h"
+#include "SimulationNBodyMPIV1.h"
 
 template <typename T>
-SimulationNBodyV1MPI<T>::SimulationNBodyV1MPI(const unsigned long nBodies)
+SimulationNBodyMPIV1<T>::SimulationNBodyMPIV1(const unsigned long nBodies)
 	: SimulationNBodyMPI<T>(nBodies)
 {
 	this->init();
 }
 
 template <typename T>
-SimulationNBodyV1MPI<T>::SimulationNBodyV1MPI(const std::string inputFileName)
+SimulationNBodyMPIV1<T>::SimulationNBodyMPIV1(const std::string inputFileName)
 	: SimulationNBodyMPI<T>(inputFileName)
 {
 	this->init();
 }
 
 template <typename T>
-void SimulationNBodyV1MPI<T>::init()
+void SimulationNBodyMPIV1<T>::init()
 {
 	this->flopsPerIte = 18 * ((this->bodies.getN() * this->MPISize) -1) * (this->bodies.getN() * this->MPISize);
 }
 
 template <typename T>
-SimulationNBodyV1MPI<T>::~SimulationNBodyV1MPI()
+SimulationNBodyMPIV1<T>::~SimulationNBodyMPIV1()
 {
 }
 
 template <typename T>
-void SimulationNBodyV1MPI<T>::initIteration()
+void SimulationNBodyMPIV1<T>::initIteration()
 {
 	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
 	{
@@ -65,7 +65,7 @@ void SimulationNBodyV1MPI<T>::initIteration()
 }
 
 template <typename T>
-void SimulationNBodyV1MPI<T>::computeLocalBodiesAcceleration()
+void SimulationNBodyMPIV1<T>::computeLocalBodiesAcceleration()
 {
 	const T *masses     = this->bodies.getMasses();
 	const T *positionsX = this->bodies.getPositionsX();
@@ -90,7 +90,7 @@ void SimulationNBodyV1MPI<T>::computeLocalBodiesAcceleration()
 }
 
 template <typename T>
-void SimulationNBodyV1MPI<T>::computeNeighborBodiesAcceleration()
+void SimulationNBodyMPIV1<T>::computeNeighborBodiesAcceleration()
 {
 	//const T *masses     = this->bodies.getMasses();
 	const T *positionsX = this->bodies.getPositionsX();
@@ -120,15 +120,13 @@ void SimulationNBodyV1MPI<T>::computeNeighborBodiesAcceleration()
 
 // 23 flops
 template <typename T>
-void SimulationNBodyV1MPI<T>::computeAccelerationBetweenTwoBodiesNaive(const T &iMasses,
+void SimulationNBodyMPIV1<T>::computeAccelerationBetweenTwoBodiesNaive(const T &iMasses,
                                                                        const T &iPosX, const T &iPosY, const T &iPosZ,
                                                                              T &iAccsX,      T &iAccsY,      T &iAccsZ,
                                                                              T &iClosNeiDist,
                                                                        const T &jMasses,
                                                                        const T &jPosX, const T &jPosY, const T &jPosZ)
 {
-	assert(iBody != jBody);
-
 	const T diffPosX = jPosX - iPosX; // 1 flop
 	const T diffPosY = jPosY - iPosY; // 1 flop
 	const T diffPosZ = jPosZ - iPosZ; // 1 flop
@@ -163,14 +161,12 @@ void SimulationNBodyV1MPI<T>::computeAccelerationBetweenTwoBodiesNaive(const T &
 
 // 18 flops
 template <typename T>
-void SimulationNBodyV1MPI<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
+void SimulationNBodyMPIV1<T>::computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
                                                                         T &iAccsX,      T &iAccsY,      T &iAccsZ,
                                                                         T &iClosNeiDist,
                                                                   const T &jMasses,
                                                                   const T &jPosX, const T &jPosY, const T &jPosZ)
 {
-	assert(iBody != jBody);
-
 	const T diffPosX = jPosX - iPosX; // 1 flop
 	const T diffPosY = jPosY - iPosY; // 1 flop
 	const T diffPosZ = jPosZ - iPosZ; // 1 flop

@@ -5,20 +5,20 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
-#ifndef SIMULATION_N_BODY_V1_MPI_H_
-#define SIMULATION_N_BODY_V1_MPI_H_
+#ifndef SIMULATION_N_BODY_MPI_V1_H_
+#define SIMULATION_N_BODY_MPI_V1_H_
 
 #include <string>
 
-#include "../SimulationNBodyMPI.h"
+#include "../../SimulationNBodyMPI.h"
 
 template <typename T = double>
-class SimulationNBodyV1MPI : public SimulationNBodyMPI<T>
+class SimulationNBodyMPIV1 : public SimulationNBodyMPI<T>
 {
 public:
-	SimulationNBodyV1MPI(const unsigned long nBodies);
-	SimulationNBodyV1MPI(const std::string inputFileName);
-	virtual ~SimulationNBodyV1MPI();
+	SimulationNBodyMPIV1(const unsigned long nBodies);
+	SimulationNBodyMPIV1(const std::string inputFileName);
+	virtual ~SimulationNBodyMPIV1();
 
 protected:
 	virtual void initIteration();
@@ -42,6 +42,6 @@ private:
 	void init();
 };
 
-#include "SimulationNBodyV1MPI.hxx"
+#include "SimulationNBodyMPIV1.hxx"
 
-#endif /* SIMULATION_N_BODY_V1_MPI_H_ */
+#endif /* SIMULATION_N_BODY_MPI_V1_H_ */

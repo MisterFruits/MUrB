@@ -4,22 +4,22 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
-#ifndef SIMULATION_N_BODY_V2_FINETUNED
-#define SIMULATION_N_BODY_V2_FINETUNED
+#ifndef SIMULATION_N_BODY_V2_INTRINSICS
+#define SIMULATION_N_BODY_V2_INTRINSICS
 
 #include <string>
 
-#include "../../utils/myIntrinsicsPlusPlus.h"
+#include "../../../utils/myIntrinsicsPlusPlus.h"
 
-#include "../SimulationNBodyLocal.h"
+#include "../../SimulationNBodyLocal.h"
 
 template <typename T = double>
-class SimulationNBodyV2FineTuned : public SimulationNBodyLocal<T>
+class SimulationNBodyV2Intrinsics : public SimulationNBodyLocal<T>
 {
 public:
-	SimulationNBodyV2FineTuned(const unsigned long nBodies);
-	SimulationNBodyV2FineTuned(const std::string inputFileName);
-	virtual ~SimulationNBodyV2FineTuned();
+	SimulationNBodyV2Intrinsics(const unsigned long nBodies);
+	SimulationNBodyV2Intrinsics(const std::string inputFileName);
+	virtual ~SimulationNBodyV2Intrinsics();
 
 protected:
 	virtual void initIteration();
@@ -57,6 +57,6 @@ private:
 	void _initIteration();
 };
 
-#include "SimulationNBodyV2FineTuned.hxx"
+#include "SimulationNBodyV2Intrinsics.hxx"
 
-#endif /* SIMULATION_N_BODY_V2_FINETUNED */
+#endif /* SIMULATION_N_BODY_V2_INTRINSICS */

@@ -111,7 +111,7 @@ void SimulationNBodyV1Intrinsics<T>::_computeLocalBodiesAcceleration()
 		mipp::vec rIAccY = mipp::load<T>(this->accelerations.y + iVec * mipp::vectorSize<T>());
 		mipp::vec rIAccZ = mipp::load<T>(this->accelerations.z + iVec * mipp::vectorSize<T>());
 
-		mipp::vec rIClosNeiDist;
+		mipp::vec rIClosNeiDist = mipp::set1<T>(0.0);
 		if(!this->dtConstant)
 			rIClosNeiDist = mipp::load<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>());
 
