@@ -41,6 +41,18 @@ using namespace std;
 #include "core/v2/SimulationNBodyV2Intrinsics.h"
 #include "core/v2/SimulationNBodyV2FineTuned.h"
 
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#ifndef NO_OMP
+#define NO_OMP
+inline void omp_set_num_threads(int) {           }
+inline int  omp_get_num_threads(   ) { return 1; }
+inline int  omp_get_max_threads(   ) { return 1; }
+inline int  omp_get_thread_num (   ) { return 0; }
+#endif
+#endif
+
 #ifdef USE_MPI
 #include <mpi.h>
 #include "core/v1mpi/SimulationNBodyV1MPI.h"
@@ -310,11 +322,11 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 {
 	SpheresVisu* visu;
 
+#ifdef VISU
 	// only the MPI proc 0 can display the bodies
 	if(MPI::COMM_WORLD.Get_rank())
 		VisuEnable = false;
 
-#ifdef VISU
 	if(VisuEnable)
 	{
 		const T *positionsX = simu->getBodies().getPositionsX();
@@ -335,9 +347,11 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 		cout << endl;
 	}
 	else
-#endif
 		visu = new SpheresVisuNo<T>();
-
+#else
+	VisuEnable = false;
+	visu = new SpheresVisuNo<T>();
+#endif
 
 	return visu;
 }
@@ -348,7 +362,6 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 	string extension = RootOutputFileName.substr(RootOutputFileName.find_last_of(".") + 1);
 	string tmpFileName;
 	string outputFileName;
-
 
 	// each process MPI writes its bodies in a common file
 	// TODO: bad perfs
@@ -421,7 +434,8 @@ int main(int argc, char** argv)
 		cout << "  -> mem. allocated        : " << Mbytes << " MB" << endl;
 		cout << "  -> geometry shader       : " << ((GSEnable) ? "enable" : "disable") << endl;
 		cout << "  -> time step             : " << ((DtVariable) ? "variable" : to_string(Dt) + " sec") << endl;
-		cout << "  -> nb. of MPI proc       : " << MPI::COMM_WORLD.Get_size() << endl << endl;
+		cout << "  -> nb. of MPI procs      : " << MPI::COMM_WORLD.Get_size() << endl;
+		cout << "  -> nb. of threads        : " << omp_get_max_threads() << endl << endl;
 	}
 
 	// initialize visualization of bodies (with spheres in space)
