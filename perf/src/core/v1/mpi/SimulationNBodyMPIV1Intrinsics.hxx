@@ -226,11 +226,11 @@ void SimulationNBodyMPIV1Intrinsics<T>::_computeNeighborBodiesAcceleration()
 			for(unsigned short iRot = 0; iRot < mipp::vectorSize<T>(); iRot++)
 			{
 				this->computeAccelerationBetweenTwoBodies(rG,
-														  rIPosX, rIPosY, rIPosZ,
-														  rIAccX, rIAccY, rIAccZ,
-														  rIClosNeiDist,
-														  rJMass,
-														  rJPosX, rJPosY, rJPosZ);
+				                                          rIPosX, rIPosY, rIPosZ,
+				                                          rIAccX, rIAccY, rIAccZ,
+				                                          rIClosNeiDist,
+				                                          rJMass,
+				                                          rJPosX, rJPosY, rJPosZ);
 
 				// we make one useless rotate in the last iteration...
 				rJMass = mipp::rot<T>(rJMass);
