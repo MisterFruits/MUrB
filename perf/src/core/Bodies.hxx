@@ -364,112 +364,9 @@ bool Bodies<T>::initFromFile(const std::string inputFileName)
 	return true;
 }
 
-//template <typename T>
-//void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisions)
-//{
-//	/*
-//	// flops = n * 18
-//	for(unsigned long iBody = 0; iBody < this->n; iBody++)
-//	{
-//		T mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ;
-//
-//		mass = this->masses[iBody];
-//		radius = this->radiuses[iBody];
-//
-//		// TODO!!!
-//
-//		this->setBody(iBody, mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ);
-//	}
-//	*/
-//
-//	for(unsigned long iBody = 0; iBody < this->n; iBody++)
-//	{
-//		if(collisions[iBody].size())
-//		{
-//			std::cout << "Collisions for body n°" << iBody << ":" << std::endl;
-//
-//			for(unsigned long jBody = 0; jBody < collisions[iBody].size(); jBody++)
-//			{
-//				std::cout << "  - body n°" << collisions[iBody][jBody] << std::endl;
-//			}
-//		}
-//	}
-//
-//
-//	for(unsigned long iBody = 0; iBody < this->n; iBody++)
-//		if(collisions[iBody].size())
-//		{
-//			assert(collisions[iBody].size() < 2);
-//			unsigned long jBody = collisions[iBody][0];
-//			// --------------------------------------------------------------------------------------------------------
-//
-//
-//			// compute iBody ------------------------------------------------------------------------------------------
-//			T diffPosX = this->positions.x[jBody] - this->positions.x[iBody];
-//			T diffPosY = this->positions.y[jBody] - this->positions.y[iBody];
-//
-//			T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY);
-//			T dist = std::sqrt(squareDist);
-//
-//			T normX = diffPosX / dist;
-//			T normY = diffPosY / dist;
-//
-//			T perpendicularX = -normY;
-//			T perpendicularY =  normX;
-//
-//			const T iVelocityX = this->velocities.x[iBody];
-//			const T iVelocityY = this->velocities.y[iBody];
-//
-//			const T iSquareVelocityDist = (iVelocityX * iVelocityX) + (iVelocityY * iVelocityY);
-//			const T iVelocityDist = std::sqrt(iSquareVelocityDist);
-//
-//			const T iCosTeta = ((perpendicularX * iVelocityX) + (perpendicularY * iVelocityY)) / iVelocityDist;
-//			const T iTeta = std::acos(iCosTeta);
-//
-//			/*
-//			this->velocities.x[iBody] = perpendicularX * (iCosTeta * iVelocityDist);
-//			this->velocities.y[iBody] = perpendicularY * (iCosTeta * iVelocityDist);
-//
-//			this->velocities.x[jBody] = normX * (std::sin(iTeta) * iVelocityDist);
-//			this->velocities.y[jBody] = normY * (std::sin(iTeta) * iVelocityDist);
-//			*/
-//
-//			const T tmpIVelX = perpendicularX * (iCosTeta * iVelocityDist);
-//			const T tmpIVelY = perpendicularY * (iCosTeta * iVelocityDist);
-//
-//			const T tmpJVelX = normX * (std::sin(iTeta) * iVelocityDist);
-//			const T tmpJVelY = normY * (std::sin(iTeta) * iVelocityDist);
-//
-//			// compute jBody ------------------------------------------------------------------------------------------
-//			normX = -normX;
-//			normY = -normY;
-//
-//			perpendicularX = -normY;
-//			perpendicularY =  normX;
-//
-//			const T jVelocityX = this->velocities.x[jBody];
-//			const T jVelocityY = this->velocities.y[jBody];
-//
-//			const T jSquareVelocityDist = (jVelocityX * jVelocityX) + (jVelocityY * jVelocityY);
-//			const T jVelocityDist = std::sqrt(jSquareVelocityDist);
-//
-//			const T jCosTeta = ((perpendicularX * jVelocityX) + (perpendicularY * jVelocityY)) / jVelocityDist;
-//			const T jTeta = std::acos(jCosTeta);
-//
-//			this->velocities.x[jBody] = perpendicularX * (jCosTeta * jVelocityDist) + tmpJVelX;
-//			this->velocities.y[jBody] = perpendicularY * (jCosTeta * jVelocityDist) + tmpJVelY;
-//
-//			this->velocities.x[iBody] = normX * (std::sin(jTeta) * jVelocityDist) + tmpIVelX;
-//			this->velocities.y[iBody] = normY * (std::sin(jTeta) * jVelocityDist) + tmpIVelY;
-//
-//			// --------------------------------------------------------------------------------------------------------
-//			collisions[jBody].clear();
-//		}
-//}
-
-/*
+/* work only if mi == mj (pool elastics collisions)
 template <typename T>
-void Bodies<T>::applyCollisions2D(std::vector<std::vector<unsigned long>> collisions)
+void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisions)
 {
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
@@ -484,6 +381,7 @@ void Bodies<T>::applyCollisions2D(std::vector<std::vector<unsigned long>> collis
 		}
 	}
 
+
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 		if(collisions[iBody].size())
 		{
@@ -491,49 +389,56 @@ void Bodies<T>::applyCollisions2D(std::vector<std::vector<unsigned long>> collis
 			unsigned long jBody = collisions[iBody][0];
 			// --------------------------------------------------------------------------------------------------------
 
-			T normX = this->positions.x[jBody] - this->positions.x[iBody];
-			T normY = this->positions.y[jBody] - this->positions.y[iBody];
 
-			T dij = std::sqrt((normX * normX) + (normY * normY));
+			// compute iBody ------------------------------------------------------------------------------------------
+			T diffPosX = this->positions.x[jBody] - this->positions.x[iBody];
+			T diffPosY = this->positions.y[jBody] - this->positions.y[iBody];
 
-			T uNormX = normX / dij;
-			T uNormY = normY / dij;
+			T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY);
+			T dist = std::sqrt(squareDist);
 
-			T uTangX = -uNormY;
-			T uTangY =  uNormX;
+			T normX = diffPosX / dist;
+			T normY = diffPosY / dist;
 
-			T viNorm = uNormX * this->velocities.x[iBody] + uNormY * this->velocities.y[iBody];
-			T viTang = uTangX * this->velocities.x[iBody] + uTangY * this->velocities.y[iBody];
+			T perpendicularX = -normY;
+			T perpendicularY =  normX;
 
-			T vjNorm = uNormX * this->velocities.x[jBody] + uNormY * this->velocities.y[jBody];
-			T vjTang = uTangX * this->velocities.x[jBody] + uTangY * this->velocities.y[jBody];
+			const T iVelocityX = this->velocities.x[iBody];
+			const T iVelocityY = this->velocities.y[iBody];
 
-			T viNewTang = viTang;
-			T vjNewTang = vjTang;
+			const T iSquareVelocityDist = (iVelocityX * iVelocityX) + (iVelocityY * iVelocityY);
+			const T iVelocityDist = std::sqrt(iSquareVelocityDist);
 
-			T iMass = this->masses[iBody];
-			T jMass = this->masses[jBody];
+			const T iCosTeta = ((perpendicularX * iVelocityX) + (perpendicularY * iVelocityY)) / iVelocityDist;
+			const T iTeta = std::acos(iCosTeta);
 
-			T viNewNorm = (viNorm * (iMass - jMass) + (2.0 * jMass * vjNorm)) / (iMass + jMass);
-			T vjNewNorm = (vjNorm * (jMass - iMass) + (2.0 * iMass * viNorm)) / (iMass + jMass);
+			const T tmpIVelX = perpendicularX * (iCosTeta * iVelocityDist);
+			const T tmpIVelY = perpendicularY * (iCosTeta * iVelocityDist);
 
-			T viNewNormX = viNewNorm * uNormX;
-			T viNewNormY = viNewNorm * uNormY;
+			const T tmpJVelX = normX * (std::sin(iTeta) * iVelocityDist);
+			const T tmpJVelY = normY * (std::sin(iTeta) * iVelocityDist);
 
-			T viNewTangX = viNewTang * uTangX;
-			T viNewTangY = viNewTang * uTangY;
+			// compute jBody ------------------------------------------------------------------------------------------
+			normX = -normX;
+			normY = -normY;
 
-			T vjNewNormX = vjNewNorm * uNormX;
-			T vjNewNormY = vjNewNorm * uNormY;
+			perpendicularX = -normY;
+			perpendicularY =  normX;
 
-			T vjNewTangX = vjNewTang * uTangX;
-			T vjNewTangY = vjNewTang * uTangY;
+			const T jVelocityX = this->velocities.x[jBody];
+			const T jVelocityY = this->velocities.y[jBody];
 
-			this->velocities.x[iBody] = viNewNormX + viNewTangX;
-			this->velocities.y[iBody] = viNewNormY + viNewTangY;
+			const T jSquareVelocityDist = (jVelocityX * jVelocityX) + (jVelocityY * jVelocityY);
+			const T jVelocityDist = std::sqrt(jSquareVelocityDist);
 
-			this->velocities.x[jBody] = vjNewNormX + vjNewTangX;
-			this->velocities.y[jBody] = vjNewNormY + vjNewTangY;
+			const T jCosTeta = ((perpendicularX * jVelocityX) + (perpendicularY * jVelocityY)) / jVelocityDist;
+			const T jTeta = std::acos(jCosTeta);
+
+			this->velocities.x[jBody] = perpendicularX * (jCosTeta * jVelocityDist) + tmpJVelX;
+			this->velocities.y[jBody] = perpendicularY * (jCosTeta * jVelocityDist) + tmpJVelY;
+
+			this->velocities.x[iBody] = normX * (std::sin(jTeta) * jVelocityDist) + tmpIVelX;
+			this->velocities.y[iBody] = normY * (std::sin(jTeta) * jVelocityDist) + tmpIVelY;
 
 			// --------------------------------------------------------------------------------------------------------
 			collisions[jBody].clear();
@@ -564,6 +469,7 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 			unsigned long jBody = collisions[iBody][0];
 			// --------------------------------------------------------------------------------------------------------
 
+			// 1. Find unit normal and unit tangent vectors
 			T normX = this->positions.x[jBody] - this->positions.x[iBody];
 			T normY = this->positions.y[jBody] - this->positions.y[iBody];
 			T normZ = this->positions.z[jBody] - this->positions.z[iBody];
@@ -576,21 +482,25 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 			T uTangX = -uNormY;
 			T uTangY =  uNormX;
 
+			// 3 . Projecting the velocity vectors onto the unit normal and unit tangent vectors
 			T viNorm = uNormX * this->velocities.x[iBody] + uNormY * this->velocities.y[iBody];
 			T viTang = uTangX * this->velocities.x[iBody] + uTangY * this->velocities.y[iBody];
 
 			T vjNorm = uNormX * this->velocities.x[jBody] + uNormY * this->velocities.y[jBody];
 			T vjTang = uTangX * this->velocities.x[jBody] + uTangY * this->velocities.y[jBody];
 
+			// 4. Find the new tangential velocities
 			T viNewTang = viTang;
 			T vjNewTang = vjTang;
 
 			T iMass = this->masses[iBody];
 			T jMass = this->masses[jBody];
 
+			// 5. Find the new normal velocities
 			T viNewNorm = (viNorm * (iMass - jMass) + (2.0 * jMass * vjNorm)) / (iMass + jMass);
 			T vjNewNorm = (vjNorm * (jMass - iMass) + (2.0 * iMass * viNorm)) / (iMass + jMass);
 
+			// 6. Convert the scalar normal and tangential velocities into vectors
 			T viNewNormX = viNewNorm * uNormX;
 			T viNewNormY = viNewNorm * uNormY;
 
@@ -603,6 +513,7 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 			T vjNewTangX = vjNewTang * uTangX;
 			T vjNewTangY = vjNewTang * uTangY;
 
+			// 7. Find the final velocity vectors by adding the normal and tangential components
 			this->velocities.x[iBody] = viNewNormX + viNewTangX;
 			this->velocities.y[iBody] = viNewNormY + viNewTangY;
 

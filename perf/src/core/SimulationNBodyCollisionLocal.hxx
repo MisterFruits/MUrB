@@ -53,19 +53,6 @@ void SimulationNBodyCollisionLocal<T>::computeOneIteration()
 	if(!this->dtConstant)
 		this->findTimeStep();
 
-	/* DEBUG
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-		if(this->collisions[iBody].size())
-		{
-			std::cout << "Collisions for body n°" << iBody << ":" << std::endl;
-
-			for(unsigned long jBody = 0; jBody < this->collisions[iBody].size(); jBody++)
-			{
-				std::cout << "  - body n°" << this->collisions[iBody][jBody] << std::endl;
-			}
-		}
-	*/
-
 	this->bodies.applyCollisions(this->collisions);
 
 	this->bodies.updatePositionsAndVelocities(this->accelerations, this->dt);

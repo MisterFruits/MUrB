@@ -108,39 +108,14 @@ void SimulationNBodyCollisionV1<T>::computeAccelerationBetweenTwoBodiesNaive(con
 	}
 
 	// detect collisions
-	/*
-	std::cout << "body n°" << iBody << ": "
-	          << "dist = " << dist << ", "
-	          << "dist - (radiuses[iBody] + radiuses[jBody]) = " << dist - (radiuses[iBody] + radiuses[jBody])
-	          << std::endl;
-	*/
 	if(dist - (radiuses[iBody] + radiuses[jBody]) <= 0) // 2 flops
-	{
-		/*
-		std::cout << "Collision detected at {" << positionsX[jBody] << ", "
-		                                       << positionsY[jBody] << ", "
-		                                       << positionsZ[jBody] << "} "
-		          << "between body n°" << iBody << " and body n°" << jBody << "." << std::endl;
-		*/
-
 		this->collisions[iBody].push_back(jBody);
-	}
 
 	// compute the force value between iBody and jBody: || F || = G.mi.mj / Dij²
 	const T force = (this->G * masses[iBody] * masses[jBody] / (dist * dist)); // 4 flops
 
 	// compute the acceleration value: || a || = || F || / mi
 	const T acc = force / masses[iBody]; // 1 flop
-
-	/*
-	std::cout << "body n°" << iBody << ": "
-	          << "positionsX = " << positionsX[iBody] << ", "
-	          << "positionsY = " << positionsY[iBody] << ", "
-	          << "positionsZ = " << positionsZ[iBody] << ", "
-	          << "dist = " << dist << ", "
-	          << "acc = " << acc
- 	          << std::endl;
-	*/
 
 	// normalize and add acceleration value into acceleration vector: a += || a ||.u
 	this->accelerations.x[iBody] += acc * (diffPosX / dist); // 3 flops
