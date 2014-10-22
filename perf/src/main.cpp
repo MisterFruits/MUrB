@@ -41,6 +41,8 @@ using namespace std;
 #include "core/v2/local/SimulationNBodyV2Intrinsics.h"
 #include "core/v2/local/SimulationNBodyV2FineTuned.h"
 
+#include "core/collisionv1/local/SimulationNBodyCollisionV1.h"
+
 #ifdef _OPENMP
 #include <omp.h>
 #else
@@ -250,6 +252,14 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV1Intrinsics<T>(NBodies);
 			else
 				simu = new SimulationNBodyV1Intrinsics<T>(inputFileName);
+			break;
+		case 14:
+			if(!MPI::COMM_WORLD.Get_rank())
+				cout << "Selected implementation: V1 + collisions - O(n²)" << endl << endl;
+			if(RootInputFileName.empty())
+				simu = new SimulationNBodyCollisionV1<T>(NBodies);
+			else
+				simu = new SimulationNBodyCollisionV1<T>(inputFileName);
 			break;
 		case 20:
 			if(!MPI::COMM_WORLD.Get_rank())

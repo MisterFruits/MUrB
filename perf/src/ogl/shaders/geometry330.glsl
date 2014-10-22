@@ -26,7 +26,7 @@ uniform mat4 MVP;
 void main() {
 	//fColor = gColor[0]; // Point has only one vertex
 
-	vec4 scale = vec4(gRadius[0] * 1.0e-7f);
+	vec4 scale = vec4(gRadius[0] * 1.0e-8f);
 
 	vec4 screenPos = vec4(gl_in[0].gl_Position.x * 1.0e-8f,
 	                      gl_in[0].gl_Position.y * 1.0e-8f,

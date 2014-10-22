@@ -22,7 +22,7 @@ uniform mat4 MVP;
 
 void main()
 {
-	float scale = radiusPerVertex * 1.0e-7f;
+	float scale = radiusPerVertex * 1.0e-8f;
 
 	 // trick in order to avoid start point at the center of the sphere
 	if(modelPerVertex.x == 0.0f && modelPerVertex.y == 0.0f && modelPerVertex.z == 0.0f)

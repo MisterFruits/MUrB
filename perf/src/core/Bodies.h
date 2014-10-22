@@ -61,6 +61,8 @@ public:
 	inline const T* getVelocitiesZ();
 	inline const float& getAllocatedBytes();
 
+	void applyCollisions(std::vector<std::vector<unsigned long>> collisions);
+
 	void updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt);
 
 	bool readFromFile(const std::string inputFileName);
