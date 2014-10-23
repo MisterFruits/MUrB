@@ -32,6 +32,7 @@ private:
 	T             *radiuses;
 	vector3<T>     positions;
 	vector3<T>     velocities;
+	vector3<T>     newVelocities;
 	unsigned long  nVecs;
 	unsigned short padding;
 	// stats
@@ -62,6 +63,7 @@ public:
 	inline const float& getAllocatedBytes();
 
 	void applyCollisions(std::vector<std::vector<unsigned long>> collisions);
+	void applyMultiCollisions(std::vector<std::vector<unsigned long>> collisions);
 
 	void updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt);
 

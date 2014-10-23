@@ -110,6 +110,10 @@ void Bodies<T>::allocateBuffers()
 	this->velocities.x = new T[this->n + this->padding];
 	this->velocities.y = new T[this->n + this->padding];
 	this->velocities.z = new T[this->n + this->padding];
+
+	this->newVelocities.x = new T[this->n + this->padding];
+	this->newVelocities.y = new T[this->n + this->padding];
+	this->newVelocities.z = new T[this->n + this->padding];
 #else
 	this->masses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 
@@ -122,9 +126,13 @@ void Bodies<T>::allocateBuffers()
 	this->velocities.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 	this->velocities.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 	this->velocities.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+
+	this->newVelocities.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->newVelocities.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->newVelocities.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 #endif
 
-	this->allocatedBytes = (this->n + this->padding) * sizeof(T) * 8;
+	this->allocatedBytes = (this->n + this->padding) * sizeof(T) * 11;
 }
 
 template <typename T>
@@ -165,6 +173,19 @@ Bodies<T>::~Bodies() {
 		delete[] this->velocities.z;
 		this->velocities.z = nullptr;
 	}
+
+	if(this->newVelocities.x != nullptr) {
+		delete[] this->newVelocities.x;
+		this->newVelocities.x = nullptr;
+	}
+	if(this->newVelocities.y != nullptr) {
+		delete[] this->newVelocities.y;
+		this->newVelocities.y = nullptr;
+	}
+	if(this->newVelocities.z != nullptr) {
+		delete[] this->newVelocities.z;
+		this->newVelocities.z = nullptr;
+	}
 #else
 	if(this->masses != nullptr) {
 		_mm_free(this->masses);
@@ -200,6 +221,19 @@ Bodies<T>::~Bodies() {
 	if(this->velocities.z != nullptr) {
 		_mm_free(this->velocities.z);
 		this->velocities.z = nullptr;
+	}
+
+	if(this->newVelocities.x != nullptr) {
+		_mm_free(this->newVelocities.x);
+		this->newVelocities.x = nullptr;
+	}
+	if(this->newVelocities.y != nullptr) {
+		_mm_free(this->newVelocities.y);
+		this->newVelocities.y = nullptr;
+	}
+	if(this->newVelocities.z != nullptr) {
+		_mm_free(this->newVelocities.z);
+		this->newVelocities.z = nullptr;
 	}
 #endif
 }
@@ -307,17 +341,16 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 
 		mass = ((rand() / (T) RAND_MAX) * 5.0e21);
 
-		radius = mass * 0.5e-14;
+		//radius = mass * 0.5e-14;
+		radius = mass * 0.5e-15;
 
 		posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
 		posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
 		posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
-		//posZ = -10.0e8;
 
 		velocityX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 		velocityY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 		velocityZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		//velocityZ = 0;
 
 		this->setBody(iBody, mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ);
 	}
@@ -364,7 +397,7 @@ bool Bodies<T>::initFromFile(const std::string inputFileName)
 	return true;
 }
 
-/* work only if mi == mj (pool elastics collisions)
+/* collisions 2D: work only if mi == mj (pool elastics collisions)
 template <typename T>
 void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisions)
 {
@@ -387,8 +420,6 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 		{
 			assert(collisions[iBody].size() < 2);
 			unsigned long jBody = collisions[iBody][0];
-			// --------------------------------------------------------------------------------------------------------
-
 
 			// compute iBody ------------------------------------------------------------------------------------------
 			T diffPosX = this->positions.x[jBody] - this->positions.x[iBody];
@@ -440,12 +471,12 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 			this->velocities.x[iBody] = normX * (std::sin(jTeta) * jVelocityDist) + tmpIVelX;
 			this->velocities.y[iBody] = normY * (std::sin(jTeta) * jVelocityDist) + tmpIVelY;
 
-			// --------------------------------------------------------------------------------------------------------
 			collisions[jBody].clear();
 		}
 }
 */
 
+/* collisions 2D
 template <typename T>
 void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisions)
 {
@@ -467,12 +498,10 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 		{
 			assert(collisions[iBody].size() < 2);
 			unsigned long jBody = collisions[iBody][0];
-			// --------------------------------------------------------------------------------------------------------
 
 			// 1. Find unit normal and unit tangent vectors
 			T normX = this->positions.x[jBody] - this->positions.x[iBody];
 			T normY = this->positions.y[jBody] - this->positions.y[iBody];
-			T normZ = this->positions.z[jBody] - this->positions.z[iBody];
 
 			T dij = std::sqrt((normX * normX) + (normY * normY));
 
@@ -520,11 +549,328 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 			this->velocities.x[jBody] = vjNewNormX + vjNewTangX;
 			this->velocities.y[jBody] = vjNewNormY + vjNewTangY;
 
-			// --------------------------------------------------------------------------------------------------------
+			collisions[jBody].clear();
+		}
+}
+*/
+
+/* collisions 3D */
+template <typename T>
+void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisions)
+{
+	/*
+	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+		if(collisions[iBody].size())
+		{
+			std::cout << "Collisions for body n°" << iBody << ":" << std::endl;
+
+			for(unsigned long jBody = 0; jBody < collisions[iBody].size(); jBody++)
+				std::cout << "  - with body n°" << collisions[iBody][jBody] << std::endl;
+		}
+	*/
+
+	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+		if(collisions[iBody].size())
+		{
+			assert(collisions[iBody].size() < 2);
+			unsigned long jBody = collisions[iBody][0];
+
+			// 1. Find unit normal and unit tangent 1 and tangent 2 vectors
+			T normX = this->positions.x[jBody] - this->positions.x[iBody];
+			T normY = this->positions.y[jBody] - this->positions.y[iBody];
+			T normZ = this->positions.z[jBody] - this->positions.z[iBody];
+
+			T dNorm = std::sqrt((normX * normX) + (normY * normY) + (normZ * normZ));
+
+			T uNormX = normX / dNorm;
+			T uNormY = normY / dNorm;
+			T uNormZ = normZ / dNorm;
+			//std::cout << "uNorm = {" << uNormX << ", " << uNormY << ", " << uNormZ << "}" << std::endl;
+
+			// uTan1 and uTan2 vectors define the collision tangent plan (for 3D collisions)
+			//T uTan1X = -uNormY;
+			//T uTan1Y =  uNormZ;
+			//T uTan1Z =  uNormX;
+
+			T tan1X, tan1Y, tan1Z;
+			if(uNormZ != 0)
+			{
+				tan1X = 1.0;
+				tan1Y = 0.0;
+				tan1Z = -(uNormX / uNormZ);
+			}
+			else if (uNormY != 0)
+			{
+				tan1X = 1.0;
+				tan1Y = -(uNormX / uNormY);
+				tan1Z = 0.0;
+			}
+			else if (uNormX != 0)
+			{
+				tan1X = -(uNormY / uNormX);
+				tan1Y = 1.0;
+				tan1Z = 0.0;
+			}
+			else
+			{
+				std::cout << "Error: uNorm = {" << uNormX << ", " << uNormY << ", " << uNormZ << "}" << std::endl;
+				exit(-1);
+			}
+
+			T dTan1 = std::sqrt((tan1X * tan1X) + (tan1Y * tan1Y) + (tan1Z * tan1Z));
+
+			T uTan1X = tan1X / dTan1;
+			T uTan1Y = tan1Y / dTan1;
+			T uTan1Z = tan1Z / dTan1;
+
+			//std::cout << "uTan1 = {" << uTan1X << ", " << uTan1Y << ", " << uTan1Z << "}" << std::endl;
+
+			//std::cout << "uNorm.uTan1 = " << ((uNormX * uTan1X) + (uNormY * uTan1Y) + (uNormZ * uTan1Z)) << std::endl;
+
+			// uTan2 vector = (uNormX vector) ^ (uTan1 vector); (cross product or vector product)
+			T uTan2X = (uNormY * uTan1Z) - (uNormZ * uTan1Y);
+			T uTan2Y = (uNormZ * uTan1X) - (uNormX * uTan1Z);
+			T uTan2Z = (uNormX * uTan1Y) - (uNormY * uTan1X);
+			//std::cout << "uTan2 = {" << uTan2X << ", " << uTan2Y << ", " << uTan2Z << "}" << std::endl;
+
+			//std::cout << "uNorm.uTan2 = " << ((uNormX * uTan2X) + (uNormY * uTan2Y) + (uNormZ * uTan2Z)) << std::endl;
+			//std::cout << "uTan1.uTan2 = " << ((uTan1X * uTan2X) + (uTan1Y * uTan2Y) + (uTan1Z * uTan2Z)) << std::endl;
+
+			// 2. Create the initial (before the collision) velocity vectors, iVel and jVel
+			T iVelX = this->velocities.x[iBody];
+			T iVelY = this->velocities.y[iBody];
+			T iVelZ = this->velocities.z[iBody];
+
+			T jVelX = this->velocities.x[jBody];
+			T jVelY = this->velocities.y[jBody];
+			T jVelZ = this->velocities.z[jBody];
+
+			// 3. Projecting the velocity vectors onto the unit normal and unit tangent vectors
+			// (scalar product or dot product)
+			T viNorm = (uNormX * iVelX) + (uNormY * iVelY) + (uNormZ * iVelZ);
+			T viTan1 = (uTan1X * iVelX) + (uTan1Y * iVelY) + (uTan1Z * iVelZ);
+			T viTan2 = (uTan2X * iVelX) + (uTan2Y * iVelY) + (uTan2Z * iVelZ);
+
+			T vjNorm = (uNormX * jVelX) + (uNormY * jVelY) + (uNormZ * jVelZ);
+			T vjTan1 = (uTan1X * jVelX) + (uTan1Y * jVelY) + (uTan1Z * jVelZ);
+			T vjTan2 = (uTan2X * jVelX) + (uTan2Y * jVelY) + (uTan2Z * jVelZ);
+
+			// 4. Find the new tangential velocities
+			T viNewTan1 = viTan1;
+			T viNewTan2 = viTan2;
+
+			T vjNewTan1 = vjTan1;
+			T vjNewTan2 = vjTan2;
+
+			T iMass = this->masses[iBody];
+			T jMass = this->masses[jBody];
+
+			// 5. Find the new normal velocities (apply elastic collision based on momentum and kinetic energy conservation)
+			T viNewNorm = (viNorm * (iMass - jMass) + (2.0 * jMass * vjNorm)) / (iMass + jMass);
+			T vjNewNorm = (vjNorm * (jMass - iMass) + (2.0 * iMass * viNorm)) / (iMass + jMass);
+
+			// 6. Convert the scalar normal and tangential velocities into vectors
+			T viNewNormX = viNewNorm * uNormX;
+			T viNewNormY = viNewNorm * uNormY;
+			T viNewNormZ = viNewNorm * uNormZ;
+
+			T viNewTan1X = viNewTan1 * uTan1X;
+			T viNewTan1Y = viNewTan1 * uTan1Y;
+			T viNewTan1Z = viNewTan1 * uTan1Z;
+
+			T viNewTan2X = viNewTan2 * uTan2X;
+			T viNewTan2Y = viNewTan2 * uTan2Y;
+			T viNewTan2Z = viNewTan2 * uTan2Z;
+
+			T vjNewNormX = vjNewNorm * uNormX;
+			T vjNewNormY = vjNewNorm * uNormY;
+			T vjNewNormZ = vjNewNorm * uNormZ;
+
+			T vjNewTan1X = vjNewTan1 * uTan1X;
+			T vjNewTan1Y = vjNewTan1 * uTan1Y;
+			T vjNewTan1Z = vjNewTan1 * uTan1Z;
+
+			T vjNewTan2X = vjNewTan2 * uTan2X;
+			T vjNewTan2Y = vjNewTan2 * uTan2Y;
+			T vjNewTan2Z = vjNewTan2 * uTan2Z;
+
+			// 7. Find the final velocity vectors by adding the normal and tangential components
+			this->velocities.x[iBody] = viNewNormX + viNewTan1X + viNewTan2X;
+			this->velocities.y[iBody] = viNewNormY + viNewTan1Y + viNewTan2Y;
+			this->velocities.z[iBody] = viNewNormZ + viNewTan1Z + viNewTan2Z;
+
+			this->velocities.x[jBody] = vjNewNormX + vjNewTan1X + vjNewTan2X;
+			this->velocities.y[jBody] = vjNewNormY + vjNewTan1Y + vjNewTan2Y;
+			this->velocities.z[jBody] = vjNewNormZ + vjNewTan1Z + vjNewTan2Z;
+
 			collisions[jBody].clear();
 		}
 }
 
+/* multi collisions 3D: not working */
+template <typename T>
+void Bodies<T>::applyMultiCollisions(std::vector<std::vector<unsigned long>> collisions)
+{
+	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+		if(collisions[iBody].size())
+		{
+			std::cout << "Collisions for body n°" << iBody << ":" << std::endl;
+
+			for(unsigned long jBody = 0; jBody < collisions[iBody].size(); jBody++)
+				std::cout << "  - with body n°" << collisions[iBody][jBody] << std::endl;
+		}
+
+	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+	{
+		this->newVelocities.x[iBody] = 0.0;
+		this->newVelocities.y[iBody] = 0.0;
+		this->newVelocities.z[iBody] = 0.0;
+	}
+
+	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+	{
+		for(unsigned long iCollision = 0; iCollision < collisions[iBody].size(); iCollision++)
+		{
+			unsigned long jBody = collisions[iBody][0];
+
+			if(jBody > iBody)
+			{
+				// 1. Find unit normal and unit tangent 1 and tangent 2 vectors
+				T normX = this->positions.x[jBody] - this->positions.x[iBody];
+				T normY = this->positions.y[jBody] - this->positions.y[iBody];
+				T normZ = this->positions.z[jBody] - this->positions.z[iBody];
+
+				T dNorm = std::sqrt((normX * normX) + (normY * normY) + (normZ * normZ));
+
+				T uNormX = normX / dNorm;
+				T uNormY = normY / dNorm;
+				T uNormZ = normZ / dNorm;
+
+				// uTan1 and uTan2 vectors define the collision tangent plan (for 3D collisions)
+				T tan1X, tan1Y, tan1Z;
+				if(uNormZ != 0)
+				{
+					tan1X = 1.0;
+					tan1Y = 0.0;
+					tan1Z = -(uNormX / uNormZ);
+				}
+				else if (uNormY != 0)
+				{
+					tan1X = 1.0;
+					tan1Y = -(uNormX / uNormY);
+					tan1Z = 0.0;
+				}
+				else if (uNormX != 0)
+				{
+					tan1X = -(uNormY / uNormX);
+					tan1Y = 1.0;
+					tan1Z = 0.0;
+				}
+				else
+				{
+					std::cout << "Error: uNorm = {" << uNormX << ", " << uNormY << ", " << uNormZ << "}" << std::endl;
+					exit(-1);
+				}
+
+				T dTan1 = std::sqrt((tan1X * tan1X) + (tan1Y * tan1Y) + (tan1Z * tan1Z));
+
+				T uTan1X = tan1X / dTan1;
+				T uTan1Y = tan1Y / dTan1;
+				T uTan1Z = tan1Z / dTan1;
+
+				// uTan2 vector = (uNormX vector) ^ (uTan1 vector); (cross product or vector product)
+				T uTan2X = (uNormY * uTan1Z) - (uNormZ * uTan1Y);
+				T uTan2Y = (uNormZ * uTan1X) - (uNormX * uTan1Z);
+				T uTan2Z = (uNormX * uTan1Y) - (uNormY * uTan1X);
+
+				// 2. Create the initial (before the collision) velocity vectors, iVel and jVel
+				T iVelX = this->velocities.x[iBody];
+				T iVelY = this->velocities.y[iBody];
+				T iVelZ = this->velocities.z[iBody];
+
+				T jVelX = this->velocities.x[jBody];
+				T jVelY = this->velocities.y[jBody];
+				T jVelZ = this->velocities.z[jBody];
+
+				// 3. Projecting the velocity vectors onto the unit normal and unit tangent vectors
+				// (scalar product or dot product)
+				T viNorm = (uNormX * iVelX) + (uNormY * iVelY) + (uNormZ * iVelZ);
+				T viTan1 = (uTan1X * iVelX) + (uTan1Y * iVelY) + (uTan1Z * iVelZ);
+				T viTan2 = (uTan2X * iVelX) + (uTan2Y * iVelY) + (uTan2Z * iVelZ);
+
+				T vjNorm = (uNormX * jVelX) + (uNormY * jVelY) + (uNormZ * jVelZ);
+				T vjTan1 = (uTan1X * jVelX) + (uTan1Y * jVelY) + (uTan1Z * jVelZ);
+				T vjTan2 = (uTan2X * jVelX) + (uTan2Y * jVelY) + (uTan2Z * jVelZ);
+
+				// 4. Find the new tangential velocities
+				T viNewTan1 = viTan1;
+				T viNewTan2 = viTan2;
+
+				T vjNewTan1 = vjTan1;
+				T vjNewTan2 = vjTan2;
+
+				T iMass = this->masses[iBody];
+				T jMass = this->masses[jBody];
+
+				// 5. Find the new normal velocities (apply elastic collision based on momentum and kinetic energy conservation)
+				T viNewNorm = (viNorm * (iMass - jMass) + (2.0 * jMass * vjNorm)) /
+				              ((iMass + jMass) * collisions[iBody].size() * collisions[jBody].size());
+				T vjNewNorm = (vjNorm * (jMass - iMass) + (2.0 * iMass * viNorm)) /
+				              ((iMass + jMass) * collisions[iBody].size() * collisions[jBody].size());
+
+				// 6. Convert the scalar normal and tangential velocities into vectors
+				T viNewNormX = viNewNorm * uNormX;
+				T viNewNormY = viNewNorm * uNormY;
+				T viNewNormZ = viNewNorm * uNormZ;
+
+				T viNewTan1X = viNewTan1 * uTan1X;
+				T viNewTan1Y = viNewTan1 * uTan1Y;
+				T viNewTan1Z = viNewTan1 * uTan1Z;
+
+				T viNewTan2X = viNewTan2 * uTan2X;
+				T viNewTan2Y = viNewTan2 * uTan2Y;
+				T viNewTan2Z = viNewTan2 * uTan2Z;
+
+				T vjNewNormX = vjNewNorm * uNormX;
+				T vjNewNormY = vjNewNorm * uNormY;
+				T vjNewNormZ = vjNewNorm * uNormZ;
+
+				T vjNewTan1X = vjNewTan1 * uTan1X;
+				T vjNewTan1Y = vjNewTan1 * uTan1Y;
+				T vjNewTan1Z = vjNewTan1 * uTan1Z;
+
+				T vjNewTan2X = vjNewTan2 * uTan2X;
+				T vjNewTan2Y = vjNewTan2 * uTan2Y;
+				T vjNewTan2Z = vjNewTan2 * uTan2Z;
+
+				// 7. Find the final velocity vectors by adding the normal and tangential components
+				this->newVelocities.x[iBody] += viNewNormX + viNewTan1X + viNewTan2X;
+				this->newVelocities.y[iBody] += viNewNormY + viNewTan1Y + viNewTan2Y;
+				this->newVelocities.z[iBody] += viNewNormZ + viNewTan1Z + viNewTan2Z;
+
+				this->newVelocities.x[jBody] += vjNewNormX + vjNewTan1X + vjNewTan2X;
+				this->newVelocities.y[jBody] += vjNewNormY + vjNewTan1Y + vjNewTan2Y;
+				this->newVelocities.z[jBody] += vjNewNormZ + vjNewTan1Z + vjNewTan2Z;
+			}
+		}
+	}
+
+	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+	{
+		for(unsigned long iCollision = 0; iCollision < collisions[iBody].size(); iCollision++)
+		{
+			unsigned long jBody = collisions[iBody][0];
+
+			this->velocities.x[iBody] = this->newVelocities.x[iBody];
+			this->velocities.y[iBody] = this->newVelocities.y[iBody];
+			this->velocities.z[iBody] = this->newVelocities.z[iBody];
+
+			this->velocities.x[jBody] = this->newVelocities.x[jBody];
+			this->velocities.y[jBody] = this->newVelocities.y[jBody];
+			this->velocities.z[jBody] = this->newVelocities.z[jBody];
+		}
+	}
+}
 
 template <typename T>
 void Bodies<T>::updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt)

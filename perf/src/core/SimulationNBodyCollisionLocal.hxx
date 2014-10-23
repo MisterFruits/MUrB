@@ -54,6 +54,7 @@ void SimulationNBodyCollisionLocal<T>::computeOneIteration()
 		this->findTimeStep();
 
 	this->bodies.applyCollisions(this->collisions);
+	//this->bodies.applyMultiCollisions(this->collisions);
 
 	this->bodies.updatePositionsAndVelocities(this->accelerations, this->dt);
 }
