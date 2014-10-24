@@ -5,20 +5,20 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
-#ifndef SIMULATION_N_BODY_COLLISION_V1_H_
-#define SIMULATION_N_BODY_COLLISION_V1_H_
+#ifndef SIMULATION_N_BODY_COLLISIONS_V1_H_
+#define SIMULATION_N_BODY_COLLISIONS_V1_H_
 
 #include <string>
 
-#include "../../SimulationNBodyCollisionLocal.h"
+#include "../../SimulationNBodyCollisionsLocal.h"
 
 template <typename T = double>
-class SimulationNBodyCollisionV1 : public SimulationNBodyCollisionLocal<T>
+class SimulationNBodyCollisionsV1 : public SimulationNBodyCollisionsLocal<T>
 {
 public:
-	SimulationNBodyCollisionV1(const unsigned long nBodies);
-	SimulationNBodyCollisionV1(const std::string inputFileName);
-	virtual ~SimulationNBodyCollisionV1();
+	SimulationNBodyCollisionsV1(const unsigned long nBodies);
+	SimulationNBodyCollisionsV1(const std::string inputFileName);
+	virtual ~SimulationNBodyCollisionsV1();
 
 protected:
 	virtual void initIteration();
@@ -31,6 +31,6 @@ private:
 	void init();
 };
 
-#include "SimulationNBodyCollisionV1.hxx"
+#include "SimulationNBodyCollisionsV1.hxx"
 
-#endif /* SIMULATION_N_BODY_COLLISION_V1_H_ */
+#endif /* SIMULATION_N_BODY_COLLISIONS_V1_H_ */

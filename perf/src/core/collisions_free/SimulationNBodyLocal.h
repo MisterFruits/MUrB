@@ -10,9 +10,7 @@
 
 #include <string>
 
-#include "Bodies.h"
-
-#include "SimulationNBody.h"
+#include "../SimulationNBody.h"
 
 template <typename T = double>
 class SimulationNBodyLocal : public SimulationNBody<T>

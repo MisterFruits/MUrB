@@ -11,9 +11,9 @@
 #include <string>
 #include <mpi.h>
 
-#include "Bodies.h"
+#include "../Bodies.h"
 
-#include "SimulationNBody.h"
+#include "../SimulationNBody.h"
 
 template <typename T = double>
 class SimulationNBodyMPI : public SimulationNBody<T>

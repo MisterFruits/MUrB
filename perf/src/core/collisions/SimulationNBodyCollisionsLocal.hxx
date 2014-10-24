@@ -24,29 +24,29 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "../utils/myIntrinsicsPlusPlus.h"
+#include "../../utils/myIntrinsicsPlusPlus.h"
 
-#include "SimulationNBodyCollisionLocal.h"
+#include "SimulationNBodyCollisionsLocal.h"
 
 template <typename T>
-SimulationNBodyCollisionLocal<T>::SimulationNBodyCollisionLocal(const unsigned long nBodies)
+SimulationNBodyCollisionsLocal<T>::SimulationNBodyCollisionsLocal(const unsigned long nBodies)
 	: SimulationNBody<T>(nBodies), collisions(this->bodies.getN())
 {
 }
 
 template <typename T>
-SimulationNBodyCollisionLocal<T>::SimulationNBodyCollisionLocal(const std::string inputFileName)
+SimulationNBodyCollisionsLocal<T>::SimulationNBodyCollisionsLocal(const std::string inputFileName)
 	: SimulationNBody<T>(inputFileName), collisions(this->bodies.getN())
 {
 }
 
 template <typename T>
-SimulationNBodyCollisionLocal<T>::~SimulationNBodyCollisionLocal()
+SimulationNBodyCollisionsLocal<T>::~SimulationNBodyCollisionsLocal()
 {
 }
 
 template <typename T>
-void SimulationNBodyCollisionLocal<T>::computeOneIteration()
+void SimulationNBodyCollisionsLocal<T>::computeOneIteration()
 {
 	this->initIteration();
 	this->computeLocalBodiesAcceleration();
@@ -60,7 +60,7 @@ void SimulationNBodyCollisionLocal<T>::computeOneIteration()
 }
 
 template <typename T>
-void SimulationNBodyCollisionLocal<T>::findTimeStep()
+void SimulationNBodyCollisionsLocal<T>::findTimeStep()
 {
 	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
 	//       dynamic time step is broken.

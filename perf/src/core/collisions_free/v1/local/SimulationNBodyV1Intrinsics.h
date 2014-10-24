@@ -5,27 +5,26 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
-#ifndef SIMULATION_N_BODY_MPI_V1_INTRINSICS_H_
-#define SIMULATION_N_BODY_MPI_V1_INTRINSICS_H_
+#ifndef SIMULATION_N_BODY_V1_INTRINSICS_H_
+#define SIMULATION_N_BODY_V1_INTRINSICS_H_
 
 #include <string>
 
-#include "../../../utils/myIntrinsicsPlusPlus.h"
+#include "../../../../utils/myIntrinsicsPlusPlus.h"
 
-#include "../../SimulationNBodyMPI.h"
+#include "../../SimulationNBodyLocal.h"
 
 template <typename T = double>
-class SimulationNBodyMPIV1Intrinsics : public SimulationNBodyMPI<T>
+class SimulationNBodyV1Intrinsics : public SimulationNBodyLocal<T>
 {
 public:
-	SimulationNBodyMPIV1Intrinsics(const unsigned long nBodies);
-	SimulationNBodyMPIV1Intrinsics(const std::string inputFileName);
-	virtual ~SimulationNBodyMPIV1Intrinsics();
+	SimulationNBodyV1Intrinsics(const unsigned long nBodies);
+	SimulationNBodyV1Intrinsics(const std::string inputFileName);
+	virtual ~SimulationNBodyV1Intrinsics();
 
 protected:
 	virtual void initIteration();
 	virtual void computeLocalBodiesAcceleration();
-	virtual void computeNeighborBodiesAcceleration();
 
 	static inline void computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
 	                                                       const mipp::vec &rIPosX,
@@ -42,9 +41,8 @@ protected:
 private:
 	void init();
 	void _computeLocalBodiesAcceleration();
-	void _computeNeighborBodiesAcceleration();
 };
 
-#include "SimulationNBodyMPIV1Intrinsics.hxx"
+#include "SimulationNBodyV1Intrinsics.hxx"
 
-#endif /* SIMULATION_N_BODY_MPI_V1_INTRINSICS_H_ */
+#endif /* SIMULATION_N_BODY_V1_INTRINSICS_H_ */

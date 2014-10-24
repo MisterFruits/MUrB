@@ -31,17 +31,17 @@ using namespace std;
 
 #include "core/Bodies.h"
 #include "core/SimulationNBody.h"
-#include "core/v1/local/SimulationNBodyV1.h"
-#include "core/v1/local/SimulationNBodyV1CB.h"
-#include "core/v1/local/SimulationNBodyV1Vectors.h"
-#include "core/v1/local/SimulationNBodyV1Intrinsics.h"
-#include "core/v2/local/SimulationNBodyV2.h"
-#include "core/v2/local/SimulationNBodyV2CB.h"
-#include "core/v2/local/SimulationNBodyV2Vectors.h"
-#include "core/v2/local/SimulationNBodyV2Intrinsics.h"
-#include "core/v2/local/SimulationNBodyV2FineTuned.h"
+#include "core/collisions_free/v1/local/SimulationNBodyV1.h"
+#include "core/collisions_free/v1/local/SimulationNBodyV1CB.h"
+#include "core/collisions_free/v1/local/SimulationNBodyV1Vectors.h"
+#include "core/collisions_free/v1/local/SimulationNBodyV1Intrinsics.h"
+#include "core/collisions_free/v2/local/SimulationNBodyV2.h"
+#include "core/collisions_free/v2/local/SimulationNBodyV2CB.h"
+#include "core/collisions_free/v2/local/SimulationNBodyV2Vectors.h"
+#include "core/collisions_free/v2/local/SimulationNBodyV2Intrinsics.h"
+#include "core/collisions_free/v2/local/SimulationNBodyV2FineTuned.h"
 
-#include "core/collisionv1/local/SimulationNBodyCollisionV1.h"
+#include "core/collisions/v1/local/SimulationNBodyCollisionsV1.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -57,8 +57,8 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "core/v1/mpi/SimulationNBodyMPIV1.h"
-#include "core/v1/mpi/SimulationNBodyMPIV1Intrinsics.h"
+#include "core/collisions_free/v1/mpi/SimulationNBodyMPIV1.h"
+#include "core/collisions_free/v1/mpi/SimulationNBodyMPIV1Intrinsics.h"
 #else
 #ifndef NO_MPI
 #define NO_MPI
@@ -257,9 +257,9 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 			if(!MPI::COMM_WORLD.Get_rank())
 				cout << "Selected implementation: V1 + collisions - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
-				simu = new SimulationNBodyCollisionV1<T>(NBodies);
+				simu = new SimulationNBodyCollisionsV1<T>(NBodies);
 			else
-				simu = new SimulationNBodyCollisionV1<T>(inputFileName);
+				simu = new SimulationNBodyCollisionsV1<T>(inputFileName);
 			break;
 		case 20:
 			if(!MPI::COMM_WORLD.Get_rank())

@@ -593,23 +593,23 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 			//T uTan1Z =  uNormX;
 
 			T tan1X, tan1Y, tan1Z;
-			if(uNormZ != 0)
+			if(uNormX != 0)
 			{
-				tan1X = 1.0;
-				tan1Y = 0.0;
-				tan1Z = -(uNormX / uNormZ);
+				tan1X = -(uNormY / uNormX);
+				tan1Y = 1.0;
+				tan1Z = 0.0;
 			}
-			else if (uNormY != 0)
+			else if(uNormY != 0)
 			{
 				tan1X = 1.0;
 				tan1Y = -(uNormX / uNormY);
 				tan1Z = 0.0;
 			}
-			else if (uNormX != 0)
+			else if(uNormZ != 0)
 			{
-				tan1X = -(uNormY / uNormX);
-				tan1Y = 1.0;
-				tan1Z = 0.0;
+				tan1X = 1.0;
+				tan1Y = 0.0;
+				tan1Z = -(uNormX / uNormZ);
 			}
 			else
 			{
@@ -619,12 +619,14 @@ void Bodies<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisio
 
 			T dTan1 = std::sqrt((tan1X * tan1X) + (tan1Y * tan1Y) + (tan1Z * tan1Z));
 
+			//std::cout << "tan1 = {" << tan1X << ", " << tan1Y << ", " << tan1Z << "}, "
+			//          << "dTan1 = " << dTan1 << std::endl;
+
 			T uTan1X = tan1X / dTan1;
 			T uTan1Y = tan1Y / dTan1;
 			T uTan1Z = tan1Z / dTan1;
 
 			//std::cout << "uTan1 = {" << uTan1X << ", " << uTan1Y << ", " << uTan1Z << "}" << std::endl;
-
 			//std::cout << "uNorm.uTan1 = " << ((uNormX * uTan1X) + (uNormY * uTan1Y) + (uNormZ * uTan1Z)) << std::endl;
 
 			// uTan2 vector = (uNormX vector) ^ (uTan1 vector); (cross product or vector product)
@@ -731,7 +733,7 @@ void Bodies<T>::applyMultiCollisions(std::vector<std::vector<unsigned long>> col
 	{
 		for(unsigned long iCollision = 0; iCollision < collisions[iBody].size(); iCollision++)
 		{
-			unsigned long jBody = collisions[iBody][0];
+			unsigned long jBody = collisions[iBody][iCollision];
 
 			if(jBody > iBody)
 			{
@@ -748,23 +750,23 @@ void Bodies<T>::applyMultiCollisions(std::vector<std::vector<unsigned long>> col
 
 				// uTan1 and uTan2 vectors define the collision tangent plan (for 3D collisions)
 				T tan1X, tan1Y, tan1Z;
-				if(uNormZ != 0)
+				if(uNormX != 0)
 				{
-					tan1X = 1.0;
-					tan1Y = 0.0;
-					tan1Z = -(uNormX / uNormZ);
+					tan1X = -(uNormY / uNormX);
+					tan1Y = 1.0;
+					tan1Z = 0.0;
 				}
-				else if (uNormY != 0)
+				else if(uNormY != 0)
 				{
 					tan1X = 1.0;
 					tan1Y = -(uNormX / uNormY);
 					tan1Z = 0.0;
 				}
-				else if (uNormX != 0)
+				else if(uNormZ != 0)
 				{
-					tan1X = -(uNormY / uNormX);
-					tan1Y = 1.0;
-					tan1Z = 0.0;
+					tan1X = 1.0;
+					tan1Y = 0.0;
+					tan1Z = -(uNormX / uNormZ);
 				}
 				else
 				{
@@ -813,10 +815,10 @@ void Bodies<T>::applyMultiCollisions(std::vector<std::vector<unsigned long>> col
 				T jMass = this->masses[jBody];
 
 				// 5. Find the new normal velocities (apply elastic collision based on momentum and kinetic energy conservation)
-				T viNewNorm = (viNorm * (iMass - jMass) + (2.0 * jMass * vjNorm)) /
-				              ((iMass + jMass) * collisions[iBody].size() * collisions[jBody].size());
-				T vjNewNorm = (vjNorm * (jMass - iMass) + (2.0 * iMass * viNorm)) /
-				              ((iMass + jMass) * collisions[iBody].size() * collisions[jBody].size());
+				//T viNewNorm = (((viNorm * (iMass - jMass)) / 1) + ((2.0 * jMass * vjNorm) / collisions[jBody].size())) / ((iMass + jMass));
+				//T vjNewNorm = (((vjNorm * (jMass - iMass)) / 1) + ((2.0 * iMass * viNorm) / collisions[iBody].size())) / ((iMass + jMass));
+				T viNewNorm = (viNorm * (iMass - jMass) + (2.0 * jMass * vjNorm)) / (iMass + jMass);
+				T vjNewNorm = (vjNorm * (jMass - iMass) + (2.0 * iMass * viNorm)) / (iMass + jMass);
 
 				// 6. Convert the scalar normal and tangential velocities into vectors
 				T viNewNormX = viNewNorm * uNormX;
@@ -859,7 +861,7 @@ void Bodies<T>::applyMultiCollisions(std::vector<std::vector<unsigned long>> col
 	{
 		for(unsigned long iCollision = 0; iCollision < collisions[iBody].size(); iCollision++)
 		{
-			unsigned long jBody = collisions[iBody][0];
+			unsigned long jBody = collisions[iBody][iCollision];
 
 			this->velocities.x[iBody] = this->newVelocities.x[iBody];
 			this->velocities.y[iBody] = this->newVelocities.y[iBody];
