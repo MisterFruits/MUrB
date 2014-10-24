@@ -348,10 +348,10 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 
 	if(VisuEnable)
 	{
-		const T *positionsX = simu->getBodies().getPositionsX();
-		const T *positionsY = simu->getBodies().getPositionsY();
-		const T *positionsZ = simu->getBodies().getPositionsZ();
-		const T *radiuses   = simu->getBodies().getRadiuses();
+		const T *positionsX = simu->getBodies()->getPositionsX();
+		const T *positionsY = simu->getBodies()->getPositionsY();
+		const T *positionsZ = simu->getBodies()->getPositionsZ();
+		const T *radiuses   = simu->getBodies()->getRadiuses();
 
 		if(GSEnable) // geometry shader = better performances on dedicated GPUs
 			visu = new OGLSpheresVisuGS<T>("n-body (geometry shader)", WinWidth, WinHeight,
@@ -392,12 +392,12 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 
 		unsigned long MPINBodies = 0;
 		if(!MPI::COMM_WORLD.Get_rank())
-			MPINBodies = simu->getBodies().getN() * MPI::COMM_WORLD.Get_size();
+			MPINBodies = simu->getBodies()->getN() * MPI::COMM_WORLD.Get_size();
 
 		for(unsigned long iRank = 0; iRank < MPI::COMM_WORLD.Get_size(); iRank++)
 		{
 			if(iRank == MPI::COMM_WORLD.Get_rank())
-				if(!simu->getBodies().writeIntoFileMPI(outputFileName, MPINBodies))
+				if(!simu->getBodies()->writeIntoFileMPI(outputFileName, MPINBodies))
 					MPI::COMM_WORLD.Abort(-1);
 
 			MPI::COMM_WORLD.Barrier();
@@ -407,7 +407,7 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 	{
 		tmpFileName = RootOutputFileName + ".i" + to_string(iIte);
 		outputFileName = tmpFileName + ".p" + to_string(MPI::COMM_WORLD.Get_rank()) + ".dat";
-		simu->getBodies().writeIntoFile(outputFileName);
+		simu->getBodies()->writeIntoFile(outputFileName);
 	}
 
 	if(Verbose && !MPI::COMM_WORLD.Get_rank())
@@ -428,7 +428,7 @@ int main(int argc, char** argv)
 
 	// create the n-body simulation
 	SimulationNBody<floatType> *simu = selectImplementationAndAllocateSimulation<floatType>();
-	const unsigned long n = simu->getBodies().getN();
+	const unsigned long n = simu->getBodies()->getN();
 	NBodies = n;
 
 	// get MB used for this simulation

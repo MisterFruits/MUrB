@@ -43,7 +43,7 @@ SimulationNBodyV1<T>::SimulationNBodyV1(const std::string inputFileName)
 template <typename T>
 void SimulationNBodyV1<T>::init()
 {
-	this->flopsPerIte = 18 * (this->bodies.getN() -1) * this->bodies.getN();
+	this->flopsPerIte = 18 * (this->bodies->getN() -1) * this->bodies->getN();
 }
 
 template <typename T>
@@ -54,7 +54,7 @@ SimulationNBodyV1<T>::~SimulationNBodyV1()
 template <typename T>
 void SimulationNBodyV1<T>::initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
@@ -68,8 +68,8 @@ template <typename T>
 void SimulationNBodyV1<T>::computeLocalBodiesAcceleration()
 {
 #pragma omp parallel for schedule(runtime)
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-		for(unsigned long jBody = 0; jBody < this->bodies.getN(); jBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
+		for(unsigned long jBody = 0; jBody < this->bodies->getN(); jBody++)
 			if(iBody != jBody)
 				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
 				this->computeAccelerationBetweenTwoBodies(iBody, jBody);
@@ -81,10 +81,10 @@ void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodiesNaive(const unsign
 {
 	assert(iBody != jBody);
 
-	const T *masses     = this->bodies.getMasses();
-	const T *positionsX = this->bodies.getPositionsX();
-	const T *positionsY = this->bodies.getPositionsY();
-	const T *positionsZ = this->bodies.getPositionsZ();
+	const T *masses     = this->bodies->getMasses();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
 	const T diffPosX = positionsX[jBody] - positionsX[iBody]; // 1 flop
 	const T diffPosY = positionsY[jBody] - positionsY[iBody]; // 1 flop
@@ -124,10 +124,10 @@ void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(const unsigned lo
 {
 	assert(iBody != jBody);
 
-	const T *masses     = this->bodies.getMasses();
-	const T *positionsX = this->bodies.getPositionsX();
-	const T *positionsY = this->bodies.getPositionsY();
-	const T *positionsZ = this->bodies.getPositionsZ();
+	const T *masses     = this->bodies->getMasses();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
 	const T diffPosX = positionsX[jBody] - positionsX[iBody]; // 1 flop
 	const T diffPosY = positionsY[jBody] - positionsY[iBody]; // 1 flop

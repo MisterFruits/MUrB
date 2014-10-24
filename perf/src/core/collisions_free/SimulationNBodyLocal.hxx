@@ -29,20 +29,21 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #include "SimulationNBodyLocal.h"
 
 template <typename T>
-SimulationNBodyLocal<T>::SimulationNBodyLocal(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies)
+SimulationNBodyLocal<T>::SimulationNBodyLocal(const unsigned long nBodies, const unsigned long randInit)
+	: SimulationNBody<T>(new Bodies<T>(nBodies, randInit))
 {
 }
 
 template <typename T>
 SimulationNBodyLocal<T>::SimulationNBodyLocal(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName)
+	: SimulationNBody<T>(new Bodies<T>(inputFileName))
 {
 }
 
 template <typename T>
 SimulationNBodyLocal<T>::~SimulationNBodyLocal()
 {
+	delete this->bodies;
 }
 
 template <typename T>
@@ -52,7 +53,7 @@ void SimulationNBodyLocal<T>::computeOneIteration()
 	this->computeLocalBodiesAcceleration();
 	if(!this->dtConstant)
 		this->findTimeStep();
-	this->bodies.updatePositionsAndVelocities(this->accelerations, this->dt);
+	this->bodies->updatePositionsAndVelocities(this->accelerations, this->dt);
 }
 
 template <typename T>
@@ -64,7 +65,7 @@ void SimulationNBodyLocal<T>::findTimeStep()
 	if(!this->dtConstant)
 	{
 		this->dt = std::numeric_limits<T>::infinity();
-		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+		for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		{
 			const T newDt = this->computeTimeStep(iBody);
 

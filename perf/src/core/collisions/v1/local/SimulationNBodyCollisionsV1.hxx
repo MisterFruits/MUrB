@@ -43,7 +43,7 @@ SimulationNBodyCollisionsV1<T>::SimulationNBodyCollisionsV1(const std::string in
 template <typename T>
 void SimulationNBodyCollisionsV1<T>::init()
 {
-	this->flopsPerIte = 20 * (this->bodies.getN() -1) * this->bodies.getN();
+	this->flopsPerIte = 20 * (this->bodies->getN() -1) * this->bodies->getN();
 }
 
 template <typename T>
@@ -54,7 +54,7 @@ SimulationNBodyCollisionsV1<T>::~SimulationNBodyCollisionsV1()
 template <typename T>
 void SimulationNBodyCollisionsV1<T>::initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
@@ -72,8 +72,8 @@ template <typename T>
 void SimulationNBodyCollisionsV1<T>::computeLocalBodiesAcceleration()
 {
 #pragma omp parallel for schedule(runtime)
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-		for(unsigned long jBody = 0; jBody < this->bodies.getN(); jBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
+		for(unsigned long jBody = 0; jBody < this->bodies->getN(); jBody++)
 			if(iBody != jBody)
 				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
 				this->computeAccelerationBetweenTwoBodies(iBody, jBody);
@@ -85,11 +85,11 @@ void SimulationNBodyCollisionsV1<T>::computeAccelerationBetweenTwoBodiesNaive(co
 {
 	assert(iBody != jBody);
 
-	const T *masses     = this->bodies.getMasses();
-	const T *radiuses   = this->bodies.getRadiuses();
-	const T *positionsX = this->bodies.getPositionsX();
-	const T *positionsY = this->bodies.getPositionsY();
-	const T *positionsZ = this->bodies.getPositionsZ();
+	const T *masses     = this->bodies->getMasses();
+	const T *radiuses   = this->bodies->getRadiuses();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
 	const T diffPosX = positionsX[jBody] - positionsX[iBody]; // 1 flop
 	const T diffPosY = positionsY[jBody] - positionsY[iBody]; // 1 flop
@@ -134,11 +134,11 @@ void SimulationNBodyCollisionsV1<T>::computeAccelerationBetweenTwoBodies(const u
 {
 	assert(iBody != jBody);
 
-	const T *masses     = this->bodies.getMasses();
-	const T *radiuses   = this->bodies.getRadiuses();
-	const T *positionsX = this->bodies.getPositionsX();
-	const T *positionsY = this->bodies.getPositionsY();
-	const T *positionsZ = this->bodies.getPositionsZ();
+	const T *masses     = this->bodies->getMasses();
+	const T *radiuses   = this->bodies->getRadiuses();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
 	const T diffPosX = positionsX[jBody] - positionsX[iBody]; // 1 flop
 	const T diffPosY = positionsY[jBody] - positionsY[iBody]; // 1 flop

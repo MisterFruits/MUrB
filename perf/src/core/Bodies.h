@@ -26,13 +26,12 @@ class Bodies
 {
 	friend SimulationNBodyMPI<T>;
 
-private:
+protected:
 	unsigned long  n;
 	T             *masses;
 	T             *radiuses;
 	vector3<T>     positions;
 	vector3<T>     velocities;
-	vector3<T>     newVelocities;
 	unsigned long  nVecs;
 	unsigned short padding;
 	// stats
@@ -49,28 +48,25 @@ public:
 	Bodies<T>& operator=(const Bodies<T>& bodies);
 	void hardCopy(const Bodies<T>& bodies);
 
-	inline const unsigned long& getN();
-	inline const unsigned long& getNVecs();
-	inline const unsigned short& getPadding();
-	inline const T* getMasses();
-	inline const T* getRadiuses();
-	inline const T* getPositionsX();
-	inline const T* getPositionsY();
-	inline const T* getPositionsZ();
-	inline const T* getVelocitiesX();
-	inline const T* getVelocitiesY();
-	inline const T* getVelocitiesZ();
-	inline const float& getAllocatedBytes();
-
-	void applyCollisions(std::vector<std::vector<unsigned long>> collisions);
-	void applyMultiCollisions(std::vector<std::vector<unsigned long>> collisions);
+	inline const unsigned long& getN() const;
+	inline const unsigned long& getNVecs() const;
+	inline const unsigned short& getPadding() const;
+	inline const T* getMasses() const;
+	inline const T* getRadiuses() const;
+	inline const T* getPositionsX() const;
+	inline const T* getPositionsY() const;
+	inline const T* getPositionsZ() const;
+	inline const T* getVelocitiesX() const;
+	inline const T* getVelocitiesY() const;
+	inline const T* getVelocitiesZ() const;
+	inline const float& getAllocatedBytes() const;
 
 	void updatePositionsAndVelocities(const vector3<T> &accelerations, T &dt);
 
 	bool readFromFile(const std::string inputFileName);
-	void write(std::ostream& stream, bool writeN = true);
-	bool writeIntoFile(const std::string outputFileName);
-	bool writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies = 0);
+	void write(std::ostream& stream, bool writeN = true) const;
+	bool writeIntoFile(const std::string outputFileName) const;
+	bool writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies = 0) const;
 
 private:
 	void deallocateBuffers();

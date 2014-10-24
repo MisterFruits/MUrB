@@ -31,22 +31,22 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 template <typename T>
 SimulationNBodyMPI<T>::SimulationNBodyMPI(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies, MPI::COMM_WORLD.Get_rank() * nBodies +1),
+	: SimulationNBody<T>(new Bodies<T>(nBodies, MPI::COMM_WORLD.Get_rank() * nBodies +1)),
 	  neighborBodies    (NULL),
 	  MPISize           (MPI::COMM_WORLD.Get_size()),
 	  MPIRank           (MPI::COMM_WORLD.Get_rank()),
-	  MPIBodiesBuffers  {this->bodies.getN(), this->bodies.getN()}
+	  MPIBodiesBuffers  {this->bodies->getN(), this->bodies->getN()}
 {
 	this->init();
 }
 
 template <typename T>
 SimulationNBodyMPI<T>::SimulationNBodyMPI(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName),
+	: SimulationNBody<T>(new Bodies<T>(inputFileName)),
 	  neighborBodies    (NULL),
 	  MPISize           (MPI::COMM_WORLD.Get_size()),
 	  MPIRank           (MPI::COMM_WORLD.Get_rank()),
-	  MPIBodiesBuffers  {this->bodies.getN(), this->bodies.getN()}
+	  MPIBodiesBuffers  {this->bodies->getN(), this->bodies->getN()}
 {
 	this->init();
 }
@@ -54,7 +54,7 @@ SimulationNBodyMPI<T>::SimulationNBodyMPI(const std::string inputFileName)
 template <typename T>
 void SimulationNBodyMPI<T>::init()
 {
-	const unsigned long n = this->bodies.getN() + this->bodies.getPadding();
+	const unsigned long n = this->bodies->getN() + this->bodies->getPadding();
 	MPI::Datatype MPIType = ToMPIDatatype<T>::value();
 
 	// who is next or previous MPI process ?
@@ -130,6 +130,7 @@ void SimulationNBodyMPI<T>::init()
 template <typename T>
 SimulationNBodyMPI<T>::~SimulationNBodyMPI()
 {
+	delete this->bodies;
 }
 
 template <typename T>
@@ -163,7 +164,7 @@ void SimulationNBodyMPI<T>::computeOneIteration()
 	// ----------------------------------------------------------------------------------------------------------------
 
 	// update positions and velocities --------------------------------------------------------------------------------
-	this->bodies.updatePositionsAndVelocities(this->accelerations, this->dt);
+	this->bodies->updatePositionsAndVelocities(this->accelerations, this->dt);
 	// ----------------------------------------------------------------------------------------------------------------
 }
 
@@ -176,7 +177,7 @@ void SimulationNBodyMPI<T>::findTimeStep()
 	if(!this->dtConstant)
 	{
 		T localDt = std::numeric_limits<T>::infinity();
-		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+		for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 			localDt = std::min(localDt, this->computeTimeStep(iBody));
 
 		MPI::COMM_WORLD.Allreduce(&localDt, &this->dt, 1, ToMPIDatatype<T>::value(), MPI_MIN);

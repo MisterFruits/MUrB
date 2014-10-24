@@ -85,9 +85,9 @@ void SimulationNBodyV2FineTuned<T>::_reAllocateBuffers()
 		if(this->accelerations.z != nullptr)
 			delete[] this->accelerations.z;
 
-		this->accelerations.x = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
-		this->accelerations.y = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
-		this->accelerations.z = new T[(this->bodies.getN() + this->bodies.getPadding()) * this->nMaxThreads];
+		this->accelerations.x = new T[(this->bodies->getN() + this->bodies->getPadding()) * this->nMaxThreads];
+		this->accelerations.y = new T[(this->bodies->getN() + this->bodies->getPadding()) * this->nMaxThreads];
+		this->accelerations.z = new T[(this->bodies->getN() + this->bodies->getPadding()) * this->nMaxThreads];
 #else
 		if(this->accelerations.x != nullptr)
 			_mm_free(this->accelerations.x);
@@ -96,14 +96,14 @@ void SimulationNBodyV2FineTuned<T>::_reAllocateBuffers()
 		if(this->accelerations.z != nullptr)
 			_mm_free(this->accelerations.z);
 
-		this->accelerations.x = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) *
+		this->accelerations.x = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
 		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
-		this->accelerations.y = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) *
+		this->accelerations.y = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
 		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
-		this->accelerations.z = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) *
+		this->accelerations.z = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
 		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
 #endif
-		this->allocatedBytes += (this->bodies.getN() + this->bodies.getPadding()) *
+		this->allocatedBytes += (this->bodies->getN() + this->bodies->getPadding()) *
 		                        sizeof(T) * (this->nMaxThreads - 1) * 3;
 	}
 }
@@ -113,27 +113,27 @@ template <typename T>
 void SimulationNBodyV2FineTuned<T>::reAllocateBuffers()
 {
 	this->_reAllocateBuffers();
-	this->flopsPerIte = 26 * (this->bodies.getN() * 0.5) * this->bodies.getN();
+	this->flopsPerIte = 26 * (this->bodies->getN() * 0.5) * this->bodies->getN();
 }
 
 template <>
 void SimulationNBodyV2FineTuned<float>::reAllocateBuffers()
 {
 	this->_reAllocateBuffers();
-	this->flopsPerIte = 27 * (this->bodies.getN() * 0.5) * this->bodies.getN();
+	this->flopsPerIte = 27 * (this->bodies->getN() * 0.5) * this->bodies->getN();
 }
 
 template <typename T>
 void SimulationNBodyV2FineTuned<T>::_initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN() * this->nMaxThreads; iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN() * this->nMaxThreads; iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
 		this->accelerations.z[iBody] = 0.0;
 	}
 
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
 }
 
@@ -142,7 +142,7 @@ void SimulationNBodyV2FineTuned<T>::initIteration()
 {
 	this->_initIteration();
 
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		this->closestNeighborDist[iBody] = std::numeric_limits<T>::infinity();
 }
 
@@ -151,27 +151,27 @@ void SimulationNBodyV2FineTuned<float>::initIteration()
 {
 	this->_initIteration();
 
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		this->closestNeighborDist[iBody] = 0;
 }
 
 template <typename T>
 void SimulationNBodyV2FineTuned<T>::_computeLocalBodiesAcceleration()
 {
-	const T *masses = this->getBodies().getMasses();
+	const T *masses = this->bodies->getMasses();
 
-	const T *positionsX = this->getBodies().getPositionsX();
-	const T *positionsY = this->getBodies().getPositionsY();
-	const T *positionsZ = this->getBodies().getPositionsZ();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
   const mipp::vec rG = mipp::set1<T>(this->G);
 
 #pragma omp parallel firstprivate(rG)
 {
-	const unsigned long thStride = omp_get_thread_num() * (this->bodies.getN() + this->bodies.getPadding());
+	const unsigned long thStride = omp_get_thread_num() * (this->bodies->getN() + this->bodies->getPadding());
 
 #pragma omp for schedule(runtime)
-	for(unsigned long iVec = 0; iVec < this->bodies.getNVecs(); iVec++)
+	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 	{
 		const unsigned long iVecOff = iVec * mipp::vectorSize<T>();
   
@@ -215,7 +215,7 @@ void SimulationNBodyV2FineTuned<T>::_computeLocalBodiesAcceleration()
 			rIClosNeiDist = mipp::load<T>(this->closestNeighborDist + iVecOff);
 		
 		// computation of the vector number iVec with the following other vectors
-		for(unsigned long jVec = iVec +1; jVec < this->bodies.getNVecs(); jVec++)
+		for(unsigned long jVec = iVec +1; jVec < this->bodies->getNVecs(); jVec++)
 		{
 			const unsigned long jVecOff = jVec * mipp::vectorSize<T>();
 			mipp::vec rJMass = mipp::load<T>(masses     + jVecOff);
@@ -269,15 +269,15 @@ void SimulationNBodyV2FineTuned<T>::_computeLocalBodiesAcceleration()
 }
 
 	if(this->nMaxThreads > 1)
-		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+		for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 			for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
 			{
 				this->accelerations.x[iBody] +=
-				            this->accelerations.x[iBody + iThread * (this->bodies.getN() + this->bodies.getPadding())];
+				          this->accelerations.x[iBody + iThread * (this->bodies->getN() + this->bodies->getPadding())];
 				this->accelerations.y[iBody] +=
-				            this->accelerations.y[iBody + iThread * (this->bodies.getN() + this->bodies.getPadding())];
+				          this->accelerations.y[iBody + iThread * (this->bodies->getN() + this->bodies->getPadding())];
 				this->accelerations.z[iBody] +=
-				            this->accelerations.z[iBody + iThread * (this->bodies.getN() + this->bodies.getPadding())];
+				          this->accelerations.z[iBody + iThread * (this->bodies->getN() + this->bodies->getPadding())];
 			}
 }
 
@@ -293,7 +293,7 @@ void SimulationNBodyV2FineTuned<float>::computeLocalBodiesAcceleration()
 {
 	this->_computeLocalBodiesAcceleration();
 
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		this->closestNeighborDist[iBody] = 1.0 / this->closestNeighborDist[iBody];
 }
 

@@ -45,7 +45,7 @@ SimulationNBodyV1Vectors<T>::SimulationNBodyV1Vectors(const std::string inputFil
 template <typename T>
 void SimulationNBodyV1Vectors<T>::init()
 {
-	this->flopsPerIte = 18 * (this->bodies.getN() -1) * this->bodies.getN();
+	this->flopsPerIte = 18 * (this->bodies->getN() -1) * this->bodies->getN();
 }
 
 template <typename T>
@@ -56,7 +56,7 @@ SimulationNBodyV1Vectors<T>::~SimulationNBodyV1Vectors()
 template <typename T>
 void SimulationNBodyV1Vectors<T>::initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
@@ -69,15 +69,15 @@ void SimulationNBodyV1Vectors<T>::initIteration()
 template <typename T>
 void SimulationNBodyV1Vectors<T>::computeLocalBodiesAcceleration()
 {
-	const T *masses = this->getBodies().getMasses();
+	const T *masses = this->getBodies()->getMasses();
 
-	const T *positionsX = this->getBodies().getPositionsX();
-	const T *positionsY = this->getBodies().getPositionsY();
-	const T *positionsZ = this->getBodies().getPositionsZ();
+	const T *positionsX = this->getBodies()->getPositionsX();
+	const T *positionsY = this->getBodies()->getPositionsY();
+	const T *positionsZ = this->getBodies()->getPositionsZ();
 
 #pragma omp parallel for schedule(runtime)
-	for(unsigned long iVec = 0; iVec < this->bodies.getNVecs(); iVec++)
-		for(unsigned long jVec = 0; jVec < this->bodies.getNVecs(); jVec++)
+	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
+		for(unsigned long jVec = 0; jVec < this->bodies->getNVecs(); jVec++)
 			if(iVec != jVec)
 				for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
 				{

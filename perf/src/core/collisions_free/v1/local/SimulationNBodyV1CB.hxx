@@ -61,13 +61,13 @@ void SimulationNBodyV1CB<T>::computeLocalBodiesAcceleration()
 	unsigned long blockSize = 512;
 	// flops  = 23 * blockSize * nBodies      * nBlocks
 	// memops = (4 * blockSize + 7 * nBodies) * nBlocks
-	for(unsigned long jOff = 0; jOff < this->bodies.getN(); jOff += blockSize)
+	for(unsigned long jOff = 0; jOff < this->bodies->getN(); jOff += blockSize)
 	{
-		blockSize = std::min(blockSize, this->bodies.getN() - jOff);
+		blockSize = std::min(blockSize, this->bodies->getN() - jOff);
 		// flops  = 23 * blockSize * nBodies
 		// memops =  4 * blockSize + 7 * nBodies
 #pragma omp parallel for schedule(runtime)
-		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+		for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 			// flops  = 23 * blockSize
 			// memops =  4 * blockSize + 7
 			for(unsigned long jBody = jOff; jBody < jOff + blockSize; jBody++)

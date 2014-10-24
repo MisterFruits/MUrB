@@ -43,13 +43,13 @@ SimulationNBodyMPIV1Intrinsics<T>::SimulationNBodyMPIV1Intrinsics(const std::str
 template <typename T>
 void SimulationNBodyMPIV1Intrinsics<T>::init()
 {
-	this->flopsPerIte = 19 * ((this->bodies.getN() * this->MPISize) -1) * (this->bodies.getN() * this->MPISize);
+	this->flopsPerIte = 19 * ((this->bodies->getN() * this->MPISize) -1) * (this->bodies->getN() * this->MPISize);
 }
 
 template <>
 void SimulationNBodyMPIV1Intrinsics<float>::init()
 {
-	this->flopsPerIte = 20 * ((this->bodies.getN() * this->MPISize) -1) * (this->bodies.getN() * this->MPISize);
+	this->flopsPerIte = 20 * ((this->bodies->getN() * this->MPISize) -1) * (this->bodies->getN() * this->MPISize);
 }
 
 template <typename T>
@@ -60,7 +60,7 @@ SimulationNBodyMPIV1Intrinsics<T>::~SimulationNBodyMPIV1Intrinsics()
 template <typename T>
 void SimulationNBodyMPIV1Intrinsics<T>::initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
@@ -73,7 +73,7 @@ void SimulationNBodyMPIV1Intrinsics<T>::initIteration()
 template <>
 void SimulationNBodyMPIV1Intrinsics<float>::initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
@@ -89,18 +89,18 @@ void SimulationNBodyMPIV1Intrinsics<T>::_computeLocalBodiesAcceleration()
 	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
 	//       dynamic time step is broken.
 	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
-	assert(this->dtConstant || (this->bodies.getN() % mipp::vectorSize<T>() == 0));
+	assert(this->dtConstant || (this->bodies->getN() % mipp::vectorSize<T>() == 0));
 
-	const T *masses = this->getBodies().getMasses();
+	const T *masses = this->bodies->getMasses();
 
-	const T *positionsX = this->getBodies().getPositionsX();
-	const T *positionsY = this->getBodies().getPositionsY();
-	const T *positionsZ = this->getBodies().getPositionsZ();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
 	const mipp::vec rG = mipp::set1<T>(this->G);
 
 #pragma omp parallel for schedule(runtime) firstprivate(rG)
-	for(unsigned long iVec = 0; iVec < this->bodies.getNVecs(); iVec++)
+	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 	{
 		// load vectors
 		const mipp::vec rIPosX = mipp::load<T>(positionsX + iVec * mipp::vectorSize<T>());
@@ -115,7 +115,7 @@ void SimulationNBodyMPIV1Intrinsics<T>::_computeLocalBodiesAcceleration()
 		if(!this->dtConstant)
 			rIClosNeiDist = mipp::load<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>());
 
-		for(unsigned long jVec = 0; jVec < this->bodies.getNVecs(); jVec++)
+		for(unsigned long jVec = 0; jVec < this->bodies->getNVecs(); jVec++)
 		{
 			// load vectors
 			mipp::vec rJMass = mipp::load<T>(masses     + jVec * mipp::vectorSize<T>());
@@ -176,7 +176,7 @@ void SimulationNBodyMPIV1Intrinsics<float>::computeLocalBodiesAcceleration()
 {
 	this->_computeLocalBodiesAcceleration();
 
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		this->closestNeighborDist[iBody] = 1.0 / this->closestNeighborDist[iBody];
 }
 
@@ -186,11 +186,11 @@ void SimulationNBodyMPIV1Intrinsics<T>::_computeNeighborBodiesAcceleration()
 	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
 	//       dynamic time step is broken.
 	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
-	assert(this->dtConstant || (this->bodies.getN() % mipp::vectorSize<T>() == 0));
+	assert(this->dtConstant || (this->bodies->getN() % mipp::vectorSize<T>() == 0));
 
-	const T *positionsX = this->getBodies().getPositionsX();
-	const T *positionsY = this->getBodies().getPositionsY();
-	const T *positionsZ = this->getBodies().getPositionsZ();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
 	const T *neighMasses     = this->neighborBodies->getMasses();
 	const T *neighPositionsX = this->neighborBodies->getPositionsX();
@@ -200,7 +200,7 @@ void SimulationNBodyMPIV1Intrinsics<T>::_computeNeighborBodiesAcceleration()
 	const mipp::vec rG = mipp::set1<T>(this->G);
 
 #pragma omp parallel for schedule(runtime) firstprivate(rG)
-	for(unsigned long iVec = 0; iVec < this->bodies.getNVecs(); iVec++)
+	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 	{
 		// load vectors
 		const mipp::vec rIPosX = mipp::load<T>(positionsX + iVec * mipp::vectorSize<T>());
@@ -215,7 +215,7 @@ void SimulationNBodyMPIV1Intrinsics<T>::_computeNeighborBodiesAcceleration()
 		if(!this->dtConstant)
 			rIClosNeiDist = mipp::load<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>());
 
-		for(unsigned long jVec = 0; jVec < this->bodies.getNVecs(); jVec++)
+		for(unsigned long jVec = 0; jVec < this->bodies->getNVecs(); jVec++)
 		{
 			// load vectors
 			mipp::vec rJMass = mipp::load<T>(neighMasses     + jVec * mipp::vectorSize<T>());
@@ -258,7 +258,7 @@ void SimulationNBodyMPIV1Intrinsics<float>::computeNeighborBodiesAcceleration()
 {
 	this->_computeNeighborBodiesAcceleration();
 
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		this->closestNeighborDist[iBody] = 1.0 / this->closestNeighborDist[iBody];
 }
 

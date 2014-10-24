@@ -26,37 +26,42 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #include "../../utils/myIntrinsicsPlusPlus.h"
 
+#include "BodiesCollisions.h"
 #include "SimulationNBodyCollisionsLocal.h"
 
 template <typename T>
-SimulationNBodyCollisionsLocal<T>::SimulationNBodyCollisionsLocal(const unsigned long nBodies)
-	: SimulationNBody<T>(nBodies), collisions(this->bodies.getN())
+SimulationNBodyCollisionsLocal<T>::SimulationNBodyCollisionsLocal(const unsigned long nBodies,
+                                                                  const unsigned long randInit)
+	: SimulationNBody<T>(new BodiesCollisions<T>(nBodies, randInit)), collisions(this->bodies->getN())
 {
 }
 
 template <typename T>
 SimulationNBodyCollisionsLocal<T>::SimulationNBodyCollisionsLocal(const std::string inputFileName)
-	: SimulationNBody<T>(inputFileName), collisions(this->bodies.getN())
+	: SimulationNBody<T>(new BodiesCollisions<T>(inputFileName)), collisions(this->bodies->getN())
 {
 }
 
 template <typename T>
 SimulationNBodyCollisionsLocal<T>::~SimulationNBodyCollisionsLocal()
 {
+	delete this->bodies;
 }
 
 template <typename T>
 void SimulationNBodyCollisionsLocal<T>::computeOneIteration()
 {
+	BodiesCollisions<T> *bodiesCollisions = (BodiesCollisions<T>*)(this->bodies);
+
 	this->initIteration();
 	this->computeLocalBodiesAcceleration();
 	if(!this->dtConstant)
 		this->findTimeStep();
 
-	this->bodies.applyCollisions(this->collisions);
-	//this->bodies.applyMultiCollisions(this->collisions);
+	//bodiesCollisions->applyCollisions(this->collisions);
+	bodiesCollisions->applyMultiCollisions(this->collisions);
 
-	this->bodies.updatePositionsAndVelocities(this->accelerations, this->dt);
+	bodiesCollisions->updatePositionsAndVelocities(this->accelerations, this->dt);
 }
 
 template <typename T>
@@ -68,7 +73,7 @@ void SimulationNBodyCollisionsLocal<T>::findTimeStep()
 	if(!this->dtConstant)
 	{
 		this->dt = std::numeric_limits<T>::infinity();
-		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+		for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		{
 			const T newDt = this->computeTimeStep(iBody);
 

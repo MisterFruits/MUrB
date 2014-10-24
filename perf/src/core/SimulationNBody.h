@@ -18,29 +18,28 @@ class SimulationNBody
 protected:
 	const T G = 6.67384e-11;
 
-	Bodies<T>  bodies;
-	vector3<T> accelerations;
-	T         *closestNeighborDist;
-	bool       dtConstant;
-	T          dt;
+	Bodies<T>  *bodies;
+	vector3<T>  accelerations;
+	T          *closestNeighborDist;
+	bool        dtConstant;
+	T           dt;
 	// stats
-	float      flopsPerIte;
-	float      allocatedBytes;
-	unsigned   nMaxThreads;
+	float       flopsPerIte;
+	float       allocatedBytes;
+	unsigned    nMaxThreads;
 
 protected:
-	SimulationNBody(const unsigned long nBodies, const unsigned long randInit = 0);
-	SimulationNBody(const std::string inputFileName);
+	SimulationNBody(Bodies<T> *bodies);
 
 public:
 	virtual ~SimulationNBody();
 
-	inline Bodies<T>& getBodies();
+	inline const Bodies<T>* getBodies() const;
 	inline void setDtConstant(T dtVal);
 	inline void setDtVariable();
-	inline const T& getDt();
-	inline const float& getFlopsPerIte();
-	inline const float& getAllocatedBytes();
+	inline const T& getDt() const;
+	inline const float& getFlopsPerIte() const;
+	inline const float& getAllocatedBytes() const;
 
 	virtual void computeOneIteration() = 0;
 

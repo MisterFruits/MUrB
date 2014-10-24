@@ -16,7 +16,7 @@ template <typename T = double>
 class SimulationNBodyLocal : public SimulationNBody<T>
 {
 protected:
-	SimulationNBodyLocal(const unsigned long nBodies);
+	SimulationNBodyLocal(const unsigned long nBodies, const unsigned long randInit = 1);
 	SimulationNBodyLocal(const std::string inputFileName);
 
 public:

@@ -43,7 +43,7 @@ SimulationNBodyMPIV1<T>::SimulationNBodyMPIV1(const std::string inputFileName)
 template <typename T>
 void SimulationNBodyMPIV1<T>::init()
 {
-	this->flopsPerIte = 18 * ((this->bodies.getN() * this->MPISize) -1) * (this->bodies.getN() * this->MPISize);
+	this->flopsPerIte = 18 * ((this->bodies->getN() * this->MPISize) -1) * (this->bodies->getN() * this->MPISize);
 }
 
 template <typename T>
@@ -54,7 +54,7 @@ SimulationNBodyMPIV1<T>::~SimulationNBodyMPIV1()
 template <typename T>
 void SimulationNBodyMPIV1<T>::initIteration()
 {
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
 		this->accelerations.x[iBody] = 0.0;
 		this->accelerations.y[iBody] = 0.0;
@@ -67,14 +67,14 @@ void SimulationNBodyMPIV1<T>::initIteration()
 template <typename T>
 void SimulationNBodyMPIV1<T>::computeLocalBodiesAcceleration()
 {
-	const T *masses     = this->bodies.getMasses();
-	const T *positionsX = this->bodies.getPositionsX();
-	const T *positionsY = this->bodies.getPositionsY();
-	const T *positionsZ = this->bodies.getPositionsZ();
+	const T *masses     = this->bodies->getMasses();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
 #pragma omp parallel for schedule(runtime)
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-		for(unsigned long jBody = 0; jBody < this->bodies.getN(); jBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
+		for(unsigned long jBody = 0; jBody < this->bodies->getN(); jBody++)
 			if(iBody != jBody)
 				this->computeAccelerationBetweenTwoBodies(positionsX               [iBody],
 				                                          positionsY               [iBody],
@@ -92,10 +92,10 @@ void SimulationNBodyMPIV1<T>::computeLocalBodiesAcceleration()
 template <typename T>
 void SimulationNBodyMPIV1<T>::computeNeighborBodiesAcceleration()
 {
-	//const T *masses     = this->bodies.getMasses();
-	const T *positionsX = this->bodies.getPositionsX();
-	const T *positionsY = this->bodies.getPositionsY();
-	const T *positionsZ = this->bodies.getPositionsZ();
+	//const T *masses     = this->bodies->getMasses();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
 
 	const T *neighMasses     = this->neighborBodies->getMasses();
 	const T *neighPositionsX = this->neighborBodies->getPositionsX();
@@ -103,8 +103,8 @@ void SimulationNBodyMPIV1<T>::computeNeighborBodiesAcceleration()
 	const T *neighPositionsZ = this->neighborBodies->getPositionsZ();
 
 #pragma omp parallel for schedule(runtime)
-	for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
-		for(unsigned long jBody = 0; jBody < this->bodies.getN(); jBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
+		for(unsigned long jBody = 0; jBody < this->bodies->getN(); jBody++)
 			this->computeAccelerationBetweenTwoBodies(positionsX               [iBody],
 			                                          positionsY               [iBody],
 			                                          positionsZ               [iBody],

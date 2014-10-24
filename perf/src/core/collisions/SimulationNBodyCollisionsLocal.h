@@ -18,7 +18,7 @@ class SimulationNBodyCollisionsLocal : public SimulationNBody<T>
 protected:
 	std::vector<std::vector<unsigned long>> collisions;
 
-	SimulationNBodyCollisionsLocal(const unsigned long nBodies);
+	SimulationNBodyCollisionsLocal(const unsigned long nBodies, const unsigned long randInit = 1);
 	SimulationNBodyCollisionsLocal(const std::string inputFileName);
 
 public:

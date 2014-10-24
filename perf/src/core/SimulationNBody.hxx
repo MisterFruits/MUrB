@@ -29,28 +29,17 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #include "SimulationNBody.h"
 
 template <typename T>
-SimulationNBody<T>::SimulationNBody(const unsigned long nBodies, const unsigned long randInit)
-	: bodies             (nBodies, randInit),
+SimulationNBody<T>::SimulationNBody(Bodies<T> *bodies)
+	: bodies             (bodies),
 	  closestNeighborDist(NULL),
 	  dtConstant         (false),
 	  dt                 (std::numeric_limits<T>::infinity()),
 	  flopsPerIte        (0),
-	  allocatedBytes     (bodies.getAllocatedBytes()),
+	  allocatedBytes     (bodies->getAllocatedBytes()),
 	  nMaxThreads        (omp_get_max_threads())
 {
-	this->allocateBuffers();
-}
+	assert(bodies != nullptr);
 
-template <typename T>
-SimulationNBody<T>::SimulationNBody(const std::string inputFileName)
-	: bodies             (inputFileName),
-	  closestNeighborDist(NULL),
-	  dtConstant         (false),
-	  dt                 (std::numeric_limits<T>::infinity()),
-	  flopsPerIte        (0),
-	  allocatedBytes     (bodies.getAllocatedBytes()),
-	  nMaxThreads        (omp_get_max_threads())
-{
 	this->allocateBuffers();
 }
 
@@ -100,30 +89,30 @@ template <typename T>
 void SimulationNBody<T>::allocateBuffers()
 {
 #ifdef __ARM_NEON__
-	this->accelerations.x = new T[this->bodies.getN() + this->bodies.getPadding()];
-	this->accelerations.y = new T[this->bodies.getN() + this->bodies.getPadding()];
-	this->accelerations.z = new T[this->bodies.getN() + this->bodies.getPadding()];
+	this->accelerations.x = new T[this->bodies->getN() + this->bodies->getPadding()];
+	this->accelerations.y = new T[this->bodies->getN() + this->bodies->getPadding()];
+	this->accelerations.z = new T[this->bodies->getN() + this->bodies->getPadding()];
 
-	this->closestNeighborDist = new T[this->bodies.getN() + this->bodies.getPadding()];
+	this->closestNeighborDist = new T[this->bodies->getN() + this->bodies->getPadding()];
 #else
-	this->accelerations.x = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
+	this->accelerations.x = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
 	                                       mipp::RequiredAlignement);
-	this->accelerations.y = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
+	this->accelerations.y = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
 	                                       mipp::RequiredAlignement);
-	this->accelerations.z = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
+	this->accelerations.z = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
 	                                       mipp::RequiredAlignement);
 
-	this->closestNeighborDist = (T*)_mm_malloc((this->bodies.getN() + this->bodies.getPadding()) * sizeof(T),
+	this->closestNeighborDist = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
 	                                           mipp::RequiredAlignement);
 #endif
 
-	this->allocatedBytes += (this->bodies.getN() + this->bodies.getPadding()) * sizeof(T) * 4;
+	this->allocatedBytes += (this->bodies->getN() + this->bodies->getPadding()) * sizeof(T) * 4;
 }
 
 template <typename T>
-Bodies<T>& SimulationNBody<T>::getBodies()
+const Bodies<T>* SimulationNBody<T>::getBodies() const
 {
-	return this->bodies;
+	return const_cast<const Bodies<T>*>(this->bodies);
 }
 
 template <typename T>
@@ -141,19 +130,19 @@ void SimulationNBody<T>::setDtVariable()
 }
 
 template <typename T>
-const T& SimulationNBody<T>::getDt()
+const T& SimulationNBody<T>::getDt() const
 {
 	return this->dt;
 }
 
 template <typename T>
-const float& SimulationNBody<T>::getFlopsPerIte()
+const float& SimulationNBody<T>::getFlopsPerIte() const
 {
 	return this->flopsPerIte;
 }
 
 template <typename T>
-const float& SimulationNBody<T>::getAllocatedBytes()
+const float& SimulationNBody<T>::getAllocatedBytes() const
 {
 	return this->allocatedBytes;
 }
@@ -161,9 +150,9 @@ const float& SimulationNBody<T>::getAllocatedBytes()
 template <typename T>
 T SimulationNBody<T>::computeTimeStep(const unsigned long iBody)
 {
-	const T *velocitiesX = this->bodies.getVelocitiesX();
-	const T *velocitiesY = this->bodies.getVelocitiesY();
-	const T *velocitiesZ = this->bodies.getVelocitiesZ();
+	const T *velocitiesX = this->bodies->getVelocitiesX();
+	const T *velocitiesY = this->bodies->getVelocitiesY();
+	const T *velocitiesZ = this->bodies->getVelocitiesZ();
 
 	// || velocity[iBody] ||
 	const T v = std::sqrt((velocitiesX[iBody] * velocitiesX[iBody]) +

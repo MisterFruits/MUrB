@@ -46,15 +46,15 @@ template <typename T>
 void SimulationNBodyV2CB<T>::computeLocalBodiesAcceleration()
 {
 	unsigned long blockSize = 512;
-	for(unsigned long jOff = 0; jOff < this->bodies.getN(); jOff += blockSize)
+	for(unsigned long jOff = 0; jOff < this->bodies->getN(); jOff += blockSize)
 	{
-		blockSize = std::min(blockSize, this->bodies.getN() - jOff);
+		blockSize = std::min(blockSize, this->bodies->getN() - jOff);
 #pragma omp parallel
 {
 		const unsigned tid = omp_get_thread_num();
 
 #pragma omp for schedule(runtime)
-		for(unsigned long iBody = jOff +1; iBody < this->bodies.getN(); iBody++)
+		for(unsigned long iBody = jOff +1; iBody < this->bodies->getN(); iBody++)
 		{
 			unsigned long jEnd = std::min(jOff + blockSize, iBody);
 			for(unsigned long jBody = jOff; jBody < jEnd; jBody++)
@@ -65,11 +65,11 @@ void SimulationNBodyV2CB<T>::computeLocalBodiesAcceleration()
 	}
 
 	if(this->nMaxThreads > 1)
-		for(unsigned long iBody = 0; iBody < this->bodies.getN(); iBody++)
+		for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 			for(unsigned iThread = 1; iThread < this->nMaxThreads; iThread++)
 			{
-				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * this->bodies.getN()];
-				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * this->bodies.getN()];
-				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * this->bodies.getN()];
+				this->accelerations.x[iBody] += this->accelerations.x[iBody + iThread * this->bodies->getN()];
+				this->accelerations.y[iBody] += this->accelerations.y[iBody + iThread * this->bodies->getN()];
+				this->accelerations.z[iBody] += this->accelerations.z[iBody + iThread * this->bodies->getN()];
 			}
 }
