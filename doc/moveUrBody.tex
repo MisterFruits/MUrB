@@ -74,11 +74,12 @@
 
 \begin{document}
 \begin{title}
-\noindent\makebox[\textwidth][c]{
 	\noindent\makebox[\textwidth][c]{
-		\includegraphics[scale=0.25]{images/logo_cines_small.jpeg}
+		% this is a trick: empty box for avoiding automatic stride in the next includegraphics...
 	}
-}
+	\noindent\makebox[\textwidth][c]{
+		\includegraphics[scale=0.25]{images/nbody.png}
+	}
 \begin{center}
 	{\Large{\texttt{MoveUrBody} code documentation}}\\
 \end{center}
