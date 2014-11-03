@@ -1,6 +1,6 @@
 \subsection{Time step selection}
 The easier way to determine $\Delta t$ is to select it as a constant for all the simulation iterations.
-For some visualization concerns we will choose to use a constant $\Delta t$ but, for simulation precision interests, it is better to compute a new time step for each iterations depending on the distance between the bodies.
+For visualization concerns we will sometimes use a constant $\Delta t$ but, for simulation precision interests, it is better to compute a new time step for each iterations depending on the distance between the nearest bodies.
 The following equation describes the variable $\Delta t$ calculation:
 \begin{equation}
 \label{eq:dt1}
@@ -19,6 +19,8 @@ It's why we will use the triangle inequality witch allows us to determine a new 
 Eq.~\ref{eq:dt2} is a $2^{nd}$ degree equation: this is more reasonable in term of computational time.
 
 \subsection{Time integration}
+The integrator used to update the positions and velocities is a leapfrog-Verlet integrator (Verlet 1967) because it is applicable to this problem and is computationally efficient (it has a high ratio of accuracy to computational cost).
+
 The $i$ body velocity characteristic at the $t + \Delta t$ time depends on the velocity and the acceleration at the $t$ time:
 \begin{equation}
 \label{eq:velocity}
