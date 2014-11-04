@@ -31,17 +31,17 @@ using namespace std;
 
 #include "core/Bodies.h"
 #include "core/SimulationNBody.h"
-#include "core/collisions_free/v1/local/SimulationNBodyV1.h"
-#include "core/collisions_free/v1/local/SimulationNBodyV1CB.h"
-#include "core/collisions_free/v1/local/SimulationNBodyV1Vectors.h"
-#include "core/collisions_free/v1/local/SimulationNBodyV1Intrinsics.h"
-#include "core/collisions_free/v2/local/SimulationNBodyV2.h"
-#include "core/collisions_free/v2/local/SimulationNBodyV2CB.h"
-#include "core/collisions_free/v2/local/SimulationNBodyV2Vectors.h"
-#include "core/collisions_free/v2/local/SimulationNBodyV2Intrinsics.h"
-#include "core/collisions_free/v2/local/SimulationNBodyV2FineTuned.h"
+#include "core/collisionless/v1/local/SimulationNBodyV1.h"
+#include "core/collisionless/v1/local/SimulationNBodyV1CB.h"
+#include "core/collisionless/v1/local/SimulationNBodyV1Vectors.h"
+#include "core/collisionless/v1/local/SimulationNBodyV1Intrinsics.h"
+#include "core/collisionless/v2/local/SimulationNBodyV2.h"
+#include "core/collisionless/v2/local/SimulationNBodyV2CB.h"
+#include "core/collisionless/v2/local/SimulationNBodyV2Vectors.h"
+#include "core/collisionless/v2/local/SimulationNBodyV2Intrinsics.h"
+#include "core/collisionless/v2/local/SimulationNBodyV2FineTuned.h"
 
-#include "core/collisions/v1/local/SimulationNBodyCollisionsV1.h"
+#include "core/collision/v1/local/SimulationNBodyCollisionV1.h"
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -57,8 +57,8 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #ifdef USE_MPI
 #include <mpi.h>
-#include "core/collisions_free/v1/mpi/SimulationNBodyMPIV1.h"
-#include "core/collisions_free/v1/mpi/SimulationNBodyMPIV1Intrinsics.h"
+#include "core/collisionless/v1/mpi/SimulationNBodyMPIV1.h"
+#include "core/collisionless/v1/mpi/SimulationNBodyMPIV1Intrinsics.h"
 #else
 #ifndef NO_MPI
 #define NO_MPI
@@ -93,6 +93,7 @@ bool          GSEnable   = false;
 bool          VisuEnable = true;
 bool          DtVariable = false;
 floatType     Dt         = 3600; //in sec, 3600 sec = 1 hour
+floatType     MinDt      = 200;
 unsigned int  WinWidth   = 800;
 unsigned int  WinHeight  = 600;
 
@@ -137,6 +138,8 @@ void argsReader(int argc, char** argv)
 	docArgs  ["-nv"]   = "no visualization (disable visu).";
 	faculArgs["-vdt"]   = "";
 	docArgs  ["-vdt"]   = "enable variable time step.";
+	faculArgs["-mdt"]   = "minTimeStep";
+	docArgs  ["-mdt"]   = "select the minimal time step (default is " + to_string(MinDt) + " sec).";
 	faculArgs["-im"]   = "ImplId";
 	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20, 21, 22, 23, 100 or 103).";
 
@@ -185,6 +188,8 @@ void argsReader(int argc, char** argv)
 		VisuEnable = false;
 	if(argsReader.existArgument("-vdt"))
 		DtVariable = true;
+	if(argsReader.existArgument("-mdt"))
+		MinDt = stof(argsReader.getArgument("-mdt"));
 	if(argsReader.existArgument("-im"))
 		ImplId = stoi(argsReader.getArgument("-im"));
 }
@@ -257,9 +262,9 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 			if(!MPI::COMM_WORLD.Get_rank())
 				cout << "Selected implementation: V1 + collisions - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
-				simu = new SimulationNBodyCollisionsV1<T>(NBodies);
+				simu = new SimulationNBodyCollisionV1<T>(NBodies);
 			else
-				simu = new SimulationNBodyCollisionsV1<T>(inputFileName);
+				simu = new SimulationNBodyCollisionV1<T>(inputFileName);
 			break;
 		case 20:
 			if(!MPI::COMM_WORLD.Get_rank())
@@ -468,7 +473,9 @@ int main(int argc, char** argv)
 		writeBodies<floatType>(simu, 0);
 
 	// time step selection
-	if(!DtVariable)
+	if(DtVariable)
+		simu->setDtVariable(MinDt);
+	else
 		simu->setDtConstant(Dt);
 
 	// loop over the iterations

@@ -23,6 +23,7 @@ protected:
 	T          *closestNeighborDist;
 	bool        dtConstant;
 	T           dt;
+	T           minDt;
 	// stats
 	float       flopsPerIte;
 	float       allocatedBytes;
@@ -36,7 +37,7 @@ public:
 
 	inline const Bodies<T>* getBodies() const;
 	inline void setDtConstant(T dtVal);
-	inline void setDtVariable();
+	inline void setDtVariable(T minDt);
 	inline const T& getDt() const;
 	inline const float& getFlopsPerIte() const;
 	inline const float& getAllocatedBytes() const;

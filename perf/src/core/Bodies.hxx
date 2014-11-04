@@ -311,8 +311,8 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 
 		mass = ((rand() / (T) RAND_MAX) * 5.0e21);
 
-		//radius = mass * 0.5e-14;
-		radius = mass * 0.5e-15;
+		radius = mass * 0.5e-14;
+		//radius = mass * 0.5e-15;
 
 		posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
 		posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;

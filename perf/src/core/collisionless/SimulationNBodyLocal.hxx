@@ -26,46 +26,38 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #include "../../utils/myIntrinsicsPlusPlus.h"
 
-#include "BodiesCollisions.h"
-#include "SimulationNBodyCollisionsLocal.h"
+#include "SimulationNBodyLocal.h"
 
 template <typename T>
-SimulationNBodyCollisionsLocal<T>::SimulationNBodyCollisionsLocal(const unsigned long nBodies,
-                                                                  const unsigned long randInit)
-	: SimulationNBody<T>(new BodiesCollisions<T>(nBodies, randInit)), collisions(this->bodies->getN())
+SimulationNBodyLocal<T>::SimulationNBodyLocal(const unsigned long nBodies, const unsigned long randInit)
+	: SimulationNBody<T>(new Bodies<T>(nBodies, randInit))
 {
 }
 
 template <typename T>
-SimulationNBodyCollisionsLocal<T>::SimulationNBodyCollisionsLocal(const std::string inputFileName)
-	: SimulationNBody<T>(new BodiesCollisions<T>(inputFileName)), collisions(this->bodies->getN())
+SimulationNBodyLocal<T>::SimulationNBodyLocal(const std::string inputFileName)
+	: SimulationNBody<T>(new Bodies<T>(inputFileName))
 {
 }
 
 template <typename T>
-SimulationNBodyCollisionsLocal<T>::~SimulationNBodyCollisionsLocal()
+SimulationNBodyLocal<T>::~SimulationNBodyLocal()
 {
 	delete this->bodies;
 }
 
 template <typename T>
-void SimulationNBodyCollisionsLocal<T>::computeOneIteration()
+void SimulationNBodyLocal<T>::computeOneIteration()
 {
-	BodiesCollisions<T> *bodiesCollisions = (BodiesCollisions<T>*)(this->bodies);
-
 	this->initIteration();
 	this->computeLocalBodiesAcceleration();
 	if(!this->dtConstant)
 		this->findTimeStep();
-
-	//bodiesCollisions->applyCollisions(this->collisions);
-	bodiesCollisions->applyMultiCollisions(this->collisions);
-
-	bodiesCollisions->updatePositionsAndVelocities(this->accelerations, this->dt);
+	this->bodies->updatePositionsAndVelocities(this->accelerations, this->dt);
 }
 
 template <typename T>
-void SimulationNBodyCollisionsLocal<T>::findTimeStep()
+void SimulationNBodyLocal<T>::findTimeStep()
 {
 	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
 	//       dynamic time step is broken.
@@ -80,5 +72,8 @@ void SimulationNBodyCollisionsLocal<T>::findTimeStep()
 			if(newDt < this->dt)
 				this->dt = newDt;
 		}
+
+		if(this->dt < this->minDt)
+			this->dt = this->minDt;
 	}
 }

@@ -24,35 +24,35 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "SimulationNBodyCollisionsV1.h"
+#include "SimulationNBodyCollisionV1.h"
 
 template <typename T>
-SimulationNBodyCollisionsV1<T>::SimulationNBodyCollisionsV1(const unsigned long nBodies)
-	: SimulationNBodyCollisionsLocal<T>(nBodies)
+SimulationNBodyCollisionV1<T>::SimulationNBodyCollisionV1(const unsigned long nBodies)
+	: SimulationNBodyCollisionLocal<T>(nBodies)
 {
 	this->init();
 }
 
 template <typename T>
-SimulationNBodyCollisionsV1<T>::SimulationNBodyCollisionsV1(const std::string inputFileName)
-	: SimulationNBodyCollisionsLocal<T>(inputFileName)
+SimulationNBodyCollisionV1<T>::SimulationNBodyCollisionV1(const std::string inputFileName)
+	: SimulationNBodyCollisionLocal<T>(inputFileName)
 {
 	this->init();
 }
 
 template <typename T>
-void SimulationNBodyCollisionsV1<T>::init()
+void SimulationNBodyCollisionV1<T>::init()
 {
 	this->flopsPerIte = 20 * (this->bodies->getN() -1) * this->bodies->getN();
 }
 
 template <typename T>
-SimulationNBodyCollisionsV1<T>::~SimulationNBodyCollisionsV1()
+SimulationNBodyCollisionV1<T>::~SimulationNBodyCollisionV1()
 {
 }
 
 template <typename T>
-void SimulationNBodyCollisionsV1<T>::initIteration()
+void SimulationNBodyCollisionV1<T>::initIteration()
 {
 	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
@@ -69,7 +69,7 @@ void SimulationNBodyCollisionsV1<T>::initIteration()
 }
 
 template <typename T>
-void SimulationNBodyCollisionsV1<T>::computeLocalBodiesAcceleration()
+void SimulationNBodyCollisionV1<T>::computeLocalBodiesAcceleration()
 {
 #pragma omp parallel for schedule(runtime)
 	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
@@ -81,7 +81,8 @@ void SimulationNBodyCollisionsV1<T>::computeLocalBodiesAcceleration()
 
 // 25 flops
 template <typename T>
-void SimulationNBodyCollisionsV1<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody, const unsigned long &jBody)
+void SimulationNBodyCollisionV1<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody,
+                                                                             const unsigned long &jBody)
 {
 	assert(iBody != jBody);
 
@@ -130,7 +131,8 @@ void SimulationNBodyCollisionsV1<T>::computeAccelerationBetweenTwoBodiesNaive(co
 
 // 20 flops
 template <typename T>
-void SimulationNBodyCollisionsV1<T>::computeAccelerationBetweenTwoBodies(const unsigned long &iBody, const unsigned long &jBody)
+void SimulationNBodyCollisionV1<T>::computeAccelerationBetweenTwoBodies(const unsigned long &iBody,
+                                                                        const unsigned long &jBody)
 {
 	assert(iBody != jBody);
 

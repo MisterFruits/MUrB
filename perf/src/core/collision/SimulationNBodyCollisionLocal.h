@@ -5,24 +5,24 @@
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
  */
 
-#ifndef SIMULATION_N_BODY_COLLISIONS_LOCAL_H_
-#define SIMULATION_N_BODY_COLLISIONS_LOCAL_H_
+#ifndef SIMULATION_N_BODY_COLLISION_LOCAL_H_
+#define SIMULATION_N_BODY_COLLISION_LOCAL_H_
 
 #include <string>
 
 #include "../SimulationNBody.h"
 
 template <typename T = double>
-class SimulationNBodyCollisionsLocal : public SimulationNBody<T>
+class SimulationNBodyCollisionLocal : public SimulationNBody<T>
 {
 protected:
 	std::vector<std::vector<unsigned long>> collisions;
 
-	SimulationNBodyCollisionsLocal(const unsigned long nBodies, const unsigned long randInit = 1);
-	SimulationNBodyCollisionsLocal(const std::string inputFileName);
+	SimulationNBodyCollisionLocal(const unsigned long nBodies, const unsigned long randInit = 1);
+	SimulationNBodyCollisionLocal(const std::string inputFileName);
 
 public:
-	virtual ~SimulationNBodyCollisionsLocal();
+	virtual ~SimulationNBodyCollisionLocal();
 
 	void computeOneIteration();
 
@@ -34,6 +34,6 @@ private:
 	void findTimeStep();
 };
 
-#include "SimulationNBodyCollisionsLocal.hxx"
+#include "SimulationNBodyCollisionLocal.hxx"
 
-#endif /* SIMULATION_N_BODY_COLLISIONS_LOCAL_H_ */
+#endif /* SIMULATION_N_BODY_COLLISION_LOCAL_H_ */

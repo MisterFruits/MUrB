@@ -181,5 +181,8 @@ void SimulationNBodyMPI<T>::findTimeStep()
 			localDt = std::min(localDt, this->computeTimeStep(iBody));
 
 		MPI::COMM_WORLD.Allreduce(&localDt, &this->dt, 1, ToMPIDatatype<T>::value(), MPI_MIN);
+
+		if(this->dt < this->minDt)
+			this->dt = this->minDt;
 	}
 }

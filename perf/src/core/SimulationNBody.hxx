@@ -34,6 +34,7 @@ SimulationNBody<T>::SimulationNBody(Bodies<T> *bodies)
 	  closestNeighborDist(NULL),
 	  dtConstant         (false),
 	  dt                 (std::numeric_limits<T>::infinity()),
+	  minDt              (0),
 	  flopsPerIte        (0),
 	  allocatedBytes     (bodies->getAllocatedBytes()),
 	  nMaxThreads        (omp_get_max_threads())
@@ -123,10 +124,11 @@ void SimulationNBody<T>::setDtConstant(T dtVal)
 }
 
 template <typename T>
-void SimulationNBody<T>::setDtVariable()
+void SimulationNBody<T>::setDtVariable(T minDt)
 {
 	this->dtConstant = false;
 	this->dt = std::numeric_limits<T>::infinity();
+	this->minDt = minDt;
 }
 
 template <typename T>

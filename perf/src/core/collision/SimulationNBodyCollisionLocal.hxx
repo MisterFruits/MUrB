@@ -26,38 +26,45 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #include "../../utils/myIntrinsicsPlusPlus.h"
 
-#include "SimulationNBodyLocal.h"
+#include "BodiesCollision.h"
+#include "SimulationNBodyCollisionLocal.h"
 
 template <typename T>
-SimulationNBodyLocal<T>::SimulationNBodyLocal(const unsigned long nBodies, const unsigned long randInit)
-	: SimulationNBody<T>(new Bodies<T>(nBodies, randInit))
+SimulationNBodyCollisionLocal<T>::SimulationNBodyCollisionLocal(const unsigned long nBodies,
+                                                                const unsigned long randInit)
+	: SimulationNBody<T>(new BodiesCollision<T>(nBodies, randInit)), collisions(this->bodies->getN())
 {
 }
 
 template <typename T>
-SimulationNBodyLocal<T>::SimulationNBodyLocal(const std::string inputFileName)
-	: SimulationNBody<T>(new Bodies<T>(inputFileName))
+SimulationNBodyCollisionLocal<T>::SimulationNBodyCollisionLocal(const std::string inputFileName)
+	: SimulationNBody<T>(new BodiesCollision<T>(inputFileName)), collisions(this->bodies->getN())
 {
 }
 
 template <typename T>
-SimulationNBodyLocal<T>::~SimulationNBodyLocal()
+SimulationNBodyCollisionLocal<T>::~SimulationNBodyCollisionLocal()
 {
 	delete this->bodies;
 }
 
 template <typename T>
-void SimulationNBodyLocal<T>::computeOneIteration()
+void SimulationNBodyCollisionLocal<T>::computeOneIteration()
 {
+	BodiesCollision<T> *bodiesCollision = (BodiesCollision<T>*)(this->bodies);
+
 	this->initIteration();
 	this->computeLocalBodiesAcceleration();
 	if(!this->dtConstant)
 		this->findTimeStep();
-	this->bodies->updatePositionsAndVelocities(this->accelerations, this->dt);
+
+	bodiesCollision->applyCollisions(this->collisions);
+
+	bodiesCollision->updatePositionsAndVelocities(this->accelerations, this->dt);
 }
 
 template <typename T>
-void SimulationNBodyLocal<T>::findTimeStep()
+void SimulationNBodyCollisionLocal<T>::findTimeStep()
 {
 	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
 	//       dynamic time step is broken.
@@ -72,5 +79,8 @@ void SimulationNBodyLocal<T>::findTimeStep()
 			if(newDt < this->dt)
 				this->dt = newDt;
 		}
+
+		if(this->dt < this->minDt)
+			this->dt = this->minDt;
 	}
 }
