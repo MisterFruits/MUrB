@@ -21,14 +21,14 @@ Eq.~\ref{eq:dt2} is a $2^{nd}$ degree equation: this is more reasonable in term 
 \subsection{Time integration}
 The integrator used to update the positions and velocities is a leapfrog-Verlet integrator (Verlet 1967) because it is applicable to this problem and is computationally efficient (it has a high ratio of accuracy to computational cost).
 
-The $i$ body velocity characteristic at the $t + \Delta t$ time depends on the velocity and the acceleration at the $t$ time:
+Body $i$ velocity characteristic at the $t + \Delta t$ time depends on the velocity and the acceleration at the $t$ time:
 \begin{equation}
 \label{eq:velocity}
 	\vec{v_i}(t + \Delta t) = \vec{v_{i}}(t) + \vec{a_i}(t) . \Delta t.
 \end{equation}
-At the end, the $i$ body position $q_i$ at the $t + \Delta t$ time depends on the position, the velocity and the acceleration at the $t$ time:
+At the end, body $i$ position $q_i$ at the $t + \Delta t$ time depends on the position, the velocity and the acceleration at the $t$ time:
 \begin{equation}
 \label{eq:position}
 	q_i(t + \Delta t) = q_{i}(t) + \vec{v_{i}}(t) . \Delta t + \frac{\vec{a_i}(t) . \Delta t^2}{2}.
 \end{equation}
-Thanks to Eq.~\ref{eq:acceleration}, \ref{eq:velocity} and \ref{eq:position}, it is now possible to compute the new position and the new velocity for all $i$ bodies at the $t + \Delta t$ time.
+Thanks to Eq.~\ref{eq:acceleration}, \ref{eq:velocity} and \ref{eq:position}, it is now possible to compute the new position and the new velocity for all bodies at the $t + \Delta t$ time.
