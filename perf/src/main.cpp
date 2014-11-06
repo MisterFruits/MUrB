@@ -35,6 +35,7 @@ using namespace std;
 #include "core/collisionless/v1/local/SimulationNBodyV1CB.h"
 #include "core/collisionless/v1/local/SimulationNBodyV1Vectors.h"
 #include "core/collisionless/v1/local/SimulationNBodyV1Intrinsics.h"
+#include "core/collisionless/v1/local/SimulationNBodyV1Soft.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2CB.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2Vectors.h"
@@ -94,6 +95,7 @@ bool          VisuEnable = true;
 bool          DtVariable = false;
 floatType     Dt         = 3600; //in sec, 3600 sec = 1 hour
 floatType     MinDt      = 200;
+floatType     Softening  = 0.035;
 unsigned int  WinWidth   = 800;
 unsigned int  WinHeight  = 600;
 
@@ -136,12 +138,14 @@ void argsReader(int argc, char** argv)
 	docArgs  ["-wh"]   = "the height of the window in pixel (default is " + to_string(WinHeight) + ").";
 	faculArgs["-nv"]   = "";
 	docArgs  ["-nv"]   = "no visualization (disable visu).";
-	faculArgs["-vdt"]   = "";
-	docArgs  ["-vdt"]   = "enable variable time step.";
-	faculArgs["-mdt"]   = "minTimeStep";
-	docArgs  ["-mdt"]   = "select the minimal time step (default is " + to_string(MinDt) + " sec).";
+	faculArgs["-vdt"]  = "";
+	docArgs  ["-vdt"]  = "enable variable time step.";
+	faculArgs["-mdt"]  = "minTimeStep";
+	docArgs  ["-mdt"]  = "select the minimal time step (default is " + to_string(MinDt) + " sec).";
 	faculArgs["-im"]   = "ImplId";
-	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 20, 21, 22, 23, 100 or 103).";
+	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 100 or 103).";
+	faculArgs["-soft"] = "softeningFactor";
+	docArgs  ["-soft"] = "softening factor for implementation 15.";
 
 	if(argsReader.parseArguments(reqArgs1, faculArgs))
 	{
@@ -192,6 +196,8 @@ void argsReader(int argc, char** argv)
 		MinDt = stof(argsReader.getArgument("-mdt"));
 	if(argsReader.existArgument("-im"))
 		ImplId = stoi(argsReader.getArgument("-im"));
+	if(argsReader.existArgument("-soft"))
+		Softening = stof(argsReader.getArgument("-soft"));
 }
 
 template <typename T>
@@ -265,6 +271,14 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyCollisionV1<T>(NBodies);
 			else
 				simu = new SimulationNBodyCollisionV1<T>(inputFileName);
+			break;
+		case 15:
+			if(!MPI::COMM_WORLD.Get_rank())
+				cout << "Selected implementation: V1 + softening factor - O(n²)" << endl << endl;
+			if(RootInputFileName.empty())
+				simu = new SimulationNBodyV1Soft<T>(NBodies, Softening);
+			else
+				simu = new SimulationNBodyV1Soft<T>(inputFileName, Softening);
 			break;
 		case 20:
 			if(!MPI::COMM_WORLD.Get_rank())
