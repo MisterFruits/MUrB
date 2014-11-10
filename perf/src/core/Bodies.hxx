@@ -110,10 +110,6 @@ void Bodies<T>::allocateBuffers()
 	this->velocities.x = new T[this->n + this->padding];
 	this->velocities.y = new T[this->n + this->padding];
 	this->velocities.z = new T[this->n + this->padding];
-
-	this->newVelocities.x = new T[this->n + this->padding];
-	this->newVelocities.y = new T[this->n + this->padding];
-	this->newVelocities.z = new T[this->n + this->padding];
 #else
 	this->masses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
 
