@@ -60,10 +60,10 @@ void BodiesCollision<T>::applyCollisions(std::vector<std::vector<unsigned long>>
 			T normX = this->positions.x[jBody] - this->positions.x[iBody];
 			T normY = this->positions.y[jBody] - this->positions.y[iBody];
 
-			T dij = std::sqrt((normX * normX) + (normY * normY));
+			T rij = std::sqrt((normX * normX) + (normY * normY));
 
-			T uNormX = normX / dij;
-			T uNormY = normY / dij;
+			T uNormX = normX / rij;
+			T uNormY = normY / rij;
 
 			T uTangX = -uNormY;
 			T uTangY =  uNormX;
@@ -79,12 +79,12 @@ void BodiesCollision<T>::applyCollisions(std::vector<std::vector<unsigned long>>
 			T viNewTang = viTang;
 			T vjNewTang = vjTang;
 
-			T iMass = this->masses[iBody];
-			T jMass = this->masses[jBody];
+			T mi = this->masses[iBody];
+			T mj = this->masses[jBody];
 
 			// 5. Find the new normal velocities
-			T viNewNorm = (viNorm * (iMass - jMass) + (2.0 * jMass * vjNorm)) / (iMass + jMass);
-			T vjNewNorm = (vjNorm * (jMass - iMass) + (2.0 * iMass * viNorm)) / (iMass + jMass);
+			T viNewNorm = (viNorm * (mi - mj) + (2.0 * mj * vjNorm)) / (mi + mj);
+			T vjNewNorm = (vjNorm * (mj - mi) + (2.0 * mi * viNorm)) / (mi + mj);
 
 			// 6. Convert the scalar normal and tangential velocities into vectors
 			T viNewNormX = viNewNorm * uNormX;
@@ -115,17 +115,6 @@ void BodiesCollision<T>::applyCollisions(std::vector<std::vector<unsigned long>>
 template <typename T>
 void BodiesCollision<T>::applyCollisions(std::vector<std::vector<unsigned long>> collisions)
 {
-	/*
-	for(unsigned long iBody = 0; iBody < this->n; iBody++)
-		if(collisions[iBody].size())
-		{
-			std::cout << "Collisions for body n°" << iBody << ":" << std::endl;
-
-			for(unsigned long jBody = 0; jBody < collisions[iBody].size(); jBody++)
-				std::cout << "  - with body n°" << collisions[iBody][jBody] << std::endl;
-		}
-	*/
-
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
 		for(unsigned long iCollision = 0; iCollision < collisions[iBody].size(); iCollision++)
@@ -183,23 +172,23 @@ void BodiesCollision<T>::applyCollisions(std::vector<std::vector<unsigned long>>
 				T uTan2Z = (uNormX * uTan1Y) - (uNormY * uTan1X);
 
 				// 2. Create the initial (before the collision) velocity vectors, iVel and jVel
-				T iVelX = this->velocities.x[iBody];
-				T iVelY = this->velocities.y[iBody];
-				T iVelZ = this->velocities.z[iBody];
+				T viX = this->velocities.x[iBody];
+				T viY = this->velocities.y[iBody];
+				T viZ = this->velocities.z[iBody];
 
-				T jVelX = this->velocities.x[jBody];
-				T jVelY = this->velocities.y[jBody];
-				T jVelZ = this->velocities.z[jBody];
+				T vjX = this->velocities.x[jBody];
+				T vjY = this->velocities.y[jBody];
+				T vjZ = this->velocities.z[jBody];
 
 				// 3. Projecting the velocity vectors onto the unit normal and unit tangent vectors
 				// (scalar product or dot product)
-				T viNorm = (uNormX * iVelX) + (uNormY * iVelY) + (uNormZ * iVelZ);
-				T viTan1 = (uTan1X * iVelX) + (uTan1Y * iVelY) + (uTan1Z * iVelZ);
-				T viTan2 = (uTan2X * iVelX) + (uTan2Y * iVelY) + (uTan2Z * iVelZ);
+				T viNorm = (uNormX * viX) + (uNormY * viY) + (uNormZ * viZ);
+				T viTan1 = (uTan1X * viX) + (uTan1Y * viY) + (uTan1Z * viZ);
+				T viTan2 = (uTan2X * viX) + (uTan2Y * viY) + (uTan2Z * viZ);
 
-				T vjNorm = (uNormX * jVelX) + (uNormY * jVelY) + (uNormZ * jVelZ);
-				T vjTan1 = (uTan1X * jVelX) + (uTan1Y * jVelY) + (uTan1Z * jVelZ);
-				T vjTan2 = (uTan2X * jVelX) + (uTan2Y * jVelY) + (uTan2Z * jVelZ);
+				T vjNorm = (uNormX * vjX) + (uNormY * vjY) + (uNormZ * vjZ);
+				T vjTan1 = (uTan1X * vjX) + (uTan1Y * vjY) + (uTan1Z * vjZ);
+				T vjTan2 = (uTan2X * vjX) + (uTan2Y * vjY) + (uTan2Z * vjZ);
 
 				// 4. Find the new tangential velocities
 				T viNewTan1 = viTan1;
@@ -208,12 +197,12 @@ void BodiesCollision<T>::applyCollisions(std::vector<std::vector<unsigned long>>
 				T vjNewTan1 = vjTan1;
 				T vjNewTan2 = vjTan2;
 
-				T iMass = this->masses[iBody];
-				T jMass = this->masses[jBody];
+				T mi = this->masses[iBody];
+				T mj = this->masses[jBody];
 
 				// 5. Find the new normal velocities (apply elastic collision based on momentum and kinetic energy conservation)
-				T viNewNorm = (viNorm * (iMass - jMass) + (2.0 * jMass * vjNorm)) / (iMass + jMass);
-				T vjNewNorm = (vjNorm * (jMass - iMass) + (2.0 * iMass * viNorm)) / (iMass + jMass);
+				T viNewNorm = (viNorm * (mi - mj) + (2.0 * mj * vjNorm)) / (mi + mj);
+				T vjNewNorm = (vjNorm * (mj - mi) + (2.0 * mi * viNorm)) / (mi + mj);
 
 				// 6. Convert the scalar normal and tangential velocities into vectors
 				T viNewNormX = viNewNorm * uNormX;

@@ -58,6 +58,12 @@ SimulationNBodyV1CB<T>::~SimulationNBodyV1CB()
 template <typename T>
 void SimulationNBodyV1CB<T>::computeLocalBodiesAcceleration()
 {
+	const T *masses = this->getBodies()->getMasses();
+
+	const T *positionsX = this->getBodies()->getPositionsX();
+	const T *positionsY = this->getBodies()->getPositionsY();
+	const T *positionsZ = this->getBodies()->getPositionsZ();
+
 	unsigned long blockSize = 512;
 	// flops  = 23 * blockSize * nBodies      * nBlocks
 	// memops = (4 * blockSize + 7 * nBodies) * nBlocks
@@ -72,7 +78,17 @@ void SimulationNBodyV1CB<T>::computeLocalBodiesAcceleration()
 			// memops =  4 * blockSize + 7
 			for(unsigned long jBody = jOff; jBody < jOff + blockSize; jBody++)
 				if(iBody != jBody)
-					//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody);
-					this->computeAccelerationBetweenTwoBodies(iBody, jBody);
+					SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(this->G,
+					                                                          positionsX               [iBody],
+					                                                          positionsY               [iBody],
+					                                                          positionsZ               [iBody],
+					                                                          this->accelerations.x    [iBody],
+					                                                          this->accelerations.y    [iBody],
+					                                                          this->accelerations.z    [iBody],
+					                                                          this->closestNeighborDist[iBody],
+					                                                          masses                   [jBody],
+					                                                          positionsX               [jBody],
+					                                                          positionsY               [jBody],
+					                                                          positionsZ               [jBody]);
 	}
 }

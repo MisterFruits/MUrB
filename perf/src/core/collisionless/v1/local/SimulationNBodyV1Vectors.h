@@ -10,10 +10,10 @@
 
 #include <string>
 
-#include "../../SimulationNBodyLocal.h"
+#include "SimulationNBodyV1.h"
 
 template <typename T = double>
-class SimulationNBodyV1Vectors : public SimulationNBodyLocal<T>
+class SimulationNBodyV1Vectors : public SimulationNBodyV1<T>
 {
 public:
 	SimulationNBodyV1Vectors(const unsigned long nBodies);

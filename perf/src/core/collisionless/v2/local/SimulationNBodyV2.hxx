@@ -128,15 +128,36 @@ void SimulationNBodyV2<T>::initIteration()
 template <typename T>
 void SimulationNBodyV2<T>::computeLocalBodiesAcceleration()
 {
+	const T *masses     = this->bodies->getMasses();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
+
 #pragma omp parallel
 {
-	const unsigned tid = omp_get_thread_num();
+	const unsigned int  tid     = omp_get_thread_num();
+	const unsigned long tStride = tid * this->bodies->getN();
 
 #pragma omp for schedule(runtime)
 	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		for(unsigned long jBody = iBody +1; jBody < this->bodies->getN(); jBody++)
-			//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody, tid);
-			this->computeAccelerationBetweenTwoBodies(iBody, jBody, tid);
+			SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(this->G,
+			                                                          masses                   [iBody          ],
+			                                                          positionsX               [iBody          ],
+			                                                          positionsY               [iBody          ],
+			                                                          positionsZ               [iBody          ],
+			                                                          this->accelerations.x    [iBody + tStride],
+			                                                          this->accelerations.y    [iBody + tStride],
+			                                                          this->accelerations.z    [iBody + tStride],
+			                                                          this->closestNeighborDist[iBody          ],
+			                                                          masses                   [jBody          ],
+			                                                          positionsX               [jBody          ],
+			                                                          positionsY               [jBody          ],
+			                                                          positionsZ               [jBody          ],
+			                                                          this->accelerations.x    [jBody + tStride],
+			                                                          this->accelerations.y    [jBody + tStride],
+			                                                          this->accelerations.z    [jBody + tStride],
+			                                                          this->closestNeighborDist[jBody          ]);
 }
 
 	if(this->nMaxThreads > 1)
@@ -149,111 +170,50 @@ void SimulationNBodyV2<T>::computeLocalBodiesAcceleration()
 			}
 }
 
-// 32 flops
-template <typename T>
-void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody,
-                                                                    const unsigned long &jBody,
-                                                                    const unsigned      &tid)
-{
-	assert(iBody != jBody);
-
-	const T *masses     = this->bodies->getMasses();
-	const T *positionsX = this->bodies->getPositionsX();
-	const T *positionsY = this->bodies->getPositionsY();
-	const T *positionsZ = this->bodies->getPositionsZ();
-
-	const T diffPosX = positionsX[jBody] - positionsX[iBody]; // 1 flop
-	const T diffPosY = positionsY[jBody] - positionsY[iBody]; // 1 flop
-	const T diffPosZ = positionsZ[jBody] - positionsZ[iBody]; // 1 flop
-
-	// compute distance between iBody and jBody: Dij
-	const T dist = std::sqrt((diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ)); // 6 flops
-
-	// we cannot divide by 0
-	if(dist == 0)
-	{
-		std::cout << "Collision at {" << positionsX[jBody] << ", "
-		                              << positionsY[jBody] << ", "
-		                              << positionsZ[jBody] << "}" << std::endl;
-		assert(dist != 0);
-	}
-
-	// compute the force value between iBody and jBody: || F || = G.mi.mj / Dij²
-	const T force = this->G * masses[iBody] * masses[jBody] / (dist * dist); // 4 flops
-
-	// compute the acceleration value: || a || = || F || / mi
-	T acc = force / masses[iBody]; // 1 flop
-
-	// normalize and add acceleration value into acceleration vector: a += || a ||.u
-	this->accelerations.x[iBody + tid * this->bodies->getN()] += acc * (diffPosX / dist); // 3 flops
-	this->accelerations.y[iBody + tid * this->bodies->getN()] += acc * (diffPosY / dist); // 3 flops
-	this->accelerations.z[iBody + tid * this->bodies->getN()] += acc * (diffPosZ / dist); // 3 flops
-
-	// compute the acceleration value: || a || = || F || / mj
-	acc = force / masses[jBody]; // 1 flop
-
-	this->accelerations.x[jBody + tid * this->bodies->getN()] -= acc * (diffPosX / dist); // 3 flops
-	this->accelerations.y[jBody + tid * this->bodies->getN()] -= acc * (diffPosY / dist); // 3 flops
-	this->accelerations.z[jBody + tid * this->bodies->getN()] -= acc * (diffPosZ / dist); // 3 flops
-
-	if(!this->dtConstant)
-	{
-		if(dist < this->closestNeighborDist[iBody])
-			this->closestNeighborDist[iBody] = dist;
-
-		if(dist < this->closestNeighborDist[jBody])
-#pragma omp critical
-			if(dist < this->closestNeighborDist[jBody])
-				this->closestNeighborDist[jBody] = dist;
-	}
-}
-
 // 25 flops
 template <typename T>
-void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(const unsigned long &iBody,
-                                                               const unsigned long &jBody,
-                                                               const unsigned      &tid)
+void SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(const T &G,
+                                                               const T &mi,
+                                                               const T &qiX, const T &qiY, const T &qiZ,
+                                                                     T &aiX,       T &aiY,       T &aiZ,
+                                                                     T &closNeighi,
+                                                               const T &mj,
+                                                               const T &qjX, const T &qjY, const T &qjZ,
+                                                                     T &ajX,       T &ajY,       T &ajZ,
+                                                                     T &closNeighj)
 {
-	assert(iBody != jBody);
+	const T rijX = qjX - qiX; // 1 flop
+	const T rijY = qjY - qiY; // 1 flop
+	const T rijZ = qjZ - qiZ; // 1 flop
 
-	const T *masses     = this->bodies->getMasses();
-	const T *positionsX = this->bodies->getPositionsX();
-	const T *positionsY = this->bodies->getPositionsY();
-	const T *positionsZ = this->bodies->getPositionsZ();
+	// compute the distance || rij ||² between body i and body j
+	const T rijSquared = (rijX * rijX) + (rijY * rijY) + (rijZ * rijZ); // 5 flops
 
-	const T diffPosX  = positionsX[jBody] - positionsX[iBody]; // 1 flop
-	const T diffPosY  = positionsY[jBody] - positionsY[iBody]; // 1 flop
-	const T diffPosZ  = positionsZ[jBody] - positionsZ[iBody]; // 1 flop
+	// compute the distance || rij ||
+	const T rij = std::sqrt(rijSquared); // 1 flop
 
-	const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ); // 5 flops
-	const T dist = std::sqrt(squareDist); // 1 flops
-	assert(dist != 0);
+	// we cannot divide by 0
+	assert(rij != 0);
 
-	const T force = this->G / (squareDist * dist); // 2 flops
+	// compute the acceleration value between body i and body j: || ai || = G.mj / || rij ||^3
+	const T aTmp = G / (rijSquared * rij); // 2 flops
+	const T ai = aTmp * mj; // 1 flops
 
-	T acc = force * masses[jBody]; // 1 flop
+	// add the acceleration value into the acceleration vector: ai += || ai ||.rij
+	aiX += ai * rijX; // 2 flops
+	aiY += ai * rijY; // 2 flops
+	aiZ += ai * rijZ; // 2 flops
 
-	const unsigned long idIBody = iBody + tid* this->bodies->getN();
-	const unsigned long idJBody = jBody + tid* this->bodies->getN();
+	// compute the acceleration value between body j and body i: || aj || = G.mi / || rij ||^3
+	const T aj = aTmp * mi; // 1 flops
 
+	// add the acceleration value into the acceleration vector: aj -= || aj ||.rij
+	ajX -= aj * rijX; // 2 flops
+	ajY -= aj * rijY; // 2 flops
+	ajZ -= aj * rijZ; // 2 flops
 
-	this->accelerations.x[idIBody] += acc * diffPosX; // 2 flops
-	this->accelerations.y[idIBody] += acc * diffPosY; // 2 flops
-	this->accelerations.z[idIBody] += acc * diffPosZ; // 2 flops
-
-	acc = force * masses[iBody]; // 1 flop
-	this->accelerations.x[idJBody] -= acc * diffPosX; // 2 flops
-	this->accelerations.y[idJBody] -= acc * diffPosY; // 2 flops
-	this->accelerations.z[idJBody] -= acc * diffPosZ; // 2 flops
-
-	if(!this->dtConstant)
-	{
-		if(dist < this->closestNeighborDist[iBody])
-			this->closestNeighborDist[iBody] = dist;
-
-		if(dist < this->closestNeighborDist[jBody])
+	closNeighi = std::min(closNeighi, rij);
+	if(rij < closNeighj)
 #pragma omp critical
-			if(dist < this->closestNeighborDist[jBody])
-				this->closestNeighborDist[jBody] = dist;
-	}
+		closNeighj = std::min(closNeighj, rij);
 }

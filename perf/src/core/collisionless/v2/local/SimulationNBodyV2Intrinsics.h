@@ -11,10 +11,10 @@
 
 #include "../../../../utils/myIntrinsicsPlusPlus.h"
 
-#include "../../SimulationNBodyLocal.h"
+#include "SimulationNBodyV2.h"
 
 template <typename T = double>
-class SimulationNBodyV2Intrinsics : public SimulationNBodyLocal<T>
+class SimulationNBodyV2Intrinsics : public SimulationNBodyV2<T>
 {
 public:
 	SimulationNBodyV2Intrinsics(const unsigned long nBodies);
@@ -25,31 +25,23 @@ protected:
 	virtual void initIteration();
 	virtual void computeLocalBodiesAcceleration();
 
-	inline void computeAccelerationBetweenTwoBodiesSelf(const T &iPosX, const T &iPosY, const T &iPosZ,
-	                                                          T &iAccsX,      T &iAccsY,      T &iAccsZ,
-	                                                          T &iClosNeiDist,          const T &iMasses,
-	                                                    const T &jPosX, const T &jPosY, const T &jPosZ,
-	                                                          T &jAccsX,      T &jAccsY,      T &jAccsZ,
-	                                                          T &jClosNeiDist,          const T &jMasses);
-
 	static inline void computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
-	                                                       const mipp::vec &rIPosX,
-	                                                       const mipp::vec &rIPosY,
-	                                                       const mipp::vec &rIPosZ,
-	                                                             mipp::vec &rIAccX,
-	                                                             mipp::vec &rIAccY,
-	                                                             mipp::vec &rIAccZ,
-	                                                             mipp::vec &rIClosNeiDist,
-	                                                       const mipp::vec &rIMass,
-	                                                       const mipp::vec &rJPosX,
-	                                                       const mipp::vec &rJPosY,
-	                                                       const mipp::vec &rJPosZ,
-	                                                             mipp::vec &rJAccX,
-	                                                             mipp::vec &rJAccY,
-	                                                             mipp::vec &rJAccZ,
-	                                                             mipp::vec &rJClosNeiDist,
-	                                                       const mipp::vec &rJMass,
-	                                                       const bool  dtConstant);
+	                                                       const mipp::vec &rmi,
+	                                                       const mipp::vec &rqiX,
+	                                                       const mipp::vec &rqiY,
+	                                                       const mipp::vec &rqiZ,
+	                                                             mipp::vec &raiX,
+	                                                             mipp::vec &raiY,
+	                                                             mipp::vec &raiZ,
+	                                                             mipp::vec &rclosNeighi,
+	                                                       const mipp::vec &rmj,
+	                                                       const mipp::vec &rqjX,
+	                                                       const mipp::vec &rqjY,
+	                                                       const mipp::vec &rqjZ,
+	                                                             mipp::vec &rajX,
+	                                                             mipp::vec &rajY,
+	                                                             mipp::vec &rajZ,
+	                                                             mipp::vec &rclosNeighj);
 private:
 	void _computeLocalBodiesAcceleration();
 	void _reAllocateBuffers();

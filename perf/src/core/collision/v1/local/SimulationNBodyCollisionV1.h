@@ -24,8 +24,15 @@ protected:
 	virtual void initIteration();
 	virtual void computeLocalBodiesAcceleration();
 
-	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody, const unsigned long &jBody);
-	inline void computeAccelerationBetweenTwoBodies     (const unsigned long &iBody, const unsigned long &jBody);
+	/* return the distance between body i and body j considering the radiuses of the spheres */
+	static inline T computeAccelerationBetweenTwoBodies(const T &G,
+	                                                    const T &ri,
+	                                                    const T &qiX, const T &qiY, const T &qiZ,
+	                                                          T &aiX,       T &aiY,       T &aiZ,
+	                                                          T &closNeighi,
+	                                                    const T &mj,
+	                                                    const T &rj,
+	                                                    const T &qjX, const T &qjY, const T &qjZ);
 
 private:
 	void init();

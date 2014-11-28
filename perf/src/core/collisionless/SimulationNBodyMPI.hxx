@@ -136,7 +136,7 @@ SimulationNBodyMPI<T>::~SimulationNBodyMPI()
 template <typename T>
 void SimulationNBodyMPI<T>::computeOneIteration()
 {
-	this->MPIBodiesBuffers[0].hardCopy(this->bodies);
+	this->MPIBodiesBuffers[0].hardCopy(*this->bodies);
 
 	this->initIteration();
 

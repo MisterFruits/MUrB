@@ -25,18 +25,12 @@ protected:
 	virtual void computeLocalBodiesAcceleration();
 	virtual void computeNeighborBodiesAcceleration();
 
-	inline void computeAccelerationBetweenTwoBodiesNaive(const T &iMasses,
-	                                                     const T &iPosX, const T &iPosY, const T &iPosZ,
-	                                                           T &iAccsX,      T &iAccsY,      T &iAccsZ,
-	                                                           T &iClosNeiDist,
-	                                                     const T &jMasses,
-	                                                     const T &jPosX, const T &jPosY, const T &jPosZ);
-
-	inline void computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
-	                                                      T &iAccsX,      T &iAccsY,      T &iAccsZ,
-	                                                      T &iClosNeiDist,
-	                                                const T &jMasses,
-	                                                const T &jPosX, const T &jPosY, const T &jPosZ);
+	static inline void computeAccelerationBetweenTwoBodies(const T &G,
+	                                                       const T &qiX, const T &qiY, const T &qiZ,
+	                                                             T &aiX,       T &aiY,       T &aiZ,
+	                                                             T &closNeighi,
+	                                                       const T &mj,
+	                                                       const T &qjX, const T &qjY, const T &qjZ);
 
 private:
 	void init();

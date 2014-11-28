@@ -278,21 +278,21 @@ const float& Bodies<T>::getAllocatedBytes() const
 
 template <typename T>
 void Bodies<T>::setBody(const unsigned long &iBody,
-                        const T &mass, const T &radius,
-                        const T &posX, const T &posY, const T &posZ,
-                        const T &velocityX, const T &velocityY, const T &velocityZ)
+                        const T &mi, const T &radi,
+                        const T &qiX, const T &qiY, const T &qiZ,
+                        const T &viX, const T &viY, const T &viZ)
 {
-	this->masses[iBody] = mass;
+	this->masses[iBody] = mi;
 
-	this->radiuses[iBody] = radius;
+	this->radiuses[iBody] = radi;
 
-	this->positions.x[iBody] = posX;
-	this->positions.y[iBody] = posY;
-	this->positions.z[iBody] = posZ;
+	this->positions.x[iBody] = qiX;
+	this->positions.y[iBody] = qiY;
+	this->positions.z[iBody] = qiZ;
 
-	this->velocities.x[iBody] = velocityX;
-	this->velocities.y[iBody] = velocityY;
-	this->velocities.z[iBody] = velocityZ;
+	this->velocities.x[iBody] = viX;
+	this->velocities.y[iBody] = viY;
+	this->velocities.z[iBody] = viZ;
 }
 
 template <typename T>
@@ -303,38 +303,38 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 	srand(randInit);
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
-		T mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ;
+		T mi, radi, qiX, qiY, qiZ, viX, viY, viZ;
 
-		mass = ((rand() / (T) RAND_MAX) * 5.0e21);
+		mi = ((rand() / (T) RAND_MAX) * 5.0e21);
 
-		radius = mass * 0.5e-14;
+		radi = mi * 0.5e-14;
 		//radius = mass * 0.5e-15;
 
-		posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-		posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-		posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
 
-		velocityX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		velocityY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		velocityZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
-		this->setBody(iBody, mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ);
+		this->setBody(iBody, mi, radi, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 
 	// fill the bodies in the padding zone
 	for(unsigned long iBody = this->n; iBody < this->n + this->padding; iBody++)
 	{
-		T posX, posY, posZ, velocityX, velocityY, velocityZ;
+		T qiX, qiY, qiZ, viX, viY, viZ;
 
-		posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-		posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-		posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
 
-		velocityX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		velocityY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		velocityZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
-		this->setBody(iBody, 0, 0, posX, posY, posZ, velocityX, velocityY, velocityZ);
+		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 }
 
@@ -369,25 +369,25 @@ void Bodies<T>::updatePositionsAndVelocities(const vector3<T> &accelerations, T 
 	// flops = n * 18
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
-		T mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ;
+		T mi, radi, qiX, qiY, qiZ, viX, viY, viZ;
 
-		mass = this->masses[iBody];
+		mi = this->masses[iBody];
 
-		radius = this->radiuses[iBody];
+		radi = this->radiuses[iBody];
 
-		T accXMultDt = accelerations.x[iBody] * dt;
-		T accYMultDt = accelerations.y[iBody] * dt;
-		T accZMultDt = accelerations.z[iBody] * dt;
+		T aiXDt = accelerations.x[iBody] * dt;
+		T aiYDt = accelerations.y[iBody] * dt;
+		T aiZSt = accelerations.z[iBody] * dt;
 
-		posX = this->positions.x[iBody] + (this->velocities.x[iBody] + accXMultDt * 0.5) * dt;
-		posY = this->positions.y[iBody] + (this->velocities.y[iBody] + accYMultDt * 0.5) * dt;
-		posZ = this->positions.z[iBody] + (this->velocities.z[iBody] + accZMultDt * 0.5) * dt;
+		qiX = this->positions.x[iBody] + (this->velocities.x[iBody] + aiXDt * 0.5) * dt;
+		qiY = this->positions.y[iBody] + (this->velocities.y[iBody] + aiYDt * 0.5) * dt;
+		qiZ = this->positions.z[iBody] + (this->velocities.z[iBody] + aiZSt * 0.5) * dt;
 
-		velocityX = this->velocities.x[iBody] + accXMultDt;
-		velocityY = this->velocities.y[iBody] + accYMultDt;
-		velocityZ = this->velocities.z[iBody] + accZMultDt;
+		viX = this->velocities.x[iBody] + aiXDt;
+		viY = this->velocities.y[iBody] + aiYDt;
+		viZ = this->velocities.z[iBody] + aiZSt;
 
-		this->setBody(iBody, mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ);
+		this->setBody(iBody, mi, radi, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 }
 
@@ -414,21 +414,21 @@ bool Bodies<T>::read(std::istream& stream)
 
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
-		T mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ;
+		T mi, radi, qiX, qiY, qiZ, viX, viY, viZ;
 
-		stream >> mass;
+		stream >> mi;
 
-		stream >> radius;
+		stream >> radi;
 
-		stream >> posX;
-		stream >> posY;
-		stream >> posZ;
+		stream >> qiX;
+		stream >> qiY;
+		stream >> qiZ;
 
-		stream >> velocityX;
-		stream >> velocityY;
-		stream >> velocityZ;
+		stream >> viX;
+		stream >> viY;
+		stream >> viZ;
 
-		this->setBody(iBody, mass, radius, posX, posY, posZ, velocityX, velocityY, velocityZ);
+		this->setBody(iBody, mi, radi, qiX, qiY, qiZ, viX, viY, viZ);
 
 		if(!stream.good())
 			return false;
@@ -437,17 +437,17 @@ bool Bodies<T>::read(std::istream& stream)
 	// fill the bodies in the padding zone
 	for(unsigned long iBody = this->n; iBody < this->n + this->padding; iBody++)
 	{
-		T posX, posY, posZ, velocityX, velocityY, velocityZ;
+		T qiX, qiY, qiZ, viX, viY, viZ;
 
-		posX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-		posY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-		posZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
 
-		velocityX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		velocityY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		velocityZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
-		this->setBody(iBody, 0, 0, posX, posY, posZ, velocityX, velocityY, velocityZ);
+		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 
 	return true;

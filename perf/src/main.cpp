@@ -35,12 +35,12 @@ using namespace std;
 #include "core/collisionless/v1/local/SimulationNBodyV1CB.h"
 #include "core/collisionless/v1/local/SimulationNBodyV1Vectors.h"
 #include "core/collisionless/v1/local/SimulationNBodyV1Intrinsics.h"
-#include "core/collisionless/v1/local/SimulationNBodyV1Soft.h"
-#include "core/collisionless/v2/local/SimulationNBodyV2.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2CB.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2Vectors.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2Intrinsics.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2FineTuned.h"
+#include "core/collisionless/v3/local/SimulationNBodyV3.h"
+#include "core/collisionless/v3/local/SimulationNBodyV3.h"
 
 #include "core/collision/v1/local/SimulationNBodyCollisionV1.h"
 
@@ -143,7 +143,7 @@ void argsReader(int argc, char** argv)
 	faculArgs["-mdt"]  = "minTimeStep";
 	docArgs  ["-mdt"]  = "select the minimal time step (default is " + to_string(MinDt) + " sec).";
 	faculArgs["-im"]   = "ImplId";
-	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 14, 15, 20, 21, 22, 23, 100 or 103).";
+	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 14, 20, 21, 22, 23, 31, 100 or 103).";
 	faculArgs["-soft"] = "softeningFactor";
 	docArgs  ["-soft"] = "softening factor for implementation 15.";
 
@@ -272,14 +272,6 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 			else
 				simu = new SimulationNBodyCollisionV1<T>(inputFileName);
 			break;
-		case 15:
-			if(!MPI::COMM_WORLD.Get_rank())
-				cout << "Selected implementation: V1 + softening factor - O(n²)" << endl << endl;
-			if(RootInputFileName.empty())
-				simu = new SimulationNBodyV1Soft<T>(NBodies, Softening);
-			else
-				simu = new SimulationNBodyV1Soft<T>(inputFileName, Softening);
-			break;
 		case 20:
 			if(!MPI::COMM_WORLD.Get_rank())
 				cout << "Selected implementation: V2 - O(n²/2)" << endl << endl;
@@ -317,6 +309,14 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2FineTuned<T>(NBodies);
 			else
 				simu = new SimulationNBodyV2FineTuned<T>(inputFileName);
+			break;
+		case 30:
+			if(!MPI::COMM_WORLD.Get_rank())
+				cout << "Selected implementation: V3 (softening factor) - O(n²)" << endl << endl;
+			if(RootInputFileName.empty())
+				simu = new SimulationNBodyV3<T>(NBodies, Softening);
+			else
+				simu = new SimulationNBodyV3<T>(inputFileName, Softening);
 			break;
 #ifndef NO_MPI
 		case 100:

@@ -24,35 +24,35 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "SimulationNBodyV1.h"
+#include "SimulationNBodyV3.h"
 
 template <typename T>
-SimulationNBodyV1<T>::SimulationNBodyV1(const unsigned long nBodies)
-	: SimulationNBodyLocal<T>(nBodies)
+SimulationNBodyV3<T>::SimulationNBodyV3(const unsigned long nBodies, T softening)
+	: SimulationNBodyLocal<T>(nBodies), softeningSquared(softening * softening)
 {
 	this->init();
 }
 
 template <typename T>
-SimulationNBodyV1<T>::SimulationNBodyV1(const std::string inputFileName)
-	: SimulationNBodyLocal<T>(inputFileName)
+SimulationNBodyV3<T>::SimulationNBodyV3(const std::string inputFileName, T softening)
+	: SimulationNBodyLocal<T>(inputFileName), softeningSquared(softening * softening)
 {
 	this->init();
 }
 
 template <typename T>
-void SimulationNBodyV1<T>::init()
+void SimulationNBodyV3<T>::init()
 {
-	this->flopsPerIte = 18 * (this->bodies->getN() -1) * this->bodies->getN();
+	this->flopsPerIte = 19 * (this->bodies->getN() -1) * this->bodies->getN();
 }
 
 template <typename T>
-SimulationNBodyV1<T>::~SimulationNBodyV1()
+SimulationNBodyV3<T>::~SimulationNBodyV3()
 {
 }
 
 template <typename T>
-void SimulationNBodyV1<T>::initIteration()
+void SimulationNBodyV3<T>::initIteration()
 {
 	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
@@ -65,7 +65,7 @@ void SimulationNBodyV1<T>::initIteration()
 }
 
 template <typename T>
-void SimulationNBodyV1<T>::computeLocalBodiesAcceleration()
+void SimulationNBodyV3<T>::computeLocalBodiesAcceleration()
 {
 	const T *masses = this->getBodies()->getMasses();
 
@@ -76,24 +76,23 @@ void SimulationNBodyV1<T>::computeLocalBodiesAcceleration()
 #pragma omp parallel for schedule(runtime)
 	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 		for(unsigned long jBody = 0; jBody < this->bodies->getN(); jBody++)
-			if(iBody != jBody)
-				SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(this->G,
-				                                                          positionsX               [iBody],
-				                                                          positionsY               [iBody],
-				                                                          positionsZ               [iBody],
-				                                                          this->accelerations.x    [iBody],
-				                                                          this->accelerations.y    [iBody],
-				                                                          this->accelerations.z    [iBody],
-				                                                          this->closestNeighborDist[iBody],
-				                                                          masses                   [jBody],
-				                                                          positionsX               [jBody],
-				                                                          positionsY               [jBody],
-				                                                          positionsZ               [jBody]);
+			SimulationNBodyV3<T>::computeAccelerationBetweenTwoBodies(this->G, this->softeningSquared,
+			                                                          positionsX               [iBody],
+			                                                          positionsY               [iBody],
+			                                                          positionsZ               [iBody],
+			                                                          this->accelerations.x    [iBody],
+			                                                          this->accelerations.y    [iBody],
+			                                                          this->accelerations.z    [iBody],
+			                                                          this->closestNeighborDist[iBody],
+			                                                          masses                   [jBody],
+			                                                          positionsX               [jBody],
+			                                                          positionsY               [jBody],
+			                                                          positionsZ               [jBody]);
 }
 
-// 18 flops
+// 19 flops
 template <typename T>
-void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(const T &G,
+void SimulationNBodyV3<T>::computeAccelerationBetweenTwoBodies(const T &G,   const T &softSquared,
                                                                const T &qiX, const T &qiY, const T &qiZ,
                                                                      T &aiX,       T &aiY,       T &aiZ,
                                                                      T &closNeighi,
@@ -104,14 +103,11 @@ void SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(const T &G,
 	const T rijY = qjY - qiY; // 1 flop
 	const T rijZ = qjZ - qiZ; // 1 flop
 
-	// compute the distance || rij ||² between body i and body j
-	const T rijSquared = (rijX * rijX) + (rijY * rijY) + (rijZ * rijZ); // 5 flops
+	// compute the distance (|| rij ||² + epsilon²) between body i and body j
+	const T rijSquared = (rijX * rijX) + (rijY * rijY) + (rijZ * rijZ) + softSquared; // 6 flops
 
-	// compute the distance || rij ||
+	// compute the distance ~= || rij ||
 	const T rij = std::sqrt(rijSquared); // 1 flop
-
-	// we cannot divide by 0
-	assert(rij != 0);
 
 	// compute the acceleration value between body i and body j: || ai || = G.mj / || rij ||^3
 	const T ai = G * mj / (rijSquared * rij); // 3 flops

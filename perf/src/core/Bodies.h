@@ -71,9 +71,9 @@ public:
 private:
 	void deallocateBuffers();
 	inline void setBody(const unsigned long &iBody,
-	                    const T &mass, const T &radius,
-	                    const T &posX, const T &posY, const T &posZ,
-	                    const T &velocityX, const T &velocityY, const T &velocityZ);
+	                    const T &mi, const T &radi,
+	                    const T &qiX, const T &qiY, const T &qiZ,
+	                    const T &viX, const T &viY, const T &viZ);
 	bool read(std::istream& stream);
 	void allocateBuffers();
 	void initRandomly(const unsigned long randInit = 0);

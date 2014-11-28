@@ -45,21 +45,42 @@ SimulationNBodyV2CB<T>::~SimulationNBodyV2CB()
 template <typename T>
 void SimulationNBodyV2CB<T>::computeLocalBodiesAcceleration()
 {
+	const T *masses     = this->bodies->getMasses();
+	const T *positionsX = this->bodies->getPositionsX();
+	const T *positionsY = this->bodies->getPositionsY();
+	const T *positionsZ = this->bodies->getPositionsZ();
+
 	unsigned long blockSize = 512;
 	for(unsigned long jOff = 0; jOff < this->bodies->getN(); jOff += blockSize)
 	{
 		blockSize = std::min(blockSize, this->bodies->getN() - jOff);
 #pragma omp parallel
 {
-		const unsigned tid = omp_get_thread_num();
+		const unsigned int  tid     = omp_get_thread_num();
+		const unsigned long tStride = tid * this->bodies->getN();
 
 #pragma omp for schedule(runtime)
 		for(unsigned long iBody = jOff +1; iBody < this->bodies->getN(); iBody++)
 		{
 			unsigned long jEnd = std::min(jOff + blockSize, iBody);
 			for(unsigned long jBody = jOff; jBody < jEnd; jBody++)
-				//this->computeAccelerationBetweenTwoBodiesNaive(iBody, jBody, tid);
-				this->computeAccelerationBetweenTwoBodies(iBody, jBody, tid);
+				SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(this->G,
+				                                                          masses                   [iBody          ],
+				                                                          positionsX               [iBody          ],
+				                                                          positionsY               [iBody          ],
+				                                                          positionsZ               [iBody          ],
+				                                                          this->accelerations.x    [iBody + tStride],
+				                                                          this->accelerations.y    [iBody + tStride],
+				                                                          this->accelerations.z    [iBody + tStride],
+				                                                          this->closestNeighborDist[iBody          ],
+				                                                          masses                   [jBody          ],
+				                                                          positionsX               [jBody          ],
+				                                                          positionsY               [jBody          ],
+				                                                          positionsZ               [jBody          ],
+				                                                          this->accelerations.x    [jBody + tStride],
+				                                                          this->accelerations.y    [jBody + tStride],
+				                                                          this->accelerations.z    [jBody + tStride],
+				                                                          this->closestNeighborDist[jBody          ]);
 		}
 }
 	}

@@ -9,10 +9,10 @@
 
 #include <string>
 
-#include "../../SimulationNBodyLocal.h"
+#include "SimulationNBodyV2.h"
 
 template <typename T = double>
-class SimulationNBodyV2Vectors : public SimulationNBodyLocal<T>
+class SimulationNBodyV2Vectors : public SimulationNBodyV2<T>
 {
 public:
 	SimulationNBodyV2Vectors(const unsigned long nBodies);
@@ -23,12 +23,14 @@ protected:
 	virtual void initIteration();
 	virtual void computeLocalBodiesAcceleration();
 
+	/*
 	inline void computeAccelerationBetweenTwoBodies(const T &iPosX, const T &iPosY, const T &iPosZ,
 	                                                      T &iAccsX,      T &iAccsY,      T &iAccsZ,
 	                                                      T &iClosNeiDist,          const T &iMasses,
 	                                                const T &jPosX, const T &jPosY, const T &jPosZ,
 	                                                      T &jAccsX,      T &jAccsY,      T &jAccsZ,
 	                                                      T &jClosNeiDist,          const T &jMasses);
+	*/
 
 private:
 	void reAllocateBuffers();

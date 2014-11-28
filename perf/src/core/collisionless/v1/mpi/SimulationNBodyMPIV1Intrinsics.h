@@ -28,17 +28,17 @@ protected:
 	virtual void computeNeighborBodiesAcceleration();
 
 	static inline void computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
-	                                                       const mipp::vec &rIPosX,
-	                                                       const mipp::vec &rIPosY,
-	                                                       const mipp::vec &rIPosZ,
-	                                                             mipp::vec &rIAccX,
-	                                                             mipp::vec &rIAccY,
-	                                                             mipp::vec &rIAccZ,
-	                                                             mipp::vec &rIClosNeiDist,
-	                                                       const mipp::vec &rJMass,
-	                                                       const mipp::vec &rJPosX,
-	                                                       const mipp::vec &rJPosY,
-	                                                       const mipp::vec &rJPosZ);
+	                                                       const mipp::vec &rqiX,
+	                                                       const mipp::vec &rqiY,
+	                                                       const mipp::vec &rqiZ,
+	                                                             mipp::vec &raiX,
+	                                                             mipp::vec &raiY,
+	                                                             mipp::vec &raiZ,
+	                                                             mipp::vec &rclosNeighi,
+	                                                       const mipp::vec &rmj,
+	                                                       const mipp::vec &rqjX,
+	                                                       const mipp::vec &rqjY,
+	                                                       const mipp::vec &rqjZ);
 private:
 	void init();
 	void _computeLocalBodiesAcceleration();

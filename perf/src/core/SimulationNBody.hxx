@@ -157,14 +157,14 @@ T SimulationNBody<T>::computeTimeStep(const unsigned long iBody)
 	const T *velocitiesZ = this->bodies->getVelocitiesZ();
 
 	// || velocity[iBody] ||
-	const T v = std::sqrt((velocitiesX[iBody] * velocitiesX[iBody]) +
-	                      (velocitiesY[iBody] * velocitiesY[iBody]) +
-	                      (velocitiesZ[iBody] * velocitiesZ[iBody]));
+	const T vi = std::sqrt((velocitiesX[iBody] * velocitiesX[iBody]) +
+	                       (velocitiesY[iBody] * velocitiesY[iBody]) +
+	                       (velocitiesZ[iBody] * velocitiesZ[iBody]));
 
 	// || acceleration[iBody] ||
-	const T a = std::sqrt((this->accelerations.x[iBody] * this->accelerations.x[iBody]) +
-	                      (this->accelerations.y[iBody] * this->accelerations.y[iBody]) +
-	                      (this->accelerations.z[iBody] * this->accelerations.z[iBody]));
+	const T ai = std::sqrt((this->accelerations.x[iBody] * this->accelerations.x[iBody]) +
+	                       (this->accelerations.y[iBody] * this->accelerations.y[iBody]) +
+	                       (this->accelerations.z[iBody] * this->accelerations.z[iBody]));
 
 	/*
 	 * compute dt
@@ -174,10 +174,10 @@ T SimulationNBody<T>::computeTimeStep(const unsigned long iBody)
 	 * dt should be positive (+/- becomes + because result of sqrt is positive)
 	 * <=>     dt = [ -v + sqrt( v^2 + 0.2*ClosestNeighborDist*a) ] / a
 	 */
-	T dt = (std::sqrt(v * v + 0.2 * a * this->closestNeighborDist[iBody]) - v) / a;
+	T dt = (std::sqrt(vi * vi + 0.2 * ai * this->closestNeighborDist[iBody]) - vi) / ai;
 
 	if(dt == 0)
-		dt = std::numeric_limits<T>::epsilon() / a;
+		dt = std::numeric_limits<T>::epsilon() / ai;
 
 	return dt;
 }

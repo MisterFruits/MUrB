@@ -203,47 +203,47 @@ void SimulationNBodyMPIV1Intrinsics<T>::_computeNeighborBodiesAcceleration()
 	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 	{
 		// load vectors
-		const mipp::vec rIPosX = mipp::load<T>(positionsX + iVec * mipp::vectorSize<T>());
-		const mipp::vec rIPosY = mipp::load<T>(positionsY + iVec * mipp::vectorSize<T>());
-		const mipp::vec rIPosZ = mipp::load<T>(positionsZ + iVec * mipp::vectorSize<T>());
+		const mipp::vec rqiX = mipp::load<T>(positionsX + iVec * mipp::vectorSize<T>());
+		const mipp::vec rqiY = mipp::load<T>(positionsY + iVec * mipp::vectorSize<T>());
+		const mipp::vec rqiZ = mipp::load<T>(positionsZ + iVec * mipp::vectorSize<T>());
 
-		mipp::vec rIAccX = mipp::load<T>(this->accelerations.x + iVec * mipp::vectorSize<T>());
-		mipp::vec rIAccY = mipp::load<T>(this->accelerations.y + iVec * mipp::vectorSize<T>());
-		mipp::vec rIAccZ = mipp::load<T>(this->accelerations.z + iVec * mipp::vectorSize<T>());
+		mipp::vec raiX = mipp::load<T>(this->accelerations.x + iVec * mipp::vectorSize<T>());
+		mipp::vec raiY = mipp::load<T>(this->accelerations.y + iVec * mipp::vectorSize<T>());
+		mipp::vec raiZ = mipp::load<T>(this->accelerations.z + iVec * mipp::vectorSize<T>());
 
-		mipp::vec rIClosNeiDist = mipp::set1<T>(0.0);
+		mipp::vec rclosNeighi = mipp::set1<T>(0.0);
 		if(!this->dtConstant)
-			rIClosNeiDist = mipp::load<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>());
+			rclosNeighi = mipp::load<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>());
 
 		for(unsigned long jVec = 0; jVec < this->bodies->getNVecs(); jVec++)
 		{
 			// load vectors
-			mipp::vec rJMass = mipp::load<T>(neighMasses     + jVec * mipp::vectorSize<T>());
-			mipp::vec rJPosX = mipp::load<T>(neighPositionsX + jVec * mipp::vectorSize<T>());
-			mipp::vec rJPosY = mipp::load<T>(neighPositionsY + jVec * mipp::vectorSize<T>());
-			mipp::vec rJPosZ = mipp::load<T>(neighPositionsZ + jVec * mipp::vectorSize<T>());
+			mipp::vec rmj  = mipp::load<T>(neighMasses     + jVec * mipp::vectorSize<T>());
+			mipp::vec rqjX = mipp::load<T>(neighPositionsX + jVec * mipp::vectorSize<T>());
+			mipp::vec rqjY = mipp::load<T>(neighPositionsY + jVec * mipp::vectorSize<T>());
+			mipp::vec rqjZ = mipp::load<T>(neighPositionsZ + jVec * mipp::vectorSize<T>());
 
 			for(unsigned short iRot = 0; iRot < mipp::vectorSize<T>(); iRot++)
 			{
 				this->computeAccelerationBetweenTwoBodies(rG,
-				                                          rIPosX, rIPosY, rIPosZ,
-				                                          rIAccX, rIAccY, rIAccZ,
-				                                          rIClosNeiDist,
-				                                          rJMass,
-				                                          rJPosX, rJPosY, rJPosZ);
+				                                          rqiX, rqiY, rqiZ,
+				                                          raiX, raiY, raiZ,
+				                                          rclosNeighi,
+				                                          rmj,
+				                                          rqjX, rqjY, rqjZ);
 
 				// we make one useless rotate in the last iteration...
-				rJMass = mipp::rot<T>(rJMass);
-				rJPosX = mipp::rot<T>(rJPosX); rJPosY = mipp::rot<T>(rJPosY); rJPosZ = mipp::rot<T>(rJPosZ);
+				rmj  = mipp::rot<T>(rmj);
+				rqjX = mipp::rot<T>(rqjX); rqjY = mipp::rot<T>(rqjY); rqjZ = mipp::rot<T>(rqjZ);
 			}
 		}
 
 		// store vectors
-		mipp::store<T>(this->accelerations.x + iVec * mipp::vectorSize<T>(), rIAccX);
-		mipp::store<T>(this->accelerations.y + iVec * mipp::vectorSize<T>(), rIAccY);
-		mipp::store<T>(this->accelerations.z + iVec * mipp::vectorSize<T>(), rIAccZ);
+		mipp::store<T>(this->accelerations.x + iVec * mipp::vectorSize<T>(), raiX);
+		mipp::store<T>(this->accelerations.y + iVec * mipp::vectorSize<T>(), raiY);
+		mipp::store<T>(this->accelerations.z + iVec * mipp::vectorSize<T>(), raiZ);
 		if(!this->dtConstant)
-			mipp::store<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>(), rIClosNeiDist);
+			mipp::store<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>(), rclosNeighi);
 	}
 }
 
@@ -265,93 +265,72 @@ void SimulationNBodyMPIV1Intrinsics<float>::computeNeighborBodiesAcceleration()
 // 19 flops
 template <typename T>
 void SimulationNBodyMPIV1Intrinsics<T>::computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
-                                                                            const mipp::vec &rIPosX,
-                                                                            const mipp::vec &rIPosY,
-                                                                            const mipp::vec &rIPosZ,
-                                                                                  mipp::vec &rIAccX,
-                                                                                  mipp::vec &rIAccY,
-                                                                                  mipp::vec &rIAccZ,
-                                                                                  mipp::vec &rIClosNeiDist,
-                                                                            const mipp::vec &rJMass,
-                                                                            const mipp::vec &rJPosX,
-                                                                            const mipp::vec &rJPosY,
-                                                                            const mipp::vec &rJPosZ)
+                                                                            const mipp::vec &rqiX,
+                                                                            const mipp::vec &rqiY,
+                                                                            const mipp::vec &rqiZ,
+                                                                                  mipp::vec &raiX,
+                                                                                  mipp::vec &raiY,
+                                                                                  mipp::vec &raiZ,
+                                                                                  mipp::vec &rclosNeighi,
+                                                                            const mipp::vec &rmj,
+                                                                            const mipp::vec &rqjX,
+                                                                            const mipp::vec &rqjY,
+                                                                            const mipp::vec &rqjZ)
 {
-	//const T diffPosX = jPosX - iPosX;
-	mipp::vec rDiffPosX = mipp::sub<T>(rJPosX, rIPosX); // 1 flop
-	//const T diffPosY = jPosY - iPosY;
-	mipp::vec rDiffPosY = mipp::sub<T>(rJPosY, rIPosY); // 1 flop
-	//const T diffPosZ = jPosZ - iPosZ;
-	mipp::vec rDiffPosZ = mipp::sub<T>(rJPosZ, rIPosZ); // 1 flop
+	mipp::vec rrijX = mipp::sub<T>(rqjX, rqiX); // 1 flop
+	mipp::vec rrijY = mipp::sub<T>(rqjY, rqiY); // 1 flop
+	mipp::vec rrijZ = mipp::sub<T>(rqjZ, rqiZ); // 1 flop
 
-	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ);
-	mipp::vec rSquareDist = mipp::set1<T>(0);
-	rSquareDist = mipp::fmadd<T>(rDiffPosX, rDiffPosX, rSquareDist); // 2 flops
-	rSquareDist = mipp::fmadd<T>(rDiffPosY, rDiffPosY, rSquareDist); // 2 flops
-	rSquareDist = mipp::fmadd<T>(rDiffPosZ, rDiffPosZ, rSquareDist); // 2 flops
+	mipp::vec rrijSquared = mipp::set1<T>(0);
+	rrijSquared = mipp::fmadd<T>(rrijX, rrijX, rrijSquared); // 2 flops
+	rrijSquared = mipp::fmadd<T>(rrijY, rrijY, rrijSquared); // 2 flops
+	rrijSquared = mipp::fmadd<T>(rrijZ, rrijZ, rrijSquared); // 2 flops
 
-	//const T dist = std::sqrt(squareDist);
-	mipp::vec rDist = mipp::sqrt<T>(rSquareDist); // 1 flop
+	mipp::vec rrij = mipp::sqrt<T>(rrijSquared); // 1 flop
 
-	//const T acc = G * jMasses / (squareDist * dist);
-	mipp::vec rAcc = mipp::div<T>(mipp::mul<T>(rG, rJMass), mipp::mul<T>(rDist, rSquareDist)); // 3 flops
+	mipp::vec rai = mipp::div<T>(mipp::mul<T>(rG, rmj), mipp::mul<T>(rrij, rrijSquared)); // 3 flops
 
-	//iAccsX += acc * diffPosX;
-	rIAccX = mipp::fmadd<T>(rAcc, rDiffPosX, rIAccX); // 2 flops
-	//iAccsY += acc * diffPosY;
-	rIAccY = mipp::fmadd<T>(rAcc, rDiffPosY, rIAccY); // 2 flops
-	//iAccsZ += acc * diffPosZ;
-	rIAccZ = mipp::fmadd<T>(rAcc, rDiffPosZ, rIAccZ); // 2 flops
+	raiX = mipp::fmadd<T>(rai, rrijX, raiX); // 2 flops
+	raiY = mipp::fmadd<T>(rai, rrijY, raiY); // 2 flops
+	raiZ = mipp::fmadd<T>(rai, rrijZ, raiZ); // 2 flops
 
-	//if(!this->dtConstant)
-	//	min(iClosNeiDist, dist);
-	rIClosNeiDist = mipp::min<T>(rDist, rIClosNeiDist);
+	rclosNeighi = mipp::min<T>(rclosNeighi, rrij);
 }
 
 // 20 flops
 template <>
 void SimulationNBodyMPIV1Intrinsics<float>::computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
-                                                                                const mipp::vec &rIPosX,
-                                                                                const mipp::vec &rIPosY,
-                                                                                const mipp::vec &rIPosZ,
-                                                                                      mipp::vec &rIAccX,
-                                                                                      mipp::vec &rIAccY,
-                                                                                      mipp::vec &rIAccZ,
-                                                                                      mipp::vec &rIClosNeiDist,
-                                                                                const mipp::vec &rJMass,
-                                                                                const mipp::vec &rJPosX,
-                                                                                const mipp::vec &rJPosY,
-                                                                                const mipp::vec &rJPosZ)
+                                                                                const mipp::vec &rqiX,
+                                                                                const mipp::vec &rqiY,
+                                                                                const mipp::vec &rqiZ,
+                                                                                      mipp::vec &raiX,
+                                                                                      mipp::vec &raiY,
+                                                                                      mipp::vec &raiZ,
+                                                                                      mipp::vec &rclosNeighi,
+                                                                                const mipp::vec &rmj,
+                                                                                const mipp::vec &rqjX,
+                                                                                const mipp::vec &rqjY,
+                                                                                const mipp::vec &rqjZ)
 {
-	//const T diffPosX = jPosX - iPosX;
-	mipp::vec rDiffPosX = mipp::sub<float>(rJPosX, rIPosX); // 1 flop
-	//const T diffPosY = jPosY - iPosY;
-	mipp::vec rDiffPosY = mipp::sub<float>(rJPosY, rIPosY); // 1 flop
-	//const T diffPosZ = jPosZ - iPosZ;
-	mipp::vec rDiffPosZ = mipp::sub<float>(rJPosZ, rIPosZ); // 1 flop
+	mipp::vec rrijX = mipp::sub<float>(rqjX, rqiX); // 1 flop
+	mipp::vec rrijY = mipp::sub<float>(rqjY, rqiY); // 1 flop
+	mipp::vec rrijZ = mipp::sub<float>(rqjZ, rqiZ); // 1 flop
 
-	//const T squareDist = (diffPosX * diffPosX) + (diffPosY * diffPosY) + (diffPosZ * diffPosZ);
-	mipp::vec rSquareDist = mipp::set1<float>(0);
-	rSquareDist = mipp::fmadd<float>(rDiffPosX, rDiffPosX, rSquareDist); // 2 flops
-	rSquareDist = mipp::fmadd<float>(rDiffPosY, rDiffPosY, rSquareDist); // 2 flops
-	rSquareDist = mipp::fmadd<float>(rDiffPosZ, rDiffPosZ, rSquareDist); // 2 flops
+	mipp::vec rrijSquared = mipp::set1<float>(0);
+	rrijSquared = mipp::fmadd<float>(rrijX, rrijX, rrijSquared); // 2 flops
+	rrijSquared = mipp::fmadd<float>(rrijY, rrijY, rrijSquared); // 2 flops
+	rrijSquared = mipp::fmadd<float>(rrijZ, rrijZ, rrijSquared); // 2 flops
 
-	//const T invDist = 1.0 / std::sqrt(squareDist);
-	mipp::vec rInvDist = mipp::rsqrt<float>(rSquareDist); // 1 flop
+	mipp::vec rrijInv = mipp::rsqrt<float>(rrijSquared); // 1 flop
 
-	// const T acc = G * jMasses / (dist * dist * dist) <=>
-	// const T acc = G * jMasses * (invDist * invDist * invDist)
-	mipp::vec rAcc = mipp::mul<float>(mipp::mul<float>(rG, rJMass),
-	                                  mipp::mul<float>(mipp::mul<float>(rInvDist, rInvDist), rInvDist)); // 4 flops
+	// || ai || = G * mj / (rij   * rij   * rij  ) <=>
+	// || ai || = G * mj * (1/rij * 1/rij * 1/rij)
+	mipp::vec rai = mipp::mul<float>(mipp::mul<float>(rG, rmj),
+	                                 mipp::mul<float>(mipp::mul<float>(rrijInv, rrijInv), rrijInv)); // 4 flops
 
-	//iAccsX += acc * diffPosX
-	rIAccX = mipp::fmadd<float>(rAcc, rDiffPosX, rIAccX); // 2 flops
-	//iAccsY += acc * diffPosY
-	rIAccY = mipp::fmadd<float>(rAcc, rDiffPosY, rIAccY); // 2 flops
-	//iAccsZ += acc * diffPosZ
-	rIAccZ = mipp::fmadd<float>(rAcc, rDiffPosZ, rIAccZ); // 2 flops
+	raiX = mipp::fmadd<float>(rai, rrijX, raiX); // 2 flops
+	raiY = mipp::fmadd<float>(rai, rrijY, raiY); // 2 flops
+	raiZ = mipp::fmadd<float>(rai, rrijZ, raiZ); // 2 flops
 
-	//if(!this->dtConstant)
-	//	min(iClosNeiDist, dist) <=> max(iClosNeiDist, rInvDist)
-	rIClosNeiDist = mipp::max<float>(rInvDist, rIClosNeiDist);
+	rclosNeighi = mipp::max<float>(rclosNeighi, rrijInv);
 }

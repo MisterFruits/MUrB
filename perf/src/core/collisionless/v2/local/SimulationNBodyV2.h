@@ -24,12 +24,15 @@ protected:
 	virtual void initIteration();
 	virtual void computeLocalBodiesAcceleration();
 
-	inline void computeAccelerationBetweenTwoBodiesNaive(const unsigned long &iBody,
-	                                                     const unsigned long &jBody,
-	                                                     const unsigned      &tid);
-	inline void computeAccelerationBetweenTwoBodies(const unsigned long &iBody,
-	                                                const unsigned long &jBody,
-	                                                const unsigned      &tid);
+	static inline void computeAccelerationBetweenTwoBodies(const T &G,
+	                                                       const T &mi,
+	                                                       const T &qiX, const T &qiY, const T &qiZ,
+	                                                             T &aiX,       T &aiY,       T &aiZ,
+	                                                             T &closNeighi,
+	                                                       const T &mj,
+	                                                       const T &qjX, const T &qjY, const T &qjZ,
+	                                                             T &ajX,       T &ajY,       T &ajZ,
+	                                                             T &closNeighj);
 
 private:
 	void reAllocateBuffers();
