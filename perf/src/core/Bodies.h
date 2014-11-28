@@ -71,7 +71,7 @@ public:
 private:
 	void deallocateBuffers();
 	inline void setBody(const unsigned long &iBody,
-	                    const T &mi, const T &radi,
+	                    const T &mi, const T &ri,
 	                    const T &qiX, const T &qiY, const T &qiZ,
 	                    const T &viX, const T &viY, const T &viZ);
 	bool read(std::istream& stream);

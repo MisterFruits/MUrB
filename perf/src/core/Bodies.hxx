@@ -278,13 +278,13 @@ const float& Bodies<T>::getAllocatedBytes() const
 
 template <typename T>
 void Bodies<T>::setBody(const unsigned long &iBody,
-                        const T &mi, const T &radi,
+                        const T &mi, const T &ri,
                         const T &qiX, const T &qiY, const T &qiZ,
                         const T &viX, const T &viY, const T &viZ)
 {
 	this->masses[iBody] = mi;
 
-	this->radiuses[iBody] = radi;
+	this->radiuses[iBody] = ri;
 
 	this->positions.x[iBody] = qiX;
 	this->positions.y[iBody] = qiY;
@@ -303,12 +303,12 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 	srand(randInit);
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
-		T mi, radi, qiX, qiY, qiZ, viX, viY, viZ;
+		T mi, ri, qiX, qiY, qiZ, viX, viY, viZ;
 
 		mi = ((rand() / (T) RAND_MAX) * 5.0e21);
 
-		radi = mi * 0.5e-14;
-		//radius = mass * 0.5e-15;
+		ri = mi * 0.5e-14;
+		//ri = mass * 0.5e-15;
 
 		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
 		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
@@ -318,7 +318,7 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
-		this->setBody(iBody, mi, radi, qiX, qiY, qiZ, viX, viY, viZ);
+		this->setBody(iBody, mi, ri, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 
 	// fill the bodies in the padding zone
@@ -369,11 +369,11 @@ void Bodies<T>::updatePositionsAndVelocities(const vector3<T> &accelerations, T 
 	// flops = n * 18
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
-		T mi, radi, qiX, qiY, qiZ, viX, viY, viZ;
+		T mi, ri, qiX, qiY, qiZ, viX, viY, viZ;
 
 		mi = this->masses[iBody];
 
-		radi = this->radiuses[iBody];
+		ri = this->radiuses[iBody];
 
 		T aiXDt = accelerations.x[iBody] * dt;
 		T aiYDt = accelerations.y[iBody] * dt;
@@ -387,7 +387,7 @@ void Bodies<T>::updatePositionsAndVelocities(const vector3<T> &accelerations, T 
 		viY = this->velocities.y[iBody] + aiYDt;
 		viZ = this->velocities.z[iBody] + aiZSt;
 
-		this->setBody(iBody, mi, radi, qiX, qiY, qiZ, viX, viY, viZ);
+		this->setBody(iBody, mi, ri, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 }
 
@@ -414,11 +414,11 @@ bool Bodies<T>::read(std::istream& stream)
 
 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
 	{
-		T mi, radi, qiX, qiY, qiZ, viX, viY, viZ;
+		T mi, ri, qiX, qiY, qiZ, viX, viY, viZ;
 
 		stream >> mi;
 
-		stream >> radi;
+		stream >> ri;
 
 		stream >> qiX;
 		stream >> qiY;
@@ -428,7 +428,7 @@ bool Bodies<T>::read(std::istream& stream)
 		stream >> viY;
 		stream >> viZ;
 
-		this->setBody(iBody, mi, radi, qiX, qiY, qiZ, viX, viY, viZ);
+		this->setBody(iBody, mi, ri, qiX, qiY, qiZ, viX, viY, viZ);
 
 		if(!stream.good())
 			return false;
