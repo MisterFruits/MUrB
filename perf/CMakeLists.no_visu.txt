@@ -1,7 +1,7 @@
 # CMake entry point
 cmake_minimum_required (VERSION 2.6)
 
-project (nbody)
+project (murb)
 
 # Specify bin path
 set (EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
@@ -10,7 +10,7 @@ set (EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
 file (GLOB_RECURSE source_files src/*)
 
 # Déclaration de l'exécutable
-add_executable (nbody ${source_files})
+add_executable (murb ${source_files})
 
 # Enable C++11
 if(CMAKE_COMPILER_IS_GNUCXX)

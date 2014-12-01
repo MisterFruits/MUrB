@@ -1,7 +1,7 @@
 # CMake entry point
 cmake_minimum_required (VERSION 2.6)
 
-project (nbody)
+project (murb)
 
 # Specify bin path
 set (EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
@@ -27,10 +27,10 @@ include_directories (libs/glew-1.11.0/include)
 file (GLOB_RECURSE source_files src/*)
 
 # Déclaration de l'exécutable
-add_executable (nbody ${source_files})
+add_executable (murb ${source_files})
 
 # Add librairies for linking
-target_link_libraries(nbody glew glfw ${GLFW_LIBRARIES})
+target_link_libraries(murb glew glfw ${GLFW_LIBRARIES})
 
 # Enable C++11
 if(CMAKE_COMPILER_IS_GNUCXX)
