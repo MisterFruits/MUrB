@@ -373,12 +373,12 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 		const T *radiuses   = simu->getBodies()->getRadiuses();
 
 		if(GSEnable) // geometry shader = better performances on dedicated GPUs
-			visu = new OGLSpheresVisuGS<T>("MoveUrBody (MURB) n-body (geometry shader)", WinWidth, WinHeight,
+			visu = new OGLSpheresVisuGS<T>("MUrB n-body (geometry shader)", WinWidth, WinHeight,
 			                               positionsX, positionsY, positionsZ,
 			                               radiuses,
 			                               NBodies);
 		else
-			visu = new OGLSpheresVisuInst<T>("MoveUrBody (MURB) n-body (instancing)", WinWidth, WinHeight,
+			visu = new OGLSpheresVisuInst<T>("MUrB n-body (instancing)", WinWidth, WinHeight,
 			                                 positionsX, positionsY, positionsZ,
 			                                 radiuses,
 			                                 NBodies);
