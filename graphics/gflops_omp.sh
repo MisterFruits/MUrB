@@ -67,11 +67,11 @@ set xlabel "Number of threads (= cores)"
 set ylabel "Gflop/s"
 
 datafile = "./samples.dat"
-set title "MURB performance, 50 000 bodies, 10 iterations"
+set title "MUrB performance, 50 000 bodies"
 
 set output "gflops_omp.eps"
 set xrange [1:12]
 #set yrange [1:12]
-plot datafile using 1:4 i 0 with linespoint title 'MURB, naive impl.', \
-     datafile using 1:4 i 1 with linespoint title 'MURB, fine tuned impl.', \
+plot datafile using 1:4 i 0 with linespoint title 'MUrB, naive impl.', \
+     datafile using 1:4 i 1 with linespoint title 'MUrB, fine tuned impl.', \
      x*83.2                 with lines      title 'peak performance'

@@ -66,10 +66,10 @@ set xlabel "Number of threads (= cores)"
 set ylabel "Speed-up"
 
 datafile = "./samples.dat"
-set title "Full OMP speed-up, 50 000 bodies, 10 iterations"
+set title "MUrB full OMP speed-up, 50 000 bodies"
 
 set output "speedup_omp.eps"
 set xrange [1:12]
 set yrange [1:12]
-plot datafile using 1:5 i 1 with linespoint title 'MURB', \
+plot datafile using 1:5 i 1 with linespoint title 'MUrB', \
      x*1                    with lines      title 'optimal speed-up'

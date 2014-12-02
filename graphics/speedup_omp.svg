@@ -221,21 +221,21 @@
 </g><g
          transform="scale(10,10)"
          id="g146"><text
-           transform="matrix(1,0,0,-1,64.7172,229.95)"
+           transform="matrix(1,0,0,-1,85.7348,229.95)"
            id="text148"><tspan
-             x="0 7.3319998 14.004 16.667999 19.332001 22.667999 32.004002 42 50.004002 53.34 59.34 66.012001 72.683998 79.356003 86.028 93.036003 99.708 106.38 109.716 113.052 119.724 126.396 129.73199 136.40401 143.076 149.748 153.084 159.756 166.42799 173.10001 175.76401 182.436 188.436 191.772 195.108 201.78 208.452 211.78799 214.452 217.78799 224.46001 228.45599 235.12801 238.464 241.12801 247.8 254.472"
+             x="0 9.9960003 18.66 22.656 30.66 33.995998 37.332001 44.004002 46.667999 49.332001 52.667999 62.004002 72 80.003998 83.339996 89.339996 96.012001 102.684 109.356 116.028 123.036 129.70799 136.38 139.716 143.052 149.724 156.396 159.73199 166.40401 173.076 179.748 183.084 189.756 196.42799 203.10001 205.76401 212.436"
              y="0"
              id="tspan150"
-             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">Full OMP speed−up, 50 000 bodies, 10 iterations</tspan></text>
+             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MUrB full OMP speed−up, 50 000 bodies</tspan></text>
 </g><g
          transform="scale(10,10)"
          id="g152"><text
-           transform="matrix(1,0,0,-1,124.273,196.8)"
+           transform="matrix(1,0,0,-1,128.941,196.8)"
            id="text154"><tspan
-             x="0 9.9960003 18.66 27.323999"
+             x="0 9.9960003 18.66 22.656"
              y="0"
              id="tspan156"
-             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MURB</tspan></text>
+             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MUrB</tspan></text>
 </g><path
          d="m 1668,2008 319.5,0 M 516,384 l 260.5,158 261,134 260.5,148.5 260.5,153.5 261,145.5 260.5,135.5 261,161 260.5,152 260.5,155 261,137 260.5,163"
          id="path158"

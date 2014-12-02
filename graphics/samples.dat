@@ -1,5 +1,6 @@
 # Intel(R) Xeon(R) CPU E5-2690 v3 @ 2.60GHz
 # icpc 15.0.0.090
+# 10 iterations
 
 "naive" "impl. 10"
 #nCores    nBodies    time (ms)    Gflop/s    speedup

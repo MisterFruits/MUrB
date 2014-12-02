@@ -296,21 +296,21 @@
 </g><g
          transform="scale(10,10)"
          id="g196"><text
-           transform="matrix(1,0,0,-1,72.0973,229.95)"
+           transform="matrix(1,0,0,-1,110.448,229.95)"
            id="text198"><tspan
-             x="0 9.9960003 18.66 27.323999 35.327999 38.664001 45.335999 52.007999 56.004002 59.34 66.012001 70.008003 80.003998 86.676003 93.348 99.348 106.02 109.356 112.692 119.364 126.036 129.37199 136.04401 142.716 149.388 152.724 159.396 166.06799 172.74001 175.40401 182.076 188.076 191.412 194.748 201.42 208.092 211.42799 214.092 217.42799 224.10001 228.09599 234.76801 238.104 240.76801 247.44 254.112"
+             x="0 9.9960003 18.66 22.656 30.66 33.995998 40.667999 47.34 51.335999 54.672001 61.344002 65.339996 75.335999 82.008003 88.68 94.68 101.352 104.688 108.024 114.696 121.368 124.704 131.37601 138.048 144.72 148.056 154.728 161.39999 168.07201 170.73599 177.408"
              y="0"
              id="tspan200"
-             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MURB performance, 50 000 bodies, 10 iterations</tspan></text>
+             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MUrB performance, 50 000 bodies</tspan></text>
 </g><g
          transform="scale(10,10)"
          id="g202"><text
-           transform="matrix(1,0,0,-1,117.855,196.8)"
+           transform="matrix(1,0,0,-1,122.523,196.8)"
            id="text204"><tspan
-             x="0 9.9960003 18.66 27.323999 35.327999 38.664001 42 48.672001 55.344002 58.007999 64.008003 70.68 74.015999 76.68 86.676003 93.348 96.012001"
+             x="0 9.9960003 18.66 22.656 30.66 33.995998 37.332001 44.004002 50.675999 53.34 59.34 66.012001 69.348 72.012001 82.008003 88.68 91.344002"
              y="0"
              id="tspan206"
-             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MURB, naive impl.</tspan></text>
+             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MUrB, naive impl.</tspan></text>
 </g><path
          d="m 2244,2008 319.5,0 M 660,386.5 l 247.5,3 247.5,2 248,2.5 247.5,2.5 247.5,2.5 247.5,2 247.5,3 247.5,2.5 248,2.5 247.5,2 247.5,3"
          id="path208"
@@ -395,12 +395,12 @@
          style="fill:none;stroke:#1c4599;stroke-width:10;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3.79999995;stroke-opacity:1;stroke-dasharray:none" /><g
          transform="scale(10,10)"
          id="g262"><text
-           transform="matrix(1,0,0,-1,93.8316,184.8)"
+           transform="matrix(1,0,0,-1,98.4996,184.8)"
            id="text264"><tspan
-             x="0 9.9960003 18.66 27.323999 35.327999 38.664001 42 45.335999 48 54.672001 61.344002 64.68 68.015999 74.688004 81.360001 88.031998 94.704002 98.040001 100.704 110.7 117.372 120.036"
+             x="0 9.9960003 18.66 22.656 30.66 33.995998 37.332001 40.667999 43.332001 50.004002 56.675999 60.012001 63.348 70.019997 76.692001 83.363998 90.036003 93.372002 96.036003 106.032 112.704 115.368"
              y="0"
              id="tspan266"
-             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MURB, fine tuned impl.</tspan></text>
+             style="font-size:12px;font-variant:normal;font-weight:normal;writing-mode:lr-tb;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;font-family:Helvetica;-inkscape-font-specification:Helvetica">MUrB, fine tuned impl.</tspan></text>
 </g><path
          d="m 2244,1888 319.5,0 M 660,450 l 247.5,64.5 247.5,55 248,60.5 247.5,62.5 247.5,59.5 247.5,55.5 247.5,66 247.5,62 248,63.5 247.5,55.5 247.5,65.5"
          id="path268"
