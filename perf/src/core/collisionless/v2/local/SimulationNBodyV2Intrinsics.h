@@ -1,9 +1,12 @@
-/*
- * Do not remove.
- * Gabriel Hautreux, CINES, gabrielhautreux@gmail.com 
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyV2Intrinsics.h
+ * \brief   Implementation of SimulationNBodyLocal with intrinsic function calls (n²/2 computations).
+ * \author  G. Hautreux
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef SIMULATION_N_BODY_V2_INTRINSICS
 #define SIMULATION_N_BODY_V2_INTRINSICS
 
@@ -13,6 +16,12 @@
 
 #include "SimulationNBodyV2.h"
 
+/*!
+ * \class  SimulationNBodyV2Intrinsics
+ * \brief  Implementation of SimulationNBodyLocal with intrinsic function calls (n²/2 computations).
+ *
+ * \tparam T : Type.
+ */
 template <typename T = double>
 class SimulationNBodyV2Intrinsics : public SimulationNBodyV2<T>
 {

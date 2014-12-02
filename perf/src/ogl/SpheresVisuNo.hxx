@@ -1,10 +1,15 @@
-/*
- * SpheresVisuNo.cpp
+/*!
+ * \file    SpheresVisuNo.hxx
+ * \brief   No visu.
+ * \author  A. Cassagne
+ * \date    2014
  *
- *  Created on: 08 sept. 2014
- *      Author: Adrien Cassagne
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ *
+ * \section DESCRIPTION
+ * This is the traditional entry file for the code execution.
  */
-
 #include <string>
 #include <chrono>
 #include <thread>

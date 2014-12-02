@@ -1,10 +1,12 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyCollisionV1.hxx
+ * \brief   Naive implementation of SimulationNBodyCollisionLocal (n² computations).
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #include <cmath>
 #include <limits>
 #include <string>

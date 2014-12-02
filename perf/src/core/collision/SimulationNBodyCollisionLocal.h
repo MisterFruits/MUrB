@@ -1,10 +1,12 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyCollisionLocal.h
+ * \brief   Abstract n-body simulation class with collisions for local computations (inside a node).
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef SIMULATION_N_BODY_COLLISION_LOCAL_H_
 #define SIMULATION_N_BODY_COLLISION_LOCAL_H_
 
@@ -12,6 +14,12 @@
 
 #include "../SimulationNBody.h"
 
+/*!
+ * \class  SimulationNBodyCollisionLocal
+ * \brief  Abstract n-body simulation class with collisions for local computations (inside a node).
+ *
+ * \tparam T : Type.
+ */
 template <typename T = double>
 class SimulationNBodyCollisionLocal : public SimulationNBody<T>
 {

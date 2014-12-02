@@ -1,9 +1,12 @@
-/*
- * Do not remove.
- * Gabriel Hautreux, CINES, gabrielhautreux@gmail.com
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyV2FineTuned.hxx
+ * \brief   Implementation of SimulationNBodyLocal with intrinsic function calls, fine tuned (n²/2 computations).
+ * \author  G. Hautreux
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #include <cmath>
 #include <limits>
 #include <string>

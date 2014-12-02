@@ -1,10 +1,15 @@
-/*
- * myIntrinsicsPlusPlus.h
+/*!
+ * \file    myIntrinsicsPlusPlus.h
+ * \brief   Wrapper for intrinsic vector functions.
+ * \author  A. Cassagne
+ * \date    2014
  *
- *  Created on: 5 oct. 2014
- *      Author: Adrien Cassagne
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ *
+ * \section DESCRIPTION
+ * This is the traditional entry file for the code execution.
  */
-
 #ifndef MY_INTRINSICS_PLUS_PLUS_H_
 #define MY_INTRINSICS_PLUS_PLUS_H_
 

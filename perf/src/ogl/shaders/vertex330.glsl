@@ -1,10 +1,15 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    vertex330.glsl
+ * \brief   This shader just gives vertices and radiuses to the geometry shader.
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ *
+ * \section DESCRIPTION
+ * This is the traditional entry file for the code execution.
  */
- 
 #version 330 core
 
 // Input vertex data, different for all executions of this shader.

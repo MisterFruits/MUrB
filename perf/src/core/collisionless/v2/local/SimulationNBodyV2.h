@@ -1,10 +1,12 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyV2.h
+ * \brief   Implementation of SimulationNBodyLocal (n²/2 computations).
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef SIMULATION_N_BODY_V2_H_
 #define SIMULATION_N_BODY_V2_H_
 
@@ -12,6 +14,12 @@
 
 #include "../../SimulationNBodyLocal.h"
 
+/*!
+ * \class  SimulationNBodyV2
+ * \brief  Implementation of SimulationNBodyLocal (n²/2 computations).
+ *
+ * \tparam T : Type.
+ */
 template <typename T = double>
 class SimulationNBodyV2 : public SimulationNBodyLocal<T>
 {

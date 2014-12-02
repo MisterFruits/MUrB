@@ -1,10 +1,15 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    OGLControl.cpp
+ * \brief   This class is focused on OpenGL input controls management (mouse and keyboard).
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ *
+ * \section DESCRIPTION
+ * This is the traditional entry file for the code execution.
  */
-
 #ifdef VISU
 #include "OGLControl.h"
 

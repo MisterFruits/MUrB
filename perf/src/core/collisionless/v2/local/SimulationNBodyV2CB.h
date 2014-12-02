@@ -1,9 +1,12 @@
-/*
- * Do not remove.
- * Gabriel Hautreux, gabriel.hautreux@gmail.com
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyV2CB.h
+ * \brief   Implementation of SimulationNBodyLocal with the Cache Blocking Technique (n²/2 computations).
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef SIMULATION_N_BODY_V2_CB_H_
 #define SIMULATION_N_BODY_V2_CB_H_
 
@@ -11,6 +14,12 @@
 
 #include "SimulationNBodyV2.h"
 
+/*!
+ * \class  SimulationNBodyV2CB
+ * \brief  Implementation of SimulationNBodyLocal with the Cache Blocking Technique (n²/2 computations).
+ *
+ * \tparam T : Type.
+ */
 template <typename T = double>
 class SimulationNBodyV2CB : public SimulationNBodyV2<T>
 {
