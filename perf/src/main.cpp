@@ -1,8 +1,14 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    main.cpp
+ * \brief   Code entry.
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ *
+ * \section DESCRIPTION
+ * This is the traditional entry file for the code execution.
  */
 
 #ifdef NBODY_DOUBLE
@@ -99,11 +105,13 @@ floatType     Softening  = 0.035;
 unsigned int  WinWidth   = 800;
 unsigned int  WinHeight  = 600;
 
-/*
- * read args from command line and set global variables
- * usage: ./nbody -n nBodies  -i nIterations [-v] [-w] ...
- * usage: ./nbody -f fileName -i nIterations [-v] [-w] ...
- * */
+/*!
+ * \fn     void argsReader(int argc, char** argv)
+ * \brief  Read arguments from command line and set global variables.
+ *
+ * \param  argc : Number of arguments.
+ * \param  argv : Array of arguments.
+ */
 void argsReader(int argc, char** argv)
 {
 	map<string, string> reqArgs1, reqArgs2, faculArgs, docArgs;
@@ -200,6 +208,15 @@ void argsReader(int argc, char** argv)
 		Softening = stof(argsReader.getArgument("-soft"));
 }
 
+/*!
+ * \fn     string strDate(T timestamp)
+ * \brief  Convert a timestamp into a string "..d ..h ..m ..s".
+ *
+ * \param  Timestamp : The timestamp to covert
+ * \tparam T         : Timestamp type.
+ *
+ * \return Date as a string.
+ */
 template <typename T>
 string strDate(T timestamp)
 {
@@ -223,6 +240,14 @@ string strDate(T timestamp)
 	       to_string(rest)    + "s";
 }
 
+/*!
+ * \fn     SimulationNBody<T>* selectImplementationAndAllocateSimulation()
+ * \brief  Select and allocate an n-body simulation object.
+ *
+ * \tparam T : Type.
+ *
+ * \return A fresh allocated simulation.
+ */
 template <typename T>
 SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 {
@@ -355,6 +380,15 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 	return simu;
 }
 
+/*!
+ * \fn     selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
+ * \brief  Select and allocate an n-body visualization object.
+ *
+ * \param  simu : A simulation.
+ * \tparam T    : Type.
+ *
+ * \return A fresh allocated visualization.
+ */
 template <typename T>
 SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 {
@@ -373,12 +407,12 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 		const T *radiuses   = simu->getBodies()->getRadiuses();
 
 		if(GSEnable) // geometry shader = better performances on dedicated GPUs
-			visu = new OGLSpheresVisuGS<T>("MoveUrBody (MURB) n-body (geometry shader)", WinWidth, WinHeight,
+			visu = new OGLSpheresVisuGS<T>("MUrB n-body (geometry shader)", WinWidth, WinHeight,
 			                               positionsX, positionsY, positionsZ,
 			                               radiuses,
 			                               NBodies);
 		else
-			visu = new OGLSpheresVisuInst<T>("MoveUrBody (MURB) n-body (instancing)", WinWidth, WinHeight,
+			visu = new OGLSpheresVisuInst<T>("MUrB n-body (instancing)", WinWidth, WinHeight,
 			                                 positionsX, positionsY, positionsZ,
 			                                 radiuses,
 			                                 NBodies);
@@ -394,6 +428,14 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 	return visu;
 }
 
+/*!
+ * \fn     void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
+ * \brief  Write bodies from simu object to file.
+ *
+ * \param  simu : A simulation.
+ * \param  iIte : Current iteration number.
+ * \tparam T    : Type.
+ */
 template <typename T>
 void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 {
@@ -436,6 +478,15 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 	}
 }
 
+/*!
+ * \fn     int main(int argc, char** argv)
+ * \brief  Code entry function.
+ *
+ * \param  argc : Number of command line arguments.
+ * \param  argv : Array of command line arguments.
+ *
+ * \return EXIT_SUCCESS
+ */
 int main(int argc, char** argv)
 {
 	MPI::Init();

@@ -1,8 +1,11 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyV1Vectors.h
+ * \brief   Implementation of SimulationNBody with vector stride loops.
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
 
 #ifndef SIMULATION_N_BODY_V1_VECTORS_H_
@@ -12,6 +15,12 @@
 
 #include "SimulationNBodyV1.h"
 
+/*!
+ * \class  SimulationNBodyV1Vectors
+ * \brief  Implementation of SimulationNBody with vector stride loops (n² computations).
+ *
+ * \tparam T : Type.
+ */
 template <typename T = double>
 class SimulationNBodyV1Vectors : public SimulationNBodyV1<T>
 {
