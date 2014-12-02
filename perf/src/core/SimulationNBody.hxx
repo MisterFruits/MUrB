@@ -7,7 +7,6 @@
  * \section LICENSE
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #include <cmath>
 #include <limits>
 #include <string>

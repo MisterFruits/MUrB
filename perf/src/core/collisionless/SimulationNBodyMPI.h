@@ -1,10 +1,12 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyMPI.h
+ * \brief   Abstract n-body collision less simulation class for MPI computations (between many nodes).
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef SIMULATION_N_BODY_MPI_H_
 #define SIMULATION_N_BODY_MPI_H_
 
@@ -15,6 +17,12 @@
 
 #include "../SimulationNBody.h"
 
+/*!
+ * \class  SimulationNBodyMPI
+ * \brief  Abstract n-body simulation class for MPI computations (between many nodes).
+ *
+ * \tparam T : Type.
+ */
 template <typename T = double>
 class SimulationNBodyMPI : public SimulationNBody<T>
 {

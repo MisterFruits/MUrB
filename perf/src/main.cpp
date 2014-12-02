@@ -10,7 +10,6 @@
  * \section DESCRIPTION
  * This is the traditional entry file for the code execution.
  */
-
 #ifdef NBODY_DOUBLE
 using floatType = double;
 #else
@@ -90,20 +89,20 @@ namespace MPI
 #endif
 
 /* global variables */
-string        RootInputFileName;
-string        RootOutputFileName;
-unsigned long NBodies;
-unsigned long NIterations;
-unsigned int  ImplId     = 10;
-bool          Verbose    = false;
-bool          GSEnable   = false;
-bool          VisuEnable = true;
-bool          DtVariable = false;
-floatType     Dt         = 3600; //in sec, 3600 sec = 1 hour
-floatType     MinDt      = 200;
-floatType     Softening  = 0.035;
-unsigned int  WinWidth   = 800;
-unsigned int  WinHeight  = 600;
+string        RootInputFileName;  /*!< Root input file name for read bodies. */
+string        RootOutputFileName; /*!< Root output file name for write bodies. */
+unsigned long NBodies;            /*!< Number of bodies. */
+unsigned long NIterations;        /*!< Number of iterations. */
+unsigned int  ImplId     = 10;    /*!< Implementation id. */
+bool          Verbose    = false; /*!< Mode verbose. */
+bool          GSEnable   = false; /*!< Enable geometry shader. */
+bool          VisuEnable = true;  /*!< Enable visualization. */
+bool          DtVariable = false; /*!< Variable time step. */
+floatType     Dt         = 3600;  /*!< Time step in seconds. */
+floatType     MinDt      = 200;   /*!< Minimum time step. */
+floatType     Softening  = 0.035; /*!< Softening factor value. */
+unsigned int  WinWidth   = 800;   /*!< Window width for visualization. */
+unsigned int  WinHeight  = 600;   /*!< Window height for visualization. */
 
 /*!
  * \fn     void argsReader(int argc, char** argv)
@@ -212,7 +211,7 @@ void argsReader(int argc, char** argv)
  * \fn     string strDate(T timestamp)
  * \brief  Convert a timestamp into a string "..d ..h ..m ..s".
  *
- * \param  Timestamp : The timestamp to covert
+ * \param  Timestamp : The timestamp to convert
  * \tparam T         : Timestamp type.
  *
  * \return Date as a string.
@@ -381,7 +380,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 }
 
 /*!
- * \fn     selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
+ * \fn     SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
  * \brief  Select and allocate an n-body visualization object.
  *
  * \param  simu : A simulation.

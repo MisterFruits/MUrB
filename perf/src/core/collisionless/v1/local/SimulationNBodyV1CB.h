@@ -1,13 +1,12 @@
 /*!
  * \file    SimulationNBodyV1CB.h
- * \brief   Naive implementation of SimulationNBody with the Cache Blocking technique.
+ * \brief   Naive implementation of SimulationNBodyLocal with the Cache Blocking technique (n² computations).
  * \author  A. Cassagne
  * \date    2014
  *
  * \section LICENSE
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef SIMULATION_N_BODY_V1_CB_H_
 #define SIMULATION_N_BODY_V1_CB_H_
 
@@ -17,7 +16,7 @@
 
 /*!
  * \class  SimulationNBodyV1CB
- * \brief  Naive implementation of SimulationNBody with the Cache Blocking technique (n² computations).
+ * \brief  Naive implementation of SimulationNBodyLocal with the Cache Blocking technique (n² computations).
  *
  * \tparam T : Type.
  */

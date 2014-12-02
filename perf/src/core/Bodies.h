@@ -7,7 +7,6 @@
  * \section LICENSE
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef BODIES_H_
 #define BODIES_H_
 
@@ -34,7 +33,7 @@ struct vector3
 
 /*!
  * \class  Bodies
- * \brief  Bodies class represent the physic data of each body (mass, radius, position and velocity)
+ * \brief  Bodies class represents the physic data of each body (mass, radius, position and velocity).
  *
  * \tparam T : Type.
  */

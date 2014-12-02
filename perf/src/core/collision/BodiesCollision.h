@@ -1,10 +1,12 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    BodiesCollision.h
+ * \brief   Bodies container with collisions management.
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef BODIES_COLLISION_H_
 #define BODIES_COLLISION_H_
 
@@ -12,6 +14,12 @@
 
 #include "../Bodies.h"
 
+/*!
+ * \class  BodiesCollision
+ * \brief  BodiesCollision class represents the physic data of each body (mass, radius, position and velocity) and manages collisions.
+ *
+ * \tparam T : Type.
+ */
 template <typename T = double>
 class BodiesCollision : public Bodies<T>
 {

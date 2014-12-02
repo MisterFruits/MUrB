@@ -1,14 +1,12 @@
 /*!
  * \file    SimulationNBodyV1Intrinsics.h
- * \brief   Implementation of SimulationNBody with intrinsic function calls.
+ * \brief   Implementation of SimulationNBodyLocal with intrinsic function calls (n² computations).
  * \author  A. Cassagne
  * \date    2014
  *
  * \section LICENSE
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
-
 #ifndef SIMULATION_N_BODY_V1_INTRINSICS_H_
 #define SIMULATION_N_BODY_V1_INTRINSICS_H_
 
@@ -20,7 +18,7 @@
 
 /*!
  * \class  SimulationNBodyV1Intrinsics
- * \brief  Implementation of SimulationNBody with intrinsic function calls (n² computations).
+ * \brief  Implementation of SimulationNBodyLocal with intrinsic function calls (n² computations).
  *
  * \tparam T : Type.
  */

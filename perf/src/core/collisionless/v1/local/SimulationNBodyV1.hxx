@@ -1,14 +1,12 @@
 /*!
  * \file    SimulationNBodyV1.hxx
- * \brief   Naive implementation of SimulationNBody.
+ * \brief   Naive implementation of SimulationNBodyLocal (n² computations).
  * \author  A. Cassagne
  * \date    2014
  *
  * \section LICENSE
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
-
 #include <cmath>
 #include <limits>
 #include <string>

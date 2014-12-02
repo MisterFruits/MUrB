@@ -1,10 +1,15 @@
-/*
- * SpheresVisuNo.h
+/*!
+ * \file    SpheresVisuNo.h
+ * \brief   No visu.
+ * \author  A. Cassagne
+ * \date    2014
  *
- *  Created on: 08 sept. 2014
- *      Author: Adrien Cassagne
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ *
+ * \section DESCRIPTION
+ * This is the traditional entry file for the code execution.
  */
-
 #ifndef OGL_SPHERES_VISU_NO_H_
 #define OGL_SPHERES_VISU_NO_H_
 

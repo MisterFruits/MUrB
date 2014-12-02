@@ -1,10 +1,12 @@
-/*
- * Do not remove.
- * Optimization training courses 2014 (CINES)
- * Adrien Cassagne, adrien.cassagne@cines.fr
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode)
+/*!
+ * \file    SimulationNBodyMPIV1Intrinsics.h
+ * \brief   Implementation of SimulationNBodyMPI with intrinsic function calls (n² computations).
+ * \author  A. Cassagne
+ * \date    2014
+ *
+ * \section LICENSE
+ * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef SIMULATION_N_BODY_MPI_V1_INTRINSICS_H_
 #define SIMULATION_N_BODY_MPI_V1_INTRINSICS_H_
 
@@ -14,6 +16,12 @@
 
 #include "../../SimulationNBodyMPI.h"
 
+/*!
+ * \class  SimulationNBodyMPIV1Intrinsics
+ * \brief  Implementation of SimulationNBodyMPI with intrinsic function calls (n² computations).
+ *
+ * \tparam T : Type.
+ */
 template <typename T = double>
 class SimulationNBodyMPIV1Intrinsics : public SimulationNBodyMPI<T>
 {

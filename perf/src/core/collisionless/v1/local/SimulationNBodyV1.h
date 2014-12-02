@@ -1,13 +1,12 @@
 /*!
  * \file    SimulationNBodyV1.h
- * \brief   Naive implementation of SimulationNBody.
+ * \brief   Naive implementation of SimulationNBodyLocal (n² computations).
  * \author  A. Cassagne
  * \date    2014
  *
  * \section LICENSE
  * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
  */
-
 #ifndef SIMULATION_N_BODY_V1_H_
 #define SIMULATION_N_BODY_V1_H_
 
@@ -17,7 +16,7 @@
 
 /*!
  * \class  SimulationNBodyV1
- * \brief  Naive implementation of SimulationNBody (n² computations).
+ * \brief  Naive implementation of SimulationNBodyLocal (n² computations).
  *
  * \tparam T : Type.
  */
