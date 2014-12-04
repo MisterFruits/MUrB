@@ -23,7 +23,7 @@
 template <typename T = double>
 class SimulationNBodyV3 : public SimulationNBodyLocal<T>
 {
-private:
+protected:
 	T softeningSquared;
 
 public:
