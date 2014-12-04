@@ -14,7 +14,7 @@
 
 #include "../../../../utils/myIntrinsicsPlusPlus.h"
 
-#include "../../SimulationNBodyLocal.h"
+#include "SimulationNBodyV1.h"
 
 /*!
  * \class  SimulationNBodyV1Intrinsics
@@ -23,7 +23,7 @@
  * \tparam T : Type.
  */
 template <typename T = double>
-class SimulationNBodyV1Intrinsics : public SimulationNBodyLocal<T>
+class SimulationNBodyV1Intrinsics : public SimulationNBodyV1<T>
 {
 public:
 	SimulationNBodyV1Intrinsics(const unsigned long nBodies);

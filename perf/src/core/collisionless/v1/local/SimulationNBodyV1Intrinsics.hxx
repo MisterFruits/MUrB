@@ -30,14 +30,14 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 template <typename T>
 SimulationNBodyV1Intrinsics<T>::SimulationNBodyV1Intrinsics(const unsigned long nBodies)
-	: SimulationNBodyLocal<T>(nBodies)
+	: SimulationNBodyV1<T>(nBodies)
 {
 	this->init();
 }
 
 template <typename T>
 SimulationNBodyV1Intrinsics<T>::SimulationNBodyV1Intrinsics(const std::string inputFileName)
-	: SimulationNBodyLocal<T>(inputFileName)
+	: SimulationNBodyV1<T>(inputFileName)
 {
 	this->init();
 }
