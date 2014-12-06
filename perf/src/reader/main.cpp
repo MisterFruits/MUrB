@@ -126,25 +126,25 @@ void argsReader(int argc, char** argv)
  * \return A fresh allocated visualization.
  */
 template <typename T>
-SpheresVisu* selectImplementationAndAllocateVisu(Bodies<T> bodies)
+SpheresVisu* selectImplementationAndAllocateVisu(Bodies<T> *bodies)
 {
 	SpheresVisu* visu;
 
-	const T *positionsX = bodies.getPositionsX();
-	const T *positionsY = bodies.getPositionsY();
-	const T *positionsZ = bodies.getPositionsZ();
-	const T *radiuses   = bodies.getRadiuses();
+	const T *positionsX = bodies->getPositionsX();
+	const T *positionsY = bodies->getPositionsY();
+	const T *positionsZ = bodies->getPositionsZ();
+	const T *radiuses   = bodies->getRadiuses();
 
 	if(GSEnable) // geometry shader = better performances on dedicated GPUs
 		visu = new OGLSpheresVisuGS<T>("MUrB reader (geometry shader)", WinWidth, WinHeight,
 									   positionsX, positionsY, positionsZ,
 									   radiuses,
-									   bodies.getN());
+									   bodies->getN());
 	else
 		visu = new OGLSpheresVisuInst<T>("MUrB reader (instancing)", WinWidth, WinHeight,
 										 positionsX, positionsY, positionsZ,
 										 radiuses,
-										 bodies.getN());
+										 bodies->getN());
 	cout << endl;
 
 	return visu;
@@ -209,10 +209,11 @@ int main(int argc, char** argv)
 
 	// create a bodies object
 	fileName = RootInputFileName + ".i0.p0.dat";
-	Bodies<floatType> bodies(fileName);
+	bool binMode = true;
+	Bodies<floatType> *bodies = new Bodies<floatType>(fileName, binMode);
 
 	// get MB used for this visualization
-	float Mbytes = bodies.getAllocatedBytes() / 1024.f / 1024.f;
+	float Mbytes = bodies->getAllocatedBytes() / 1024.f / 1024.f;
 
 	// display reader configuration
 	cout << "n-body reader configuration:" << endl;
@@ -241,7 +242,7 @@ int main(int argc, char** argv)
 		// read bodies from file
 		fileName = RootInputFileName + ".i" + to_string(iIte) + ".p0.dat";
 		perfIte.start();
-		bodies.readFromFile(fileName);
+		bodies->readFromFileBinary(fileName);
 		perfIte.stop();
 		perfTotal += perfIte;
 
@@ -258,6 +259,7 @@ int main(int argc, char** argv)
 
 	// free resources
 	delete visu;
+	delete bodies;
 
 	return EXIT_SUCCESS;
 }

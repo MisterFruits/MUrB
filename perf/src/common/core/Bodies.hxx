@@ -15,6 +15,7 @@
 #include <iostream>
 #include <sys/stat.h>
 
+#include "../utils/Perf.h"
 #include "../utils/mipp.h"
 
 #include "Bodies.h"
@@ -44,7 +45,7 @@ Bodies<T>::Bodies(const unsigned long n, const unsigned long randInit)
 }
 
 template <typename T>
-Bodies<T>::Bodies(const std::string inputFileName)
+Bodies<T>::Bodies(const std::string inputFileName, bool binMode)
 	: n             (0),
 	  masses        (nullptr),
 	  radiuses      (nullptr),
@@ -52,8 +53,16 @@ Bodies<T>::Bodies(const std::string inputFileName)
 	  padding       (0),
 	  allocatedBytes(0)
 {
-	if(!this->initFromFile(inputFileName))
-		exit(-1);
+	if(binMode)
+	{
+		if(!this->initFromFileBinary(inputFileName))
+			exit(-1);
+	}
+	else
+	{
+		if(!this->initFromFile(inputFileName))
+			exit(-1);
+	}
 }
 
 template <typename T>
@@ -322,7 +331,8 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		}
 		else
 		{
-			mi = ((rand() / (T) RAND_MAX) * 5.0e20);
+			//mi = ((rand() / (T) RAND_MAX) * 5.0e20);
+			mi = ((rand() / (T) RAND_MAX) * 1.0e20);
 
 			//ri = mi * 0.5e-14;
 			ri = mi * 1.0e-15;
@@ -513,6 +523,33 @@ bool Bodies<T>::initFromFile(const std::string inputFileName)
 	}
 
 	bool isOk = this->read(bodiesFile);
+
+	bodiesFile.close();
+
+	if(!isOk)
+	{
+		std::cout << "Something bad occurred during the reading of \"" << inputFileName
+		          << "\" file... exiting." << std::endl;
+		return false;
+	}
+
+	return true;
+}
+
+template <typename T>
+bool Bodies<T>::initFromFileBinary(const std::string inputFileName)
+{
+	std::ifstream bodiesFile;
+	bodiesFile.open(inputFileName.c_str(), std::ios::in | ios::binary);
+
+	if(!bodiesFile.is_open())
+	{
+		std::cout << "Can't open \"" << inputFileName << "\" file (reading)." << std::endl;
+		return false;
+	}
+
+	bool isOk = this->readBinary(bodiesFile);
+
 	bodiesFile.close();
 
 	if(!isOk)
@@ -561,6 +598,13 @@ bool Bodies<T>::readFromFile(const std::string inputFileName)
 }
 
 template <typename T>
+bool Bodies<T>::readFromFileBinary(const std::string inputFileName)
+{
+	//assert(this->n == 0);
+	return this->initFromFileBinary(inputFileName);
+}
+
+template <typename T>
 bool Bodies<T>::read(std::istream& stream)
 {
 	//this->n = 0;
@@ -598,18 +642,6 @@ bool Bodies<T>::read(std::istream& stream)
 		stream >> viY;
 		stream >> viZ;
 
-		/*
-		std::cout << "iBody = " << iBody << ", "
-		          << "mi = " << mi << ", "
-		          << "ri = " << ri << ", "
-		          << "qiX = " << qiX << ", "
-		          << "qiY = " << qiY << ", "
-		          << "qiZ = " << qiZ << ", "
-		          << "viX = " << viX << ", "
-		          << "viY = " << viY << ", "
-		          << "viZ = " << viZ << std::endl;
-		*/
-
 		this->setBody(iBody, mi, ri, qiX, qiY, qiZ, viX, viY, viZ);
 
 		if(!stream.good())
@@ -636,6 +668,77 @@ bool Bodies<T>::read(std::istream& stream)
 }
 
 template <typename T>
+bool Bodies<T>::readBinary(std::istream& stream)
+{
+	//this->n = 0;
+	char cn[sizeof(unsigned long)];
+	stream.read(cn, sizeof(unsigned long));
+	unsigned long *tmp = (unsigned long*) cn;
+	unsigned long newN = *tmp;
+
+	unsigned long sizeofStream = newN * 8 * sizeof(T);
+	char *binBodies = new char[sizeofStream];
+
+	stream.read(binBodies, sizeofStream);
+
+	this->nVecs   = ceil((T) newN / (T) mipp::vectorSize<T>());
+	this->padding = (this->nVecs * mipp::vectorSize<T>()) - newN;
+
+	if(newN && (this->n == 0))
+	{
+		this->n = newN;
+		this->allocateBuffers();
+	}
+	else if(newN && (this->n == newN))
+	{
+		this->n = newN;
+	}
+	else
+	{
+		return false;
+	}
+
+	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+	{
+		T *mi, *ri, *qiX, *qiY, *qiZ, *viX, *viY, *viZ;
+
+		mi = (T*) (binBodies + iBody * 8 * sizeof(T) + 0 * sizeof(T));
+
+		ri = (T*) (binBodies + iBody * 8 * sizeof(T) + 1 * sizeof(T));
+
+		qiX = (T*) (binBodies + iBody * 8 * sizeof(T) + 2 * sizeof(T));
+		qiY = (T*) (binBodies + iBody * 8 * sizeof(T) + 3 * sizeof(T));
+		qiZ = (T*) (binBodies + iBody * 8 * sizeof(T) + 4 * sizeof(T));
+
+		viX = (T*) (binBodies + iBody * 8 * sizeof(T) + 5 * sizeof(T));
+		viY = (T*) (binBodies + iBody * 8 * sizeof(T) + 6 * sizeof(T));
+		viZ = (T*) (binBodies + iBody * 8 * sizeof(T) + 7 * sizeof(T));
+
+		this->setBody(iBody, *mi, *ri, *qiX, *qiY, *qiZ, *viX, *viY, *viZ);
+	}
+
+	// fill the bodies in the padding zone
+	for(unsigned long iBody = this->n; iBody < this->n + this->padding; iBody++)
+	{
+		T qiX, qiY, qiZ, viX, viY, viZ;
+
+		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+
+		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+
+		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
+	}
+
+	delete[] binBodies;
+
+	return true;
+}
+
+template <typename T>
 void Bodies<T>::write(std::ostream& stream, bool writeN) const
 {
 	if(writeN)
@@ -653,6 +756,71 @@ void Bodies<T>::write(std::ostream& stream, bool writeN) const
 }
 
 template <typename T>
+void Bodies<T>::writeBinary(std::ostream& stream, bool writeN) const
+{
+	unsigned long sizeofStream = this->n * 8 * sizeof(T) + (int) writeN * sizeof(unsigned long);
+	char *binBodies = new char[sizeofStream];
+
+	unsigned long iChar = 0;
+	if(writeN)
+	{
+		char const *cn = reinterpret_cast<char const *>(&(this->n));
+
+		for(unsigned short iCur = 0; iCur < sizeof(unsigned long); iCur++)
+			binBodies[iChar + iCur] = cn[iCur];
+		iChar += sizeof(unsigned long);
+	}
+
+	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+	{
+		char const *cmi  = reinterpret_cast<char const *>(this->masses       + iBody);
+		char const *cri  = reinterpret_cast<char const *>(this->radiuses     + iBody);
+		char const *cqiX = reinterpret_cast<char const *>(this->positions.x  + iBody);
+		char const *cqiY = reinterpret_cast<char const *>(this->positions.y  + iBody);
+		char const *cqiZ = reinterpret_cast<char const *>(this->positions.z  + iBody);
+		char const *cviX = reinterpret_cast<char const *>(this->velocities.x + iBody);
+		char const *cviY = reinterpret_cast<char const *>(this->velocities.y + iBody);
+		char const *cviZ = reinterpret_cast<char const *>(this->velocities.z + iBody);
+
+		for(unsigned short iCur = 0; iCur < sizeof(T); iCur++)
+			binBodies[iChar + iCur] = cmi[iCur];
+		iChar += sizeof(T);
+
+		for(unsigned short iCur = 0; iCur < sizeof(T); iCur++)
+			binBodies[iChar + iCur] = cri[iCur];
+		iChar += sizeof(T);
+
+		for(unsigned short iCur = 0; iCur < sizeof(T); iCur++)
+			binBodies[iChar + iCur] = cqiX[iCur];
+		iChar += sizeof(T);
+
+		for(unsigned short iCur = 0; iCur < sizeof(T); iCur++)
+			binBodies[iChar + iCur] = cqiY[iCur];
+		iChar += sizeof(T);
+
+		for(unsigned short iCur = 0; iCur < sizeof(T); iCur++)
+			binBodies[iChar + iCur] = cqiZ[iCur];
+		iChar += sizeof(T);
+
+		for(unsigned short iCur = 0; iCur < sizeof(T); iCur++)
+			binBodies[iChar + iCur] = cviX[iCur];
+		iChar += sizeof(T);
+
+		for(unsigned short iCur = 0; iCur < sizeof(T); iCur++)
+			binBodies[iChar + iCur] = cviY[iCur];
+		iChar += sizeof(T);
+
+		for(unsigned short iCur = 0; iCur < sizeof(T); iCur++)
+			binBodies[iChar + iCur] = cviZ[iCur];
+		iChar += sizeof(T);
+	}
+
+	stream.write(binBodies, sizeofStream);
+
+	delete[] binBodies;
+}
+
+template <typename T>
 bool Bodies<T>::writeIntoFile(const std::string outputFileName) const
 {
 	std::fstream bodiesFile(outputFileName.c_str(), std::ios_base::out);
@@ -663,6 +831,23 @@ bool Bodies<T>::writeIntoFile(const std::string outputFileName) const
 	}
 
 	this->write(bodiesFile);
+
+	bodiesFile.close();
+
+	return true;
+}
+
+template <typename T>
+bool Bodies<T>::writeIntoFileBinary(const std::string outputFileName) const
+{
+	std::fstream bodiesFile(outputFileName.c_str(), ios::out | ios::binary);
+	if(!bodiesFile.is_open())
+	{
+		std::cout << "Can't open \"" << outputFileName << "\" file (writing). Exiting..." << std::endl;
+		return false;
+	}
+
+	this->writeBinary(bodiesFile);
 
 	bodiesFile.close();
 
@@ -690,6 +875,36 @@ bool Bodies<T>::writeIntoFileMPI(const std::string outputFileName, const unsigne
 
 	bool writeN = false;
 	this->write(bodiesFile, writeN);
+
+	bodiesFile.close();
+
+	return true;
+}
+
+template <typename T>
+bool Bodies<T>::writeIntoFileMPIBinary(const std::string outputFileName, const unsigned long MPINBodies) const
+{
+	std::fstream bodiesFile;
+
+	if(MPINBodies)
+		bodiesFile.open(outputFileName.c_str(), std::fstream::out | ios::binary | std::fstream::trunc);
+	else
+		bodiesFile.open(outputFileName.c_str(), std::fstream::out | ios::binary | std::fstream::app);
+
+	if(!bodiesFile.is_open())
+	{
+		std::cout << "Can't open \"" << outputFileName << "\" file (writing). Exiting..." << std::endl;
+		return false;
+	}
+
+	if(MPINBodies)
+	{
+		char const *cnmpi = reinterpret_cast<char const *>(&MPINBodies);
+		bodiesFile.write(cnmpi, sizeof(unsigned long));
+	}
+
+	bool writeN = false;
+	this->writeBinary(bodiesFile, writeN);
 
 	bodiesFile.close();
 

@@ -78,7 +78,7 @@ public:
      *
      *  \param inputFileName : name of the input file to read.
      */
-	Bodies(const std::string inputFileName);
+	Bodies(const std::string inputFileName, bool binMode = false);
 
     /*!
      *  \brief Constructor.
@@ -209,12 +209,29 @@ public:
 	bool readFromFile(const std::string inputFileName);
 
     /*!
+     *  \brief Read bodies from a file (binary mode).
+     *
+     *  \param inputFileName : Name of the input file.
+     *
+     *  \return True if this operation is a success, false else.
+     */
+	bool readFromFileBinary(const std::string inputFileName);
+
+    /*!
      *  \brief Write bodies into a stream.
      *
      *  \param stream : The C++ stream to write into.
      *  \param writeN : Write the number of bodies in the stream if true, do not write this number else.
      */
 	void write(std::ostream& stream, bool writeN = true) const;
+
+    /*!
+     *  \brief Write bodies into a stream (binary mode).
+     *
+     *  \param stream : The C++ stream to write into.
+     *  \param writeN : Write the number of bodies in the stream if true, do not write this number else.
+     */
+	void writeBinary(std::ostream& stream, bool writeN = true) const;
 
     /*!
      *  \brief Write bodies into a file.
@@ -226,6 +243,15 @@ public:
 	bool writeIntoFile(const std::string outputFileName) const;
 
     /*!
+     *  \brief Write bodies into a file (binary mode).
+     *
+     *  \param outputFileName : The output file name.
+     *
+     *  \return True if this operation is a success, false else.
+     */
+	bool writeIntoFileBinary(const std::string outputFileName) const;
+
+    /*!
      *  \brief Write bodies into a file (MPI specific method).
      *
      *  \param outputFileName : The output file name.
@@ -234,6 +260,16 @@ public:
      *  \return True if this operation is a success, false else.
      */
 	bool writeIntoFileMPI(const std::string outputFileName, const unsigned long MPINBodies = 0) const;
+
+    /*!
+     *  \brief Write bodies into a file (MPI specific method, binary mode).
+     *
+     *  \param outputFileName : The output file name.
+     *  \param MPINBodies     : Number of bodies (or 0 if we don't want to write the bodies number).
+     *
+     *  \return True if this operation is a success, false else.
+     */
+	bool writeIntoFileMPIBinary(const std::string outputFileName, const unsigned long MPINBodies = 0) const;
 
 private:
     /*!
@@ -269,6 +305,15 @@ private:
 	bool read(std::istream& stream);
 
     /*!
+     *  \brief Read bodies from a stream (binary mode).
+     *
+     *  \param stream : Stream to read.
+     *
+     *  \return True if this operation is a success, false else.
+     */
+	bool readBinary(std::istream& stream);
+
+    /*!
      *  \brief Allocation of buffers.
      */
 	void allocateBuffers();
@@ -286,6 +331,13 @@ private:
      *  \param inputFileName : Name of the input file.
      */
 	bool initFromFile(const std::string inputFileName);
+
+    /*!
+     *  \brief Initialized bodies from a file (binary mode).
+     *
+     *  \param inputFileName : Name of the input file.
+     */
+	bool initFromFileBinary(const std::string inputFileName);
 };
 
 /*!

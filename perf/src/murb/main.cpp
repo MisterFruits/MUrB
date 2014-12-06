@@ -466,7 +466,7 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 		for(unsigned long iRank = 0; iRank < MPI::COMM_WORLD.Get_size(); iRank++)
 		{
 			if(iRank == MPI::COMM_WORLD.Get_rank())
-				if(!simu->getBodies()->writeIntoFileMPI(outputFileName, MPINBodies))
+				if(!simu->getBodies()->writeIntoFileMPIBinary(outputFileName, MPINBodies))
 					MPI::COMM_WORLD.Abort(-1);
 
 			MPI::COMM_WORLD.Barrier();
@@ -476,7 +476,7 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 	{
 		tmpFileName = RootOutputFileName + ".i" + to_string(iIte);
 		outputFileName = tmpFileName + ".p" + to_string(MPI::COMM_WORLD.Get_rank()) + ".dat";
-		simu->getBodies()->writeIntoFile(outputFileName);
+		simu->getBodies()->writeIntoFileBinary(outputFileName);
 	}
 
 	if(Verbose && !MPI::COMM_WORLD.Get_rank())
