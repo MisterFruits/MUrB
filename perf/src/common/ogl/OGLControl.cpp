@@ -11,6 +11,8 @@
  * This is the traditional entry file for the code execution.
  */
 #ifdef VISU
+#include <thread>
+
 #include "OGLControl.h"
 
 #include <glm/gtc/matrix_transform.hpp>

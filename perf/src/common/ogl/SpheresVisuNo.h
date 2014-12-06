@@ -24,6 +24,9 @@ public:
 
 	void refreshDisplay();
 	bool windowShouldClose();
+	bool pressedSpaceBar();
+	bool pressedPageUp();
+	bool pressedPageDown();
 };
 
 #include "SpheresVisuNo.hxx"

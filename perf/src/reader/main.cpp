@@ -230,30 +230,88 @@ int main(int argc, char** argv)
 	// initialize visualization of bodies (with spheres in space)
 	SpheresVisu *visu = selectImplementationAndAllocateVisu<floatType>(bodies);
 
-	cout << "Visualization started..." << endl;
+	cout << "Visualization started... (press space bar to start)" << endl;
 
 	// display initial conditions
 	visu->refreshDisplay();
 
 	// loop over the iterations
-	Perf perfIte, perfTotal;
-	for(unsigned long iIte = 1; iIte <= NIterations && !visu->windowShouldClose(); iIte++)
-	{
-		// read bodies from file
-		fileName = RootInputFileName + ".i" + to_string(iIte) + ".p0.dat";
-		perfIte.start();
-		bodies->readFromFileBinary(fileName);
-		perfIte.stop();
-		perfTotal += perfIte;
+	Perf perfIte, perfTotal, lastTimePressedButton;
 
+	lastTimePressedButton.start();
+	bool visuPause = true;
+	unsigned long iIte = 1;
+	short speed = 1;
+	while(!visu->windowShouldClose() && iIte <= NIterations)
+	{
 		// refresh the display in OpenGL window
 		visu->refreshDisplay();
 
-		// display the status of this iteration
-		if(Verbose)
-			cout << "Reading iteration n°" << iIte << " file (" << fileName << ") took "
-			     << perfIte.getElapsedTime() << " ms" << endl;
+		if(!visuPause)
+		{
+			// read bodies from file
+			fileName = RootInputFileName + ".i" + to_string(iIte) + ".p0.dat";
+			perfIte.start();
+			bodies->readFromFileBinary(fileName);
+			perfIte.stop();
+			perfTotal += perfIte;
+
+			// display the status of this iteration
+			if(Verbose)
+				cout << "Reading iteration n°" << iIte << " file (" << fileName << ") took "
+				     << perfIte.getElapsedTime() << " ms (speed is " << speed << ")" << endl;
+
+			if((long) iIte + (long) speed < 0)
+			{
+				iIte = 0;
+				speed = 1;
+				visuPause = true;
+				cout << "Automatic pause, press space bar to continue..." << endl;
+			}
+			else
+				iIte += speed;
+		}
+
+		// play/pause management
+		if(visu->pressedSpaceBar())
+		{
+			lastTimePressedButton.stop();
+			if(lastTimePressedButton.getElapsedTime() > 500)
+			{
+				visuPause = (visuPause) ? false : true;
+				lastTimePressedButton.start();
+				if(visuPause)
+					cout << "Pause, press space bar to continue..." << endl;
+				else
+					cout << "Visualization is running!" << endl;
+			}
+		}
+
+		// speed management
+		if(visu->pressedPageUp())
+		{
+			lastTimePressedButton.stop();
+			if(lastTimePressedButton.getElapsedTime() > 500 && (iIte + speed) <= NIterations)
+			{
+				speed++;
+				if(speed == 0) speed++;
+				lastTimePressedButton.start();
+				cout << "Current speed is " << speed << "." << endl;
+			}
+		}
+		if(visu->pressedPageDown())
+		{
+			lastTimePressedButton.stop();
+			if(lastTimePressedButton.getElapsedTime() > 500 && (iIte + speed) >= 0)
+			{
+				speed--;
+				if(speed == 0) speed--;
+				lastTimePressedButton.start();
+				cout << "Current speed is " << speed << "." << endl;
+			}
+		}
 	}
+
 	cout << "Visualization ended." << endl << endl;
 	cout << "Entire visualization took " << perfTotal.getElapsedTime() << " ms" << endl;
 

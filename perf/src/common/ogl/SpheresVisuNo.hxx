@@ -40,3 +40,21 @@ bool SpheresVisuNo<T>::windowShouldClose()
 {
 	return false;
 }
+
+template <typename T>
+bool SpheresVisuNo<T>::pressedSpaceBar()
+{
+	return false;
+}
+
+template <typename T>
+bool SpheresVisuNo<T>::pressedPageUp()
+{
+	return false;
+}
+
+template <typename T>
+bool SpheresVisuNo<T>::pressedPageDown()
+{
+	return false;
+}

@@ -229,3 +229,21 @@ bool OGLSpheresVisu<T>::windowShouldClose()
 	else
 		return false;
 }
+
+template <typename T>
+bool OGLSpheresVisu<T>::pressedSpaceBar()
+{
+	return glfwGetKey( this->window, GLFW_KEY_SPACE );
+}
+
+template <typename T>
+bool OGLSpheresVisu<T>::pressedPageUp()
+{
+	return glfwGetKey( this->window, GLFW_KEY_PAGE_UP );
+}
+
+template <typename T>
+bool OGLSpheresVisu<T>::pressedPageDown()
+{
+	return glfwGetKey( this->window, GLFW_KEY_PAGE_DOWN );
+}

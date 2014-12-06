@@ -66,6 +66,9 @@ public:
 	virtual ~OGLSpheresVisu();
 	virtual void refreshDisplay() = 0;
 	bool windowShouldClose();
+	bool pressedSpaceBar();
+	bool pressedPageUp();
+	bool pressedPageDown();
 
 protected:
 	bool compileShaders(const std::vector<GLenum> shadersType, const std::vector<std::string> shadersFiles);
