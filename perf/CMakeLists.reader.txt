@@ -1,7 +1,7 @@
 # CMake entry point
 cmake_minimum_required (VERSION 2.6)
 
-project (murb)
+project (reader)
 
 # Specify bin path
 set (EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
@@ -24,13 +24,13 @@ include_directories (libs/glm-0.9.5.4)
 include_directories (libs/glew-1.11.0/include)
 
 # Génération de la liste des fichiers sources
-file (GLOB_RECURSE source_files src/common/* src/murb/*)
+file (GLOB_RECURSE source_files src/common/* src/reader/*)
 
 # Déclaration de l'exécutable
-add_executable (murb ${source_files})
+add_executable (reader ${source_files})
 
 # Add librairies for linking
-target_link_libraries(murb glew glfw ${GLFW_LIBRARIES})
+target_link_libraries(reader glew glfw ${GLFW_LIBRARIES})
 
 # Enable C++11
 if(CMAKE_COMPILER_IS_GNUCXX)
