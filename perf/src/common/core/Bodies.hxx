@@ -332,14 +332,17 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		else
 		{
 			//mi = ((rand() / (T) RAND_MAX) * 5.0e20);
-			mi = ((rand() / (T) RAND_MAX) * 1.0e20);
+			mi = ((rand() / (T) RAND_MAX) * 0.1e20);
 
 			//ri = mi * 0.5e-14;
-			ri = mi * 1.0e-15;
+			ri = mi * 5.0e-15;
 
-			T horizontalAngle = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2.0 * 3.1415926;
-			T verticalAngle   = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2.0 * 3.1415926;
-			T distToCenter    = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 0.8e8 + 1.0e8;
+			T horizontalAngle = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2.0 * M_PI;
+			T verticalAngle   = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2.0 * M_PI;
+			T distToCenter    = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 1.8e8; //+ 1.0e8;
+
+			//qiX = std::cos(horizontalAngle) * distToCenter;
+			//qiY = std::sin(horizontalAngle) * distToCenter;
 
 			qiX = std::cos(verticalAngle) * std::sin(horizontalAngle) * distToCenter;
 			qiY = std::sin(verticalAngle)                             * distToCenter;
@@ -369,101 +372,6 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 }
-
-/* create a galaxy...
-template <typename T>
-void Bodies<T>::initRandomly(const unsigned long randInit)
-{
-	this->allocateBuffers();
-
-	srand(randInit);
-	for(unsigned long iBody = 0; iBody < this->n; iBody++)
-	{
-		T mi, ri, qiX, qiY, qiZ, viX, viY, viZ;
-
-		if(iBody == 0)
-		{
-			mi = 1.0e24;
-			ri = 3.0e6;
-			qiX = 0.0;
-			qiY = 0.0;
-			qiZ = 0.0;
-			viX = 0;
-			viY = 0;
-			viZ = 0;
-		}
-		else
-		{
-			mi = ((rand() / (T) RAND_MAX) * 5.0e20);
-
-			//ri = mi * 0.5e-14;
-			ri = mi * 1.0e-15;
-
-			// random initialization in a square
-			//qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-			//qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-			//qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
-
-			T horizontalAngle = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2 * 3.14;
-			T verticalAngle   = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2 * 3.14;
-			T distToCenter    = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.5e8;
-
-			//std::cout << "horizontalAngle = " << horizontalAngle << ", "
-			//		  << "verticalAngle = "   << verticalAngle   << ", "
-			//		  << "distToCenter = "    << distToCenter    << std::endl;
-
-			qiX = std::cos(verticalAngle) * std::sin(horizontalAngle) * distToCenter;
-			qiY = std::sin(verticalAngle) * distToCenter;
-			qiZ = std::cos(verticalAngle) * std::cos(horizontalAngle) * distToCenter;
-
-			//std::cout << "qiX = " << qiX << ", "
-			//		  << "qiY = " << qiY << ", "
-			//		  << "qiZ = " << qiZ << std::endl;
-
-			//viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e3;
-			//viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e3;
-			//viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e3;
-
-			if(qiY > 0)
-			{
-				viX = -2.0e2;
-				viY =  0.0e2;
-				viZ =  0.0e2;
-			}
-			else if(qiY < 0)
-			{
-				viX = +2.0e2;
-				viY =  0.0e2;
-				viZ =  0.0e2;
-			}
-			else
-			{
-				viX = 0.0e2;
-				viY = 0.0e2;
-				viZ = 0.0e2;
-			}
-		}
-
-		this->setBody(iBody, mi, ri, qiX, qiY, qiZ, viX, viY, viZ);
-	}
-
-	// fill the bodies in the padding zone
-	for(unsigned long iBody = this->n; iBody < this->n + this->padding; iBody++)
-	{
-		T qiX, qiY, qiZ, viX, viY, viZ;
-
-		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
-
-		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-
-		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
-	}
-}
-*/
 
 /*
 template <typename T>

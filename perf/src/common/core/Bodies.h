@@ -271,7 +271,7 @@ public:
      */
 	bool writeIntoFileMPIBinary(const std::string outputFileName, const unsigned long MPINBodies = 0) const;
 
-private:
+protected:
     /*!
      *  \brief Deallocation of buffers.
      */

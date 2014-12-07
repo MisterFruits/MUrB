@@ -24,8 +24,7 @@ template <typename T = double>
 class SimulationNBody
 {
 protected:
-	const T G = 6.67384e-11;         /*!< The gravitational constant in m^3.kg^-1.s^-2. */
-
+	const T     G = 6.67384e-11;     /*!< The gravitational constant in m^3.kg^-1.s^-2. */
 	Bodies<T>  *bodies;              /*!< Bodies object, represent all the bodies available in space. */
 	vector3<T>  accelerations;       /*!< 3D array of bodies acceleration calculated in simulation classes. */
 	T          *closestNeighborDist; /*!< Vector of distance between the closest neighbor body (for each body). */

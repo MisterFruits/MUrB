@@ -47,6 +47,7 @@ using namespace std;
 #include "core/collisionless/v2/local/SimulationNBodyV2FineTuned.h"
 #include "core/collisionless/v3/local/SimulationNBodyV3.h"
 #include "core/collisionless/v3/local/SimulationNBodyV3Intrinsics.h"
+#include "core/collisionless/v3/local/SimulationNBodyV3IntrinsicsBH.h"
 
 #include "core/collision/v1/local/SimulationNBodyCollisionV1.h"
 
@@ -350,6 +351,14 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV3Intrinsics<T>(NBodies, Softening);
 			else
 				simu = new SimulationNBodyV3Intrinsics<T>(inputFileName, Softening);
+			break;
+		case 34:
+			if(!MPI::COMM_WORLD.Get_rank())
+				cout << "Selected implementation: V3 (softening factor) + intrinsics Black Hole - O(n²)" << endl << endl;
+			if(RootInputFileName.empty())
+				simu = new SimulationNBodyV3IntrinsicsBH<T>(NBodies, Softening);
+			else
+				simu = new SimulationNBodyV3IntrinsicsBH<T>(inputFileName, Softening);
 			break;
 #ifndef NO_MPI
 		case 100:

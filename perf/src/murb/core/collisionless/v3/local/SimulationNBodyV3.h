@@ -35,6 +35,7 @@ protected:
 	virtual void initIteration();
 	virtual void computeLocalBodiesAcceleration();
 
+public:
 	static inline void computeAccelerationBetweenTwoBodies(const T &G,   const T &softSquared,
 	                                                       const T &qiX, const T &qiY, const T &qiZ,
 	                                                             T &aiX,       T &aiY,       T &aiZ,
