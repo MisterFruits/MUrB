@@ -137,14 +137,14 @@ SpheresVisu* selectImplementationAndAllocateVisu(Bodies<T> *bodies)
 
 	if(GSEnable) // geometry shader = better performances on dedicated GPUs
 		visu = new OGLSpheresVisuGS<T>("MUrB reader (geometry shader)", WinWidth, WinHeight,
-									   positionsX, positionsY, positionsZ,
-									   radiuses,
-									   bodies->getN());
+		                               positionsX, positionsY, positionsZ,
+		                               radiuses,
+		                               bodies->getN());
 	else
 		visu = new OGLSpheresVisuInst<T>("MUrB reader (instancing)", WinWidth, WinHeight,
-										 positionsX, positionsY, positionsZ,
-										 radiuses,
-										 bodies->getN());
+		                                 positionsX, positionsY, positionsZ,
+		                                 radiuses,
+		                                 bodies->getN());
 	cout << endl;
 
 	return visu;
@@ -173,23 +173,38 @@ int main(int argc, char** argv)
 	file.open(fileName.c_str(), std::ios::in);
 	if(file.is_open())
 	{
+		/* for ASCII files
 		file >> NBodies;
 		file.close();
+		*/
+
+		/* for binary files */
+		char cn[sizeof(unsigned long)];
+		file.read(cn, sizeof(unsigned long));
+		unsigned long *tmp = (unsigned long*) cn;
+		NBodies = *tmp;
 
 		bool searchingContinue;
 		do {
 			fileName = RootInputFileName + ".i" + to_string(NIterations +1) + ".p0.dat";
-			file.open(fileName.c_str(), std::ios::in);
+			file.open(fileName.c_str(), std::ios::in | ios::binary);
 
 			if(file.is_open())
 			{
+				/* for ASCII files
 				unsigned long curNBodies = 0;
 				file >> curNBodies;
+				*/
+
+				/* for binary files */
+				file.read(cn, sizeof(unsigned long));
+				unsigned long *tmp = (unsigned long*) cn;
+				unsigned long curNBodies = *tmp;
 
 				if(curNBodies != NBodies)
 				{
-					cout << "The number of bodies per iteration is not always the same. Exiting..." << endl;
-					exit(0);
+					cout << "The number of bodies per iteration is not always the same... exiting." << endl;
+					exit(-1);
 				}
 
 				file.close();
@@ -203,8 +218,8 @@ int main(int argc, char** argv)
 	}
 	else
 	{
-		cout << "Unable to read \"" + fileName + "\" file. Exiting..." << endl;
-		exit(0);
+		cout << "Unable to read \"" + fileName + "\" file... exiting." << endl;
+		exit(-1);
 	}
 
 	// create a bodies object
@@ -230,13 +245,13 @@ int main(int argc, char** argv)
 	// initialize visualization of bodies (with spheres in space)
 	SpheresVisu *visu = selectImplementationAndAllocateVisu<floatType>(bodies);
 
-	cout << "Visualization started... (press space bar to start)" << endl;
+	cout << "Visualization is ready... (press space bar to start)" << endl;
 
 	// display initial conditions
 	visu->refreshDisplay();
 
 	// loop over the iterations
-	Perf perfIte, perfTotal, lastTimePressedButton;
+	Perf readIte, readTotal, lastTimePressedButton;
 
 	lastTimePressedButton.start();
 	bool visuPause = true;
@@ -251,15 +266,15 @@ int main(int argc, char** argv)
 		{
 			// read bodies from file
 			fileName = RootInputFileName + ".i" + to_string(iIte) + ".p0.dat";
-			perfIte.start();
+			readIte.start();
 			bodies->readFromFileBinary(fileName);
-			perfIte.stop();
-			perfTotal += perfIte;
+			readIte.stop();
+			readTotal += readIte;
 
 			// display the status of this iteration
 			if(Verbose)
 				cout << "Reading iteration n°" << iIte << " file (" << fileName << ") took "
-				     << perfIte.getElapsedTime() << " ms (speed is " << speed << ")" << endl;
+				     << readIte.getElapsedTime() << " ms (speed is " << speed << ")" << endl;
 
 			if((long) iIte + (long) speed < 0)
 			{
@@ -278,12 +293,19 @@ int main(int argc, char** argv)
 			lastTimePressedButton.stop();
 			if(lastTimePressedButton.getElapsedTime() > 500)
 			{
-				visuPause = (visuPause) ? false : true;
-				lastTimePressedButton.start();
 				if(visuPause)
-					cout << "Pause, press space bar to continue..." << endl;
-				else
+				{
+					visuPause = false;
 					cout << "Visualization is running!" << endl;
+
+				}
+				else
+				{
+					visuPause = true;
+					cout << "Pause, press space bar to continue..." << endl;
+				}
+
+				lastTimePressedButton.start();
 			}
 		}
 
@@ -302,7 +324,7 @@ int main(int argc, char** argv)
 		if(visu->pressedPageDown())
 		{
 			lastTimePressedButton.stop();
-			if(lastTimePressedButton.getElapsedTime() > 500 && (iIte + speed) >= 0)
+			if(lastTimePressedButton.getElapsedTime() > 500 && ((long)iIte + speed) >= 0)
 			{
 				speed--;
 				if(speed == 0) speed--;
@@ -313,7 +335,7 @@ int main(int argc, char** argv)
 	}
 
 	cout << "Visualization ended." << endl << endl;
-	cout << "Entire visualization took " << perfTotal.getElapsedTime() << " ms" << endl;
+	cout << "Entire visualization took " << readTotal.getElapsedTime() << " ms" << endl;
 
 	// free resources
 	delete visu;

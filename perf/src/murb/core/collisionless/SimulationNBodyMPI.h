@@ -13,7 +13,7 @@
 #include <string>
 #include <mpi.h>
 
-#include "../Bodies.h"
+#include "../../../common/core/Bodies.h"
 
 #include "../SimulationNBody.h"
 

@@ -42,7 +42,6 @@ protected:
 	virtual void computeLocalBodiesAcceleration();
 	virtual void computeLocalBodiesAccelerationWithBlackHole();
 
-public:
 	static inline T computeAccelerationBetweenBodyAndBlackHole(const T &G,   const T &softSquared,
 	                                                           const T &qiX, const T &qiY, const T &qiZ,
 	                                                                 T &aiX,       T &aiY,       T &aiZ,

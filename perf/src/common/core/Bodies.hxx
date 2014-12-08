@@ -645,7 +645,6 @@ void Bodies<T>::write(std::ostream& stream, bool writeN) const
 template <typename T>
 void Bodies<T>::writeBinary(std::ostream& stream, bool writeN) const
 {
-	unsigned long iChar = 0;
 	if(writeN)
 	{
 		char const *cn = reinterpret_cast<char const *>(&(this->n));

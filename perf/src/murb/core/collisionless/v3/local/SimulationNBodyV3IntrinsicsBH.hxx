@@ -160,16 +160,16 @@ void SimulationNBodyV3IntrinsicsBH<T>::computeLocalBodiesAccelerationWithBlackHo
 	const T *positionsZ = this->getBodies()->getPositionsZ();
 
 	T mbhGained = 0;
-	for(unsigned long iBody; iBody < this->bodies->getN(); iBody++)
+	for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 	{
 		T dist = SimulationNBodyV3IntrinsicsBH<T>::computeAccelerationBetweenBodyAndBlackHole(
 		                                                                              this->G, this->softeningSquared,
-		                                                                              positionsX               [iBody],
-		                                                                              positionsY               [iBody],
-		                                                                              positionsZ               [iBody],
-		                                                                              this->accelerations.x    [iBody],
-		                                                                              this->accelerations.y    [iBody],
-		                                                                              this->accelerations.z    [iBody],
+		                                                                              positionsX           [iBody],
+		                                                                              positionsY           [iBody],
+		                                                                              positionsZ           [iBody],
+		                                                                              this->accelerations.x[iBody],
+		                                                                              this->accelerations.y[iBody],
+		                                                                              this->accelerations.z[iBody],
 		                                                                              this->mbh,
 		                                                                              this->rbh,
 		                                                                              this->qbhX,

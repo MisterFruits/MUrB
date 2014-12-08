@@ -26,8 +26,8 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "../../utils/myIntrinsicsPlusPlus.h"
-#include "../../utils/ToMPIDatatype.h"
+#include "../../../common/utils/mipp.h"
+#include "../../../common/utils/ToMPIDatatype.h"
 
 #include "SimulationNBodyMPI.h"
 
