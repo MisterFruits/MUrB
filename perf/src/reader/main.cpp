@@ -117,11 +117,11 @@ void argsReader(int argc, char** argv)
 }
 
 /*!
- * \fn     SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
+ * \fn     SpheresVisu* selectImplementationAndAllocateVisu(Bodies<T> *bodies)
  * \brief  Select and allocate an n-body visualization object.
  *
- * \param  simu : A simulation.
- * \tparam T    : Type.
+ * \param  bodies : An bodies object.
+ * \tparam T      : Type.
  *
  * \return A fresh allocated visualization.
  */
@@ -151,6 +151,73 @@ SpheresVisu* selectImplementationAndAllocateVisu(Bodies<T> *bodies)
 }
 
 /*!
+ * \fn     void countNIterationsAndNBodies(unsigned long &nIterations, unsigned long &nBodies)
+ * \brief  Initialize nIterations and nBodies from files.
+ *
+ * \param  nIterations : number of iterations.
+ * \tparam nBodies     : number of bodies in each iteration.
+ */
+void countNIterationsAndNBodies(unsigned long &nIterations, unsigned long &nBodies)
+{
+	// count number of iterations and number of bodies
+	nBodies = 0;
+	nIterations = 0;
+	ifstream file;
+	string fileName = RootInputFileName + ".i" + to_string(nIterations) + ".p0.dat";
+	file.open(fileName.c_str(), std::ios::in);
+	if(file.is_open())
+	{
+		/* for ASCII files
+		file >> nBodies;
+		file.close();
+		*/
+
+		/* for binary files */
+		char cn[sizeof(unsigned long)];
+		file.read(cn, sizeof(unsigned long));
+		unsigned long *tmp = (unsigned long*) cn;
+		nBodies = *tmp;
+
+		bool searchingContinue;
+		do {
+			fileName = RootInputFileName + ".i" + to_string(nIterations +1) + ".p0.dat";
+			file.open(fileName.c_str(), std::ios::in | ios::binary);
+
+			if(file.is_open())
+			{
+				/* for ASCII files
+				unsigned long curnBodies = 0;
+				file >> curNBodies;
+				*/
+
+				/* for binary files */
+				file.read(cn, sizeof(unsigned long));
+				unsigned long *tmp = (unsigned long*) cn;
+				unsigned long curNBodies = *tmp;
+
+				if(curNBodies != nBodies)
+				{
+					cout << "The number of bodies per iteration is not always the same... exiting." << endl;
+					exit(-1);
+				}
+
+				file.close();
+				nIterations++;
+				searchingContinue = true;
+			}
+			else
+				searchingContinue = false;
+
+		}while(searchingContinue);
+	}
+	else
+	{
+		cout << "Unable to read \"" + fileName + "\" file... exiting." << endl;
+		exit(-1);
+	}
+}
+
+/*!
  * \fn     int main(int argc, char** argv)
  * \brief  Code entry function.
  *
@@ -165,65 +232,11 @@ int main(int argc, char** argv)
 	// usage: ./nbody -f fileName [-v] [--gs] ...
 	argsReader(argc, argv);
 
-	// count number of iterations and number of bodies
-	NBodies = 0;
-	NIterations = 0;
-	ifstream file;
-	string fileName = RootInputFileName + ".i" + to_string(NIterations) + ".p0.dat";
-	file.open(fileName.c_str(), std::ios::in);
-	if(file.is_open())
-	{
-		/* for ASCII files
-		file >> NBodies;
-		file.close();
-		*/
-
-		/* for binary files */
-		char cn[sizeof(unsigned long)];
-		file.read(cn, sizeof(unsigned long));
-		unsigned long *tmp = (unsigned long*) cn;
-		NBodies = *tmp;
-
-		bool searchingContinue;
-		do {
-			fileName = RootInputFileName + ".i" + to_string(NIterations +1) + ".p0.dat";
-			file.open(fileName.c_str(), std::ios::in | ios::binary);
-
-			if(file.is_open())
-			{
-				/* for ASCII files
-				unsigned long curNBodies = 0;
-				file >> curNBodies;
-				*/
-
-				/* for binary files */
-				file.read(cn, sizeof(unsigned long));
-				unsigned long *tmp = (unsigned long*) cn;
-				unsigned long curNBodies = *tmp;
-
-				if(curNBodies != NBodies)
-				{
-					cout << "The number of bodies per iteration is not always the same... exiting." << endl;
-					exit(-1);
-				}
-
-				file.close();
-				NIterations++;
-				searchingContinue = true;
-			}
-			else
-				searchingContinue = false;
-
-		}while(searchingContinue);
-	}
-	else
-	{
-		cout << "Unable to read \"" + fileName + "\" file... exiting." << endl;
-		exit(-1);
-	}
+	// initialize NIterations & NBodies
+	countNIterationsAndNBodies(NIterations, NBodies);
 
 	// create a bodies object
-	fileName = RootInputFileName + ".i0.p0.dat";
+	string fileName = RootInputFileName + ".i0.p0.dat";
 	bool binMode = true;
 	Bodies<floatType> *bodies = new Bodies<floatType>(fileName, binMode);
 
@@ -297,14 +310,12 @@ int main(int argc, char** argv)
 				{
 					visuPause = false;
 					cout << "Visualization is running!" << endl;
-
 				}
 				else
 				{
 					visuPause = true;
 					cout << "Pause, press space bar to continue..." << endl;
 				}
-
 				lastTimePressedButton.start();
 			}
 		}
