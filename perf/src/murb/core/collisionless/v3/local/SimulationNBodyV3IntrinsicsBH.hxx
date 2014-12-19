@@ -45,13 +45,13 @@ SimulationNBodyV3IntrinsicsBH<T>::SimulationNBodyV3IntrinsicsBH(const std::strin
 template <typename T>
 void SimulationNBodyV3IntrinsicsBH<T>::init()
 {
-	this->flopsPerIte = 19 * (this->bodies->getN() -1) * this->bodies->getN();
+	this->flopsPerIte = 19.f * ((float)this->bodies->getN() -1.f) * (float)this->bodies->getN();
 }
 
 template <>
 void SimulationNBodyV3IntrinsicsBH<float>::init()
 {
-	this->flopsPerIte = 20 * (this->bodies->getN() -1) * this->bodies->getN();
+	this->flopsPerIte = 20.f * ((float)this->bodies->getN() -1.f) * (float)this->bodies->getN();
 }
 
 template <typename T>

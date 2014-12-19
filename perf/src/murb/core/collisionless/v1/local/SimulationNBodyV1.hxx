@@ -45,7 +45,7 @@ SimulationNBodyV1<T>::SimulationNBodyV1(const std::string inputFileName)
 template <typename T>
 void SimulationNBodyV1<T>::init()
 {
-	this->flopsPerIte = 18 * (this->bodies->getN() -1) * this->bodies->getN();
+	this->flopsPerIte = 18.f * ((float)this->bodies->getN() -1.f) * (float)this->bodies->getN();
 }
 
 template <typename T>

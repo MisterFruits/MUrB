@@ -116,14 +116,14 @@ template <typename T>
 void SimulationNBodyV2Intrinsics<T>::reAllocateBuffers()
 {
 	this->_reAllocateBuffers();
-	this->flopsPerIte = 26 * (this->bodies->getN() * 0.5) * this->bodies->getN();
+	this->flopsPerIte = 26.f * ((float)this->bodies->getN() * 0.5f) * (float)this->bodies->getN();
 }
 
 template <>
 void SimulationNBodyV2Intrinsics<float>::reAllocateBuffers()
 {
 	this->_reAllocateBuffers();
-	this->flopsPerIte = 27 * (this->bodies->getN() * 0.5) * this->bodies->getN();
+	this->flopsPerIte = 27.f * ((float)this->bodies->getN() * 0.5f) * (float)this->bodies->getN();
 }
 
 template <typename T>

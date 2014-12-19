@@ -45,7 +45,7 @@ SimulationNBodyV3<T>::SimulationNBodyV3(const std::string inputFileName, T softe
 template <typename T>
 void SimulationNBodyV3<T>::init()
 {
-	this->flopsPerIte = 19 * (this->bodies->getN() -1) * this->bodies->getN();
+	this->flopsPerIte = 19.f * ((float)this->bodies->getN() -1.f) * (float)this->bodies->getN();
 }
 
 template <typename T>

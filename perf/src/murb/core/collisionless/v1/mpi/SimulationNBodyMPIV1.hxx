@@ -45,7 +45,7 @@ SimulationNBodyMPIV1<T>::SimulationNBodyMPIV1(const std::string inputFileName)
 template <typename T>
 void SimulationNBodyMPIV1<T>::init()
 {
-	this->flopsPerIte = 18 * ((this->bodies->getN() * this->MPISize) -1) * (this->bodies->getN() * this->MPISize);
+	this->flopsPerIte = 18.f * (((float)this->bodies->getN() * (float)this->MPISize) -1) * ((float)this->bodies->getN() * (float)this->MPISize);
 }
 
 template <typename T>

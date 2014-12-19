@@ -45,13 +45,13 @@ SimulationNBodyMPIV1Intrinsics<T>::SimulationNBodyMPIV1Intrinsics(const std::str
 template <typename T>
 void SimulationNBodyMPIV1Intrinsics<T>::init()
 {
-	this->flopsPerIte = 19 * ((this->bodies->getN() * this->MPISize) -1) * (this->bodies->getN() * this->MPISize);
+	this->flopsPerIte = 19.f * (((float)this->bodies->getN() * (float)this->MPISize) -1) * ((float)this->bodies->getN() * (float)this->MPISize);
 }
 
 template <>
 void SimulationNBodyMPIV1Intrinsics<float>::init()
 {
-	this->flopsPerIte = 20 * ((this->bodies->getN() * this->MPISize) -1) * (this->bodies->getN() * this->MPISize);
+	this->flopsPerIte = 20.f * (((float)this->bodies->getN() * (float)this->MPISize) -1) * ((float)this->bodies->getN() * (float)this->MPISize);
 }
 
 template <typename T>

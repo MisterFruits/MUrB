@@ -110,7 +110,7 @@ void SimulationNBodyV2<T>::reAllocateBuffers()
 		                        sizeof(T) * (this->nMaxThreads - 1) * 3;
 	}
 
-	this->flopsPerIte = 25 * (this->bodies->getN() * 0.5) * this->bodies->getN();
+	this->flopsPerIte = 25.f * ((float)this->bodies->getN() * 0.5f) * (float)this->bodies->getN();
 }
 
 template <typename T>

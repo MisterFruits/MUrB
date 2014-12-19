@@ -45,7 +45,7 @@ SimulationNBodyCollisionV1<T>::SimulationNBodyCollisionV1(const std::string inpu
 template <typename T>
 void SimulationNBodyCollisionV1<T>::init()
 {
-	this->flopsPerIte = 20 * (this->bodies->getN() -1) * this->bodies->getN();
+	this->flopsPerIte = 20.f * ((float)this->bodies->getN() -1.f) * (float)this->bodies->getN();
 }
 
 template <typename T>
