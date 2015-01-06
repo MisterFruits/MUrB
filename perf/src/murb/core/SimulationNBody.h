@@ -61,11 +61,11 @@ public:
 	 */
 	inline const Bodies<T>* getBodies() const;
 
-    /*!
-     *  \brief DtConstant setter.
-     *
-     *  \param dtVal : Constant time step value.
-     */
+	/*!
+	 *  \brief DtConstant setter.
+	 *
+	 *  \param dtVal : Constant time step value.
+	 */
 	inline void setDtConstant(T dtVal);
 
 	/*!
@@ -82,11 +82,11 @@ public:
 	 */
 	inline const T& getDt() const;
 
-    /*!
-     *  \brief Flops per iteration getter.
-     *
-     *  \return Flops per iteration.
-     */
+	/*!
+	 *  \brief Flops per iteration getter.
+	 *
+	 *  \return Flops per iteration.
+	 */
 	inline const float& getFlopsPerIte() const;
 
 	/*!
