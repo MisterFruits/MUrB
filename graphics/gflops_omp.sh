@@ -39,8 +39,7 @@ my_ps = "2"
 
 # set the style for the set 1, 2, 3...
 set style line 1 linetype 2 linecolor rgbcolor blue_050 linewidth @my_line_width
-set style line 2 linetype 5 linecolor rgbcolor green_050 linewidth @my_line_width
-set style line 3 linetype 1 linecolor rgbcolor red_050  linewidth 2
+set style line 2 linetype 1 linecolor rgbcolor red_050  linewidth 2
 
 # this is to use the user-defined styles we just defined.
 set style increment user
@@ -63,15 +62,15 @@ set encoding utf8
 # end define plot styles ######################################################
 
 
-set xlabel "Number of threads (= cores)"
+set xlabel "Number of cores"
 set ylabel "Gflop/s"
 
 datafile = "./samples.dat"
-set title "MUrB performance, 50 000 bodies"
+set title "MUrB performance, 100 000 bodies"
 
 set output "gflops_omp.eps"
-set xrange [1:12]
-#set yrange [1:12]
-plot datafile using 1:4 i 0 with linespoint title 'MUrB, naive impl.', \
-     datafile using 1:4 i 1 with linespoint title 'MUrB, fine tuned impl.', \
-     x*83.2                 with lines      title 'peak performance'
+set xrange [1:24]
+set xtics ("2" 2, "4" 4, "6" 6, "8" 8, "10" 10, "12" 12, "14" 14, "16" 16, "18" 18, "20" 20, "22" 22, "24" 24)
+
+plot datafile using 1:4 i 2 with linespoint title 'MUrB', \
+     x*73.6                 with lines      title 'peak performance'

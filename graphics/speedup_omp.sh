@@ -62,14 +62,15 @@ set encoding utf8
 # end define plot styles ######################################################
 
 
-set xlabel "Number of threads (= cores)"
+set xlabel "Number of cores"
 set ylabel "Speed-up"
 
 datafile = "./samples.dat"
-set title "MUrB full OMP speed-up, 50 000 bodies"
+set title "MUrB full OMP speed-up, 100 000 bodies"
 
 set output "speedup_omp.eps"
-set xrange [1:12]
-set yrange [1:12]
-plot datafile using 1:5 i 1 with linespoint title 'MUrB', \
+set xrange [1:24]
+set yrange [1:24]
+set xtics ("2" 2, "4" 4, "6" 6, "8" 8, "10" 10, "12" 12, "14" 14, "16" 16, "18" 18, "20" 20, "22" 22, "24" 24)
+plot datafile using 1:5 i 2 with linespoint title 'MUrB', \
      x*1                    with lines      title 'optimal speed-up'
