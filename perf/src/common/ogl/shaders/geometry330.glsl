@@ -37,7 +37,6 @@ void main() {
 	                      gl_in[0].gl_Position.y * 1.0e-8f,
 	                      gl_in[0].gl_Position.z * 1.0e-8f,
 	                      1);
-	//scale = vec4(1);
 
 	// draw a empty sphere
 	for (int j = 0; j <= (N_POINTS_PER_CIRCLE / 2); j++) {

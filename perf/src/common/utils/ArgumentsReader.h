@@ -31,84 +31,84 @@ private:
 	std::string                        m_programName;     /*!< Le nom de l'executable du programme. */
 
 public:
-    /*!
-     *  \brief Constructeur.
-     *
-     *  Le contructeur prend les fameux "int argc" et "char** argv" de la fonction main :-).
-     *
-     *  \param argc : Le nombre d'arguments.
-     *  \param argv : Le tableau des arguments
-     */
+	/*!
+	 *  \brief Constructeur.
+	 *
+	 *  Le contructeur prend les fameux "int argc" et "char** argv" de la fonction main :-).
+	 *
+	 *  \param argc : Le nombre d'arguments.
+	 *  \param argv : Le tableau des arguments
+	 */
 	ArgumentsReader(int argc, char** argv);
 
-    /*!
-     *  \brief Destructeur.
-     *
-     *  Le destructeur ne fait rien...
-     */
+	/*!
+	 *  \brief Destructeur.
+	 *
+	 *  Le destructeur ne fait rien...
+	 */
 	virtual ~ArgumentsReader();
 
-    /*!
-     *  \brief Parse "m_argv".
-     *
-     *  Parse "m_argv" selon une liste des arguments requis et facultatifs.
-     *
-     *  \param requireArgs     : Dictionnaire des arguments attendus obligatoires.
-     *  \param facultativeArgs : Dictionnaire des arguments attendus facultatifs.
-     *
-     *  \return Vrai si tous les arguments requis sont bien présents.
-     */
+	/*!
+	 *  \brief Parse "m_argv".
+	 *
+	 *  Parse "m_argv" selon une liste des arguments requis et facultatifs.
+	 *
+	 *  \param requireArgs     : Dictionnaire des arguments attendus obligatoires.
+	 *  \param facultativeArgs : Dictionnaire des arguments attendus facultatifs.
+	 *
+	 *  \return Vrai si tous les arguments requis sont bien présents.
+	 */
 	bool parseArguments(std::map<std::string, std::string> requireArgs,
 	                    std::map<std::string, std::string> facultativeArgs);
 
-    /*!
-     *  \brief Cherche si un agument existe.
-     *
-     *  \param tag : Tag de l'argument recherché.
-     *
-     *  \return Vrai si l'argument existe (à utiliser après parseArguments).
-     */
+	/*!
+	 *  \brief Cherche si un agument existe.
+	 *
+	 *  \param tag : Tag de l'argument recherché.
+	 *
+	 *  \return Vrai si l'argument existe (à utiliser après parseArguments).
+	 */
 	bool existArgument(std::string tag);
 
-    /*!
-     *  \brief Retourne la valeur d'un argument.
-     *
-     *  \param tag : Tag de l'argument recherché.
-     *
-     *  \return La valeur d'un argument avec son tag (à utiliser après parseArguments).
-     */
+	/*!
+	 *  \brief Retourne la valeur d'un argument.
+	 *
+	 *  \param tag : Tag de l'argument recherché.
+	 *
+	 *  \return La valeur d'un argument avec son tag (à utiliser après parseArguments).
+	 */
 	std::string getArgument(std::string tag);
 
-    /*!
-     *  \brief Définie la documentation pour les arguments traités par le programme.
-     *
-     *  \param docArgs : Dictionnaire des arguments à documenter.
-     *
-     *  \return Faux si docArgs ne contient rien ou si un des arguments de docArgs ne correspond pas à m_args
-     *  (à utiliser après parseArguments).
-     */
+	/*!
+	 *  \brief Définie la documentation pour les arguments traités par le programme.
+	 *
+	 *  \param docArgs : Dictionnaire des arguments à documenter.
+	 *
+	 *  \return Faux si docArgs ne contient rien ou si un des arguments de docArgs ne correspond pas à m_args
+	 *  (à utiliser après parseArguments).
+	 */
 	bool parseDocArgs(std::map<std::string, std::string> docArgs);
 
-    /*!
-     *  \brief Affiche une aide pour l'utilisation de la commande.
-     */
+	/*!
+	 *  \brief Affiche une aide pour l'utilisation de la commande.
+	 */
 	void printUsage();
 
 private:
-    /*!
-     *  \brief Retourne vrai si l'argument "m_argv[posArg]" est dans args.
-     *
-     *  \param args   : Dictionnaire d'arguments.
-     *  \param posArg : La position de l'argument recherché dans m_argv[posArg].
-     *
-     *  \return Vrai si l'argument "m_argv[posArg]" est dans args.
-     */
+	/*!
+	 *  \brief Retourne vrai si l'argument "m_argv[posArg]" est dans args.
+	 *
+	 *  \param args   : Dictionnaire d'arguments.
+	 *  \param posArg : La position de l'argument recherché dans m_argv[posArg].
+	 *
+	 *  \return Vrai si l'argument "m_argv[posArg]" est dans args.
+	 */
 	bool subParseArguments(std::map<std::string, std::string> args,
 	                       unsigned short posArg);
 
-    /*!
-     *  \brief Clear m_requireArgs, m_facultativeArgs, m_args and m_docArgs.
-     */
+	/*!
+	 *  \brief Clear m_requireArgs, m_facultativeArgs, m_args and m_docArgs.
+	 */
 	void clearArguments();
 
 };

@@ -11,7 +11,6 @@
  * This is the traditional entry file for the code execution.
  */
 #version 150
-//#extension GL_ARB_explicit_attrib_location : enable
 
 // Input vertex data, different for all executions of this shader.
 in float positionXPerVertex;

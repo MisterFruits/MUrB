@@ -306,7 +306,7 @@ void Bodies<T>::setBody(const unsigned long &iBody,
 	this->velocities.z[iBody] = viZ;
 }
 
-/* create a galaxy... */
+/* create a galaxy...
 template <typename T>
 void Bodies<T>::initRandomly(const unsigned long randInit)
 {
@@ -331,18 +331,12 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		}
 		else
 		{
-			//mi = ((rand() / (T) RAND_MAX) * 5.0e20);
 			mi = ((rand() / (T) RAND_MAX) * 0.1e20);
-
-			//ri = mi * 0.5e-14;
 			ri = mi * 5.0e-15;
 
 			T horizontalAngle = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2.0 * M_PI;
 			T verticalAngle   = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2.0 * M_PI;
-			T distToCenter    = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 1.8e8; //+ 1.0e8;
-
-			//qiX = std::cos(horizontalAngle) * distToCenter;
-			//qiY = std::sin(horizontalAngle) * distToCenter;
+			T distToCenter    = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 1.0e8 + 1.0e8;
 
 			qiX = std::cos(verticalAngle) * std::sin(horizontalAngle) * distToCenter;
 			qiY = std::sin(verticalAngle)                             * distToCenter;
@@ -372,8 +366,8 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 }
+*/
 
-/*
 template <typename T>
 void Bodies<T>::initRandomly(const unsigned long randInit)
 {
@@ -387,7 +381,6 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		mi = ((rand() / (T) RAND_MAX) * 5.0e21);
 
 		ri = mi * 0.5e-14;
-		//ri = mass * 0.5e-15;
 
 		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
 		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
@@ -416,7 +409,6 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 }
-*/
 
 template <typename T>
 bool Bodies<T>::initFromFile(const std::string inputFileName)

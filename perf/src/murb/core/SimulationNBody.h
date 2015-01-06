@@ -37,28 +37,28 @@ protected:
 	unsigned    nMaxThreads;         /*!< Maximum number of OMP threads available. */
 
 protected:
-    /*!
-     *  \brief Constructor.
-     *
-     *  SimulationNBody constructor.
-     *
-     *  \param bodies : Bodies class.
-     */
+	/*!
+	 *  \brief Constructor.
+	 *
+	 *  SimulationNBody constructor.
+	 *
+	 *  \param bodies : Bodies class.
+	 */
 	SimulationNBody(Bodies<T> *bodies);
 
 public:
-    /*!
-     *  \brief Destructor.
-     *
-     *  SimulationNBody destructor.
-     */
+	/*!
+	 *  \brief Destructor.
+	 *
+	 *  SimulationNBody destructor.
+	 */
 	virtual ~SimulationNBody();
 
-    /*!
-     *  \brief Bodies getter.
-     *
-     *  \return Bodies class.
-     */
+	/*!
+	 *  \brief Bodies getter.
+	 *
+	 *  \return Bodies class.
+	 */
 	inline const Bodies<T>* getBodies() const;
 
     /*!
@@ -68,18 +68,18 @@ public:
      */
 	inline void setDtConstant(T dtVal);
 
-    /*!
-     *  \brief DtVariable setter.
-     *
-     *  \param minDt : Minimum time step value.
-     */
+	/*!
+	 *  \brief DtVariable setter.
+	 *
+	 *  \param minDt : Minimum time step value.
+	 */
 	inline void setDtVariable(T minDt);
 
-    /*!
-     *  \brief Time step getter.
-     *
-     *  \return Time step value.
-     */
+	/*!
+	 *  \brief Time step getter.
+	 *
+	 *  \return Time step value.
+	 */
 	inline const T& getDt() const;
 
     /*!
@@ -89,44 +89,44 @@ public:
      */
 	inline const float& getFlopsPerIte() const;
 
-    /*!
-     *  \brief Allocated bytes getter.
-     *
-     *  \return Number of allocated bytes.
-     */
+	/*!
+	 *  \brief Allocated bytes getter.
+	 *
+	 *  \return Number of allocated bytes.
+	 */
 	inline const float& getAllocatedBytes() const;
 
-    /*!
-     *  \brief Main compute method.
-     *
-     *  Compute one iteration of the simulation.
-     */
+	/*!
+	 *  \brief Main compute method.
+	 *
+	 *  Compute one iteration of the simulation.
+	 */
 	virtual void computeOneIteration() = 0;
 
 protected:
-    /*!
-     *  \brief Initialized data in order to compute an iteration.
-     */
+	/*!
+	 *  \brief Initialized data in order to compute an iteration.
+	 */
 	virtual void initIteration() = 0;
 
-    /*!
-     *  \brief Look for the new time step if dtConstant = false, else do nothing.
-     */
+	/*!
+	 *  \brief Look for the new time step if dtConstant = false, else do nothing.
+	 */
 	virtual void findTimeStep() = 0;
 
-    /*!
-     *  \brief Compute the time step for one given body (considering the closest neighbor body).
-     *
-     *  \param iBody : id of the body.
-     *
-     *  \return Computed time step for iBody.
-     */
+	/*!
+	 *  \brief Compute the time step for one given body (considering the closest neighbor body).
+	 *
+	 *  \param iBody : id of the body.
+	 *
+	 *  \return Computed time step for iBody.
+	 */
 	inline T computeTimeStep(const unsigned long iBody);
 
 private:
-    /*!
-     *  \brief Allocation of required buffers.
-     */
+	/*!
+	 *  \brief Allocation of required buffers.
+	 */
 	void allocateBuffers();
 };
 

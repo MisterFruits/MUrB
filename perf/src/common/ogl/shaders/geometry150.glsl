@@ -11,11 +11,10 @@
  * This is the traditional entry file for the code execution.
  */
 #version 150
-//#extension GL_ARB_explicit_attrib_location : enable
 #extension GL_EXT_gpu_shader4: enable
 #extension GL_EXT_geometry_shader4: enable
 
-#define N_POINTS_PER_CIRCLE 22 // compulsory even number !
+#define N_POINTS_PER_CIRCLE 4 // compulsory even number !
 
 const float PI = 3.1415926;
 
