@@ -44,7 +44,6 @@ using namespace std;
 #include "core/collisionless/v2/local/SimulationNBodyV2CB.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2Vectors.h"
 #include "core/collisionless/v2/local/SimulationNBodyV2Intrinsics.h"
-#include "core/collisionless/v2/local/SimulationNBodyV2FineTuned.h"
 #include "core/collisionless/v3/local/SimulationNBodyV3.h"
 #include "core/collisionless/v3/local/SimulationNBodyV3Intrinsics.h"
 #include "core/collisionless/v3/local/SimulationNBodyV3IntrinsicsBH.h"
@@ -152,7 +151,7 @@ void argsReader(int argc, char** argv)
 	faculArgs["-mdt"]  = "minTimeStep";
 	docArgs  ["-mdt"]  = "select the minimal time step (default is " + to_string(MinDt) + " sec).";
 	faculArgs["-im"]   = "ImplId";
-	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 14, 20, 21, 22, 23, 31, 100 or 103).";
+	docArgs  ["-im"]   = "code implementation id (value should be 10, 11, 12, 13, 14, 20, 21, 22, 23, 30, 33, 34, 100 or 103).";
 	faculArgs["-soft"] = "softeningFactor";
 	docArgs  ["-soft"] = "softening factor for implementation 15.";
 
@@ -328,13 +327,6 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2Intrinsics<T>(NBodies);
 			else
 				simu = new SimulationNBodyV2Intrinsics<T>(inputFileName);
-			break;
-		case 24:
-			cout << "Selected implementation: V2 + intrinsics fine tuned - O(n²/2)" << endl << endl;
-			if(RootInputFileName.empty())
-				simu = new SimulationNBodyV2FineTuned<T>(NBodies);
-			else
-				simu = new SimulationNBodyV2FineTuned<T>(inputFileName);
 			break;
 		case 30:
 			if(!MPI::COMM_WORLD.Get_rank())

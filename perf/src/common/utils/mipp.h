@@ -245,7 +245,7 @@ inline vec rot(const vec v1) {
 		return mipp::add<float>(v3, mipp::mul<float>(v1, v2));
 	}
 
-	// ---------------------------------------------------------------------------------------------------------- fnmadd
+	// --------------------------------------------------------------------------------------------------------- fnmadd
 	template <>
 	inline vec fnmadd<float>(const vec v1, const vec v2, const vec v3) {
 		return mipp::sub<float>(v3, mipp::mul<float>(v1, v2));
@@ -281,7 +281,7 @@ inline vec rot(const vec v1) {
 	__m256 _mm256_sqrt_ps        (__m256 a);                      __m256d _mm256_sqrt_pd        (__m256d a);
 	__m256 _mm256_rsqrt_ps       (__m256 a);
 	__m256 _mm256_fmadd_ps       (__m256 a, __m256 b, __m256 c);  __m256d _mm256_fmadd_pd       (__m256d a, __m256d b, __m256d c);
-	__m256 _mm256_fnmadd_ps       (__m256 a, __m256 b, __m256 c); __m256d _mm256_fnmadd_pd       (__m256d a, __m256d b, __m256d c);
+	__m256 _mm256_fnmadd_ps      (__m256 a, __m256 b, __m256 c);  __m256d _mm256_fnmadd_pd      (__m256d a, __m256d b, __m256d c);
 	__m256 _mm256_fmsub_ps       (__m256 a, __m256 b, __m256 c);  __m256d _mm256_fmsub_pd       (__m256d a, __m256d b, __m256d c);
 	__m256 _mm256_permute4x64_ps (__m256d a, const int imm)       __m256d _mm256_permute4x64_pd (__m256d a, const int imm)
 	  void _mm256_store_ps       (float * mem_addr, __m256 a);      void  _mm256_store_pd       (double * mem_addr, __m256d a);
