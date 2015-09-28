@@ -368,6 +368,7 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 }
 */
 
+/* real random */
 template <typename T>
 void Bodies<T>::initRandomly(const unsigned long randInit)
 {

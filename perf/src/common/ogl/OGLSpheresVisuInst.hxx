@@ -41,10 +41,10 @@ OGLSpheresVisuInst<T>::OGLSpheresVisuInst(const string winName,
 	// make sphere model
 	this->vertexModel = new GLfloat[this->vertexModelSize];
 
-	for (int j = 0; j <= (this->nPointsPerCircle / 2); j++) {
+	for (int j = 0; j <= (int)(this->nPointsPerCircle / 2); j++) {
 		float horizontalAngle = (PI * 2.0 / this->nPointsPerCircle) * j;
 
-		for (int i = 0; i <= this->nPointsPerCircle; i++) {
+		for (int i = 0; i <= (int)this->nPointsPerCircle; i++) {
 			// Angle between each side in radiant
 			float verticalAngle = (PI * 2.0 / this->nPointsPerCircle) * i + (3.14f / 2.0f);
 

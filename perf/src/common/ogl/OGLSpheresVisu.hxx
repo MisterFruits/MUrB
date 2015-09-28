@@ -178,7 +178,7 @@ bool OGLSpheresVisu<T>::compileShaders(const std::vector<GLenum> shadersType,
 	std::vector<GLuint> shaders;
 
 	// load and compile shader programs
-	for(int iShader = 0; iShader < shadersType.size(); iShader++)
+	for(int iShader = 0; iShader < (int)shadersType.size(); iShader++)
 	{
 		GLuint shader = OGLTools::loadShaderFromFile(shadersType[iShader], shadersFiles[iShader]);
 		if(shader == 0)
@@ -194,7 +194,7 @@ bool OGLSpheresVisu<T>::compileShaders(const std::vector<GLenum> shadersType,
 	// Get a handle for our "MVP" uniform
 	this->mvpRef = glGetUniformLocation(this->shaderProgramRef, "MVP");
 
-	for(int iShader = 0; iShader < shaders.size(); iShader++)
+	for(int iShader = 0; iShader < (int)shaders.size(); iShader++)
 		glDeleteShader(shaders[iShader]);
 
 	return isFine;

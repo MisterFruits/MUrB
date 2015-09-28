@@ -21,14 +21,14 @@
  * \class  ArgumentsReader
  * \brief  This class allow us to easily manage arguments from the command line.
  */
-class ArgumentsReader {
+class Arguments_reader {
 private:
 	std::vector<std::string>           m_argv;            /*!< Simple copie des données de "char** argv". */
-	std::map<std::string, std::string> m_requireArgs;     /*!< La liste des arguments obligatoires. */
-	std::map<std::string, std::string> m_facultativeArgs; /*!< La liste des arguments facultatifs. */
+	std::map<std::string, std::string> m_require_args;     /*!< La liste des arguments obligatoires. */
+	std::map<std::string, std::string> m_facultative_args; /*!< La liste des arguments facultatifs. */
 	std::map<std::string, std::string> m_args;            /*!< La liste des arguments et des valeurs de ces derniers (après parsing). */
-	std::map<std::string, std::string> m_docArgs;         /*!< La documentation des arguments si l'utilisateur l'a renseignée. */
-	std::string                        m_programName;     /*!< Le nom de l'executable du programme. */
+	std::map<std::string, std::string> m_doc_args;         /*!< La documentation des arguments si l'utilisateur l'a renseignée. */
+	std::string                        m_program_name;     /*!< Le nom de l'executable du programme. */
 
 public:
 	/*!
@@ -39,14 +39,14 @@ public:
 	 *  \param argc : Le nombre d'arguments.
 	 *  \param argv : Le tableau des arguments
 	 */
-	ArgumentsReader(int argc, char** argv);
+	Arguments_reader(int argc, char** argv);
 
 	/*!
 	 *  \brief Destructeur.
 	 *
 	 *  Le destructeur ne fait rien...
 	 */
-	virtual ~ArgumentsReader();
+	virtual ~Arguments_reader();
 
 	/*!
 	 *  \brief Parse "m_argv".
@@ -58,7 +58,7 @@ public:
 	 *
 	 *  \return Vrai si tous les arguments requis sont bien présents.
 	 */
-	bool parseArguments(std::map<std::string, std::string> requireArgs,
+	bool parse_arguments(std::map<std::string, std::string> requireArgs,
 	                    std::map<std::string, std::string> facultativeArgs);
 
 	/*!
@@ -68,7 +68,7 @@ public:
 	 *
 	 *  \return Vrai si l'argument existe (à utiliser après parseArguments).
 	 */
-	bool existArgument(std::string tag);
+	bool exist_argument(std::string tag);
 
 	/*!
 	 *  \brief Retourne la valeur d'un argument.
@@ -77,7 +77,7 @@ public:
 	 *
 	 *  \return La valeur d'un argument avec son tag (à utiliser après parseArguments).
 	 */
-	std::string getArgument(std::string tag);
+	std::string get_argument(std::string tag);
 
 	/*!
 	 *  \brief Définie la documentation pour les arguments traités par le programme.
@@ -87,12 +87,12 @@ public:
 	 *  \return Faux si docArgs ne contient rien ou si un des arguments de docArgs ne correspond pas à m_args
 	 *  (à utiliser après parseArguments).
 	 */
-	bool parseDocArgs(std::map<std::string, std::string> docArgs);
+	bool parse_doc_args(std::map<std::string, std::string> docArgs);
 
 	/*!
 	 *  \brief Affiche une aide pour l'utilisation de la commande.
 	 */
-	void printUsage();
+	void print_usage();
 
 private:
 	/*!
@@ -103,13 +103,13 @@ private:
 	 *
 	 *  \return Vrai si l'argument "m_argv[posArg]" est dans args.
 	 */
-	bool subParseArguments(std::map<std::string, std::string> args,
+	bool sub_parse_arguments(std::map<std::string, std::string> args,
 	                       unsigned short posArg);
 
 	/*!
 	 *  \brief Clear m_requireArgs, m_facultativeArgs, m_args and m_docArgs.
 	 */
-	void clearArguments();
+	void clear_arguments();
 
 };
 

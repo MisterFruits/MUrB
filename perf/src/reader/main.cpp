@@ -64,7 +64,7 @@ unsigned int  WinHeight  = 600;   /*!< Window height for visualization. */
 void argsReader(int argc, char** argv)
 {
 	map<string, string> reqArgs, faculArgs, docArgs;
-	ArgumentsReader argsReader(argc, argv);
+	Arguments_reader argsReader(argc, argv);
 
 	reqArgs  ["f"]     = "rootInputFileName";
 	docArgs  ["f"]     = "the root file name of the body file(s) to read, do not use with -n "
@@ -84,36 +84,36 @@ void argsReader(int argc, char** argv)
 	faculArgs["-wh"]   = "winHeight";
 	docArgs  ["-wh"]   = "the height of the window in pixel (default is " + to_string(WinHeight) + ").";
 
-	if(argsReader.parseArguments(reqArgs, faculArgs))
+	if(argsReader.parse_arguments(reqArgs, faculArgs))
 	{
-		RootInputFileName = argsReader.getArgument("f");
+		RootInputFileName = argsReader.get_argument("f");
 	}
 	else
 	{
-		if(argsReader.parseDocArgs(docArgs))
-			argsReader.printUsage();
+		if(argsReader.parse_doc_args(docArgs))
+			argsReader.print_usage();
 		else
 			cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
 		exit(-1);
 	}
 
-	if(argsReader.existArgument("h") || argsReader.existArgument("-help"))
+	if(argsReader.exist_argument("h") || argsReader.exist_argument("-help"))
 	{
-		if(argsReader.parseDocArgs(docArgs))
-			argsReader.printUsage();
+		if(argsReader.parse_doc_args(docArgs))
+			argsReader.print_usage();
 		else
 			cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
 		exit(-1);
 	}
 
-	if(argsReader.existArgument("v"))
+	if(argsReader.exist_argument("v"))
 		Verbose = true;
-	if(argsReader.existArgument("-gs"))
+	if(argsReader.exist_argument("-gs"))
 		GSEnable = true;
-	if(argsReader.existArgument("-ww"))
-		WinWidth = stoi(argsReader.getArgument("-ww"));
-	if(argsReader.existArgument("-wh"))
-		WinHeight = stoi(argsReader.getArgument("-wh"));
+	if(argsReader.exist_argument("-ww"))
+		WinWidth = stoi(argsReader.get_argument("-ww"));
+	if(argsReader.exist_argument("-wh"))
+		WinHeight = stoi(argsReader.get_argument("-wh"));
 }
 
 /*!

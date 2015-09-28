@@ -17,42 +17,42 @@
 
 using namespace std;
 
-ArgumentsReader::ArgumentsReader(int argc, char** argv)
+Arguments_reader::Arguments_reader(int argc, char** argv)
 	: m_argv(argc)
 {
 	assert(argc > 0);
 
-	this->m_programName = argv[0];
+	this->m_program_name = argv[0];
 
 	for(unsigned short i = 0; i < argc; ++i)
 		this->m_argv[i] = argv[i];
 }
 
-ArgumentsReader::~ArgumentsReader()
+Arguments_reader::~Arguments_reader()
 {
 }
 
-bool ArgumentsReader::parseArguments(map<string, string> requireArgs, map<string, string> facultativeArgs)
+bool Arguments_reader::parse_arguments(map<string, string> requireArgs, map<string, string> facultativeArgs)
 {
 	//assert(requireArgs.size() > 0); // useless, it is possible to have no require arguments
 	unsigned short int nReqArg = 0;
 
-	this->clearArguments();
+	this->clear_arguments();
 
-	this->m_requireArgs = requireArgs;
-	this->m_facultativeArgs = facultativeArgs;
+	this->m_require_args = requireArgs;
+	this->m_facultative_args = facultativeArgs;
 
 	for(unsigned short i = 0; i < this->m_argv.size(); ++i)
 	{
-		if(this->subParseArguments(this->m_requireArgs, i))
+		if(this->sub_parse_arguments(this->m_require_args, i))
 			nReqArg++;
-		this->subParseArguments(this->m_facultativeArgs, i);
+		this->sub_parse_arguments(this->m_facultative_args, i);
 	}
 
 	return nReqArg >= requireArgs.size();
 }
 
-bool ArgumentsReader::subParseArguments(map<string, string> args, unsigned short posArg)
+bool Arguments_reader::sub_parse_arguments(map<string, string> args, unsigned short posArg)
 {
 	assert(posArg < this->m_argv.size());
 
@@ -83,17 +83,17 @@ bool ArgumentsReader::subParseArguments(map<string, string> args, unsigned short
 	return isFound;
 }
 
-bool ArgumentsReader::existArgument(std::string tag)
+bool Arguments_reader::exist_argument(std::string tag)
 {
 	return (this->m_args.find(tag) != this->m_args.end());
 }
 
-string ArgumentsReader::getArgument(string tag)
+string Arguments_reader::get_argument(string tag)
 {
 	return this->m_args[tag];
 }
 
-bool ArgumentsReader::parseDocArgs(std::map<std::string, std::string> docArgs)
+bool Arguments_reader::parse_doc_args(std::map<std::string, std::string> docArgs)
 {
 	bool reVal = true;
 
@@ -101,33 +101,33 @@ bool ArgumentsReader::parseDocArgs(std::map<std::string, std::string> docArgs)
 		reVal = false;
 
 	map<string, string>::iterator it;
-	for(it = this->m_requireArgs.begin(); it != this->m_requireArgs.end(); ++it)
+	for(it = this->m_require_args.begin(); it != this->m_require_args.end(); ++it)
 		if(!(docArgs.find(it->first) != docArgs.end()))
 			reVal = false;
 		else
-			this->m_docArgs[it->first] = docArgs[it->first];
+			this->m_doc_args[it->first] = docArgs[it->first];
 
-	for(it = this->m_facultativeArgs.begin(); it != this->m_facultativeArgs.end(); ++it)
+	for(it = this->m_facultative_args.begin(); it != this->m_facultative_args.end(); ++it)
 		if(!(docArgs.find(it->first) != docArgs.end()))
 			reVal = false;
 		else
-			this->m_docArgs[it->first] = docArgs[it->first];
+			this->m_doc_args[it->first] = docArgs[it->first];
 
 	return reVal;
 }
 
-void ArgumentsReader::printUsage()
+void Arguments_reader::print_usage()
 {
-	cout << "Usage: " << this->m_programName;
+	cout << "Usage: " << this->m_program_name;
 
 	map<string, string>::iterator it;
-	for(it = this->m_requireArgs.begin(); it != this->m_requireArgs.end(); ++it)
+	for(it = this->m_require_args.begin(); it != this->m_require_args.end(); ++it)
 		if(it->second != "")
 			cout << " -" << it->first << " " << it->second;
 		else
 			cout << " -" << it->first;
 
-	for(it = this->m_facultativeArgs.begin(); it != this->m_facultativeArgs.end(); ++it)
+	for(it = this->m_facultative_args.begin(); it != this->m_facultative_args.end(); ++it)
 		if(it->second != "")
 			cout << " [-" << it->first << " " << it->second << "]";
 		else
@@ -135,23 +135,23 @@ void ArgumentsReader::printUsage()
 
 	cout << endl;
 
-	if(!this->m_docArgs.empty())
+	if(!this->m_doc_args.empty())
 	{
 		cout << endl;
-		for(it = this->m_requireArgs.begin(); it != this->m_requireArgs.end(); ++it)
-			if(this->m_docArgs.find(it->first) != this->m_docArgs.end())
-				cout << "\t-" << it->first << "\t\t" << this->m_docArgs.find(it->first)->second << endl;
+		for(it = this->m_require_args.begin(); it != this->m_require_args.end(); ++it)
+			if(this->m_doc_args.find(it->first) != this->m_doc_args.end())
+				cout << "\t-" << it->first << "\t\t" << this->m_doc_args.find(it->first)->second << endl;
 
-		for(it = this->m_facultativeArgs.begin(); it != this->m_facultativeArgs.end(); ++it)
-			if(this->m_docArgs.find(it->first) != this->m_docArgs.end())
-				cout << "\t-" << it->first << "\t\t" << this->m_docArgs.find(it->first)->second << endl;
+		for(it = this->m_facultative_args.begin(); it != this->m_facultative_args.end(); ++it)
+			if(this->m_doc_args.find(it->first) != this->m_doc_args.end())
+				cout << "\t-" << it->first << "\t\t" << this->m_doc_args.find(it->first)->second << endl;
 	}
 }
 
-void ArgumentsReader::clearArguments()
+void Arguments_reader::clear_arguments()
 {
-	this->m_requireArgs.clear();
-	this->m_facultativeArgs.clear();
+	this->m_require_args.clear();
+	this->m_facultative_args.clear();
 	this->m_args.clear();
-	this->m_docArgs.clear();
+	this->m_doc_args.clear();
 }

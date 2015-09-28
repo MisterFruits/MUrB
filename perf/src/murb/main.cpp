@@ -21,6 +21,8 @@ using floatType = float;
 #include <string>
 #include <vector>
 #include <cassert>
+#include <iomanip>
+#include <sstream>
 #include <iostream>
 using namespace std;
 
@@ -115,7 +117,7 @@ unsigned int  WinHeight  = 600;   /*!< Window height for visualization. */
 void argsReader(int argc, char** argv)
 {
 	map<string, string> reqArgs1, reqArgs2, faculArgs, docArgs;
-	ArgumentsReader argsReader(argc, argv);
+	Arguments_reader argsReader(argc, argv);
 
 	reqArgs1 ["n"]     = "nBodies";
 	docArgs  ["n"]     = "the number of bodies randomly generated.";
@@ -155,57 +157,57 @@ void argsReader(int argc, char** argv)
 	faculArgs["-soft"] = "softeningFactor";
 	docArgs  ["-soft"] = "softening factor for implementation 15.";
 
-	if(argsReader.parseArguments(reqArgs1, faculArgs))
+	if(argsReader.parse_arguments(reqArgs1, faculArgs))
 	{
-		NBodies           = stoi(argsReader.getArgument("n")) / MPI::COMM_WORLD.Get_size();
-		NIterations       = stoi(argsReader.getArgument("i"));
+		NBodies           = stoi(argsReader.get_argument("n")) / MPI::COMM_WORLD.Get_size();
+		NIterations       = stoi(argsReader.get_argument("i"));
 		RootInputFileName = "";
 	}
-	else if(argsReader.parseArguments(reqArgs2, faculArgs))
+	else if(argsReader.parse_arguments(reqArgs2, faculArgs))
 	{
-		RootInputFileName = argsReader.getArgument("f");
-		NIterations       = stoi(argsReader.getArgument("i"));
+		RootInputFileName = argsReader.get_argument("f");
+		NIterations       = stoi(argsReader.get_argument("i"));
 	}
 	else
 	{
-		if(argsReader.parseDocArgs(docArgs))
-			argsReader.printUsage();
+		if(argsReader.parse_doc_args(docArgs))
+			argsReader.print_usage();
 		else
 			cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
 		exit(-1);
 	}
 
-	if(argsReader.existArgument("h") || argsReader.existArgument("-help"))
+	if(argsReader.exist_argument("h") || argsReader.exist_argument("-help"))
 	{
-		if(argsReader.parseDocArgs(docArgs))
-			argsReader.printUsage();
+		if(argsReader.parse_doc_args(docArgs))
+			argsReader.print_usage();
 		else
 			cout << "A problem was encountered when parsing arguments documentation... exiting." << endl;
 		exit(-1);
 	}
 
-	if(argsReader.existArgument("v"))
+	if(argsReader.exist_argument("v"))
 		Verbose = true;
-	if(argsReader.existArgument("w"))
-		RootOutputFileName = argsReader.getArgument("w");
-	if(argsReader.existArgument("-dt"))
-		Dt = stof(argsReader.getArgument("-dt"));
-	if(argsReader.existArgument("-gs"))
+	if(argsReader.exist_argument("w"))
+		RootOutputFileName = argsReader.get_argument("w");
+	if(argsReader.exist_argument("-dt"))
+		Dt = stof(argsReader.get_argument("-dt"));
+	if(argsReader.exist_argument("-gs"))
 		GSEnable = true;
-	if(argsReader.existArgument("-ww"))
-		WinWidth = stoi(argsReader.getArgument("-ww"));
-	if(argsReader.existArgument("-wh"))
-		WinHeight = stoi(argsReader.getArgument("-wh"));
-	if(argsReader.existArgument("-nv"))
+	if(argsReader.exist_argument("-ww"))
+		WinWidth = stoi(argsReader.get_argument("-ww"));
+	if(argsReader.exist_argument("-wh"))
+		WinHeight = stoi(argsReader.get_argument("-wh"));
+	if(argsReader.exist_argument("-nv"))
 		VisuEnable = false;
-	if(argsReader.existArgument("-vdt"))
+	if(argsReader.exist_argument("-vdt"))
 		DtVariable = true;
-	if(argsReader.existArgument("-mdt"))
-		MinDt = stof(argsReader.getArgument("-mdt"));
-	if(argsReader.existArgument("-im"))
-		ImplId = stoi(argsReader.getArgument("-im"));
-	if(argsReader.existArgument("-soft"))
-		Softening = stof(argsReader.getArgument("-soft"));
+	if(argsReader.exist_argument("-mdt"))
+		MinDt = stof(argsReader.get_argument("-mdt"));
+	if(argsReader.exist_argument("-im"))
+		ImplId = stoi(argsReader.get_argument("-im"));
+	if(argsReader.exist_argument("-soft"))
+		Softening = stof(argsReader.get_argument("-soft"));
 }
 
 /*!
@@ -234,10 +236,13 @@ string strDate(T timestamp)
 	minutes = rest / 60;
 	rest = rest - (minutes * 60);
 
-	return to_string(days)    + "d " +
-	       to_string(hours)   + "h " +
-	       to_string(minutes) + "m " +
-	       to_string(rest)    + "s";
+	stringstream res;
+	res << setprecision(0) << std::fixed << setw(4) << days    << "d "
+	    << setprecision(0) << std::fixed << setw(4) << hours   << "h "
+		<< setprecision(0) << std::fixed << setw(4) << minutes << "m "
+		<< setprecision(3) << std::fixed << setw(5) << rest    << "s";
+
+	return res.str();
 }
 
 /*!
@@ -464,9 +469,9 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 		if(!MPI::COMM_WORLD.Get_rank())
 			MPINBodies = simu->getBodies()->getN() * MPI::COMM_WORLD.Get_size();
 
-		for(unsigned long iRank = 0; iRank < MPI::COMM_WORLD.Get_size(); iRank++)
+		for(unsigned long iRank = 0; iRank < (unsigned long)MPI::COMM_WORLD.Get_size(); iRank++)
 		{
-			if(iRank == MPI::COMM_WORLD.Get_rank())
+			if(iRank == (unsigned long)MPI::COMM_WORLD.Get_rank())
 				if(!simu->getBodies()->writeIntoFileMPIBinary(outputFileName, MPINBodies))
 					MPI::COMM_WORLD.Abort(-1);
 
@@ -572,14 +577,18 @@ int main(int argc, char** argv)
 
 		// display the status of this iteration
 		if(Verbose && !MPI::COMM_WORLD.Get_rank())
-			cout << "Processing iteration n°" << iIte << " took " << perfIte.getElapsedTime() << " ms "
-			     << "(" << perfIte.getGflops(simu->getFlopsPerIte()) << " Gflop/s), "
-			     << "physic time: " << strDate(physicTime) << endl;
+			cout << "Iteration n°" << setw(4) << iIte << " took "
+			     << setprecision(3) << std::fixed << setw(5) << perfIte.getElapsedTime() << " ms ("
+			     << setprecision(3) << std::fixed << setw(5) << perfIte.getGflops(simu->getFlopsPerIte())
+			     << " Gflop/s), physic time: " << strDate(physicTime) << "\r";
 
 		// write iteration results into file
 		if(!RootOutputFileName.empty())
 			writeBodies<floatType>(simu, iIte);
 	}
+	if(Verbose && !MPI::COMM_WORLD.Get_rank())
+		cout << endl;
+
 	if(!MPI::COMM_WORLD.Get_rank())
 		cout << "Simulation ended." << endl << endl;
 
