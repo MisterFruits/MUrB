@@ -1,3 +1,7 @@
+# MoveUrBody (MUrB), a n-body code
+
+![](doc/murb/images/murb.png)
+
 # How to compile and run the code
 This project use `cmake` in order to generate any type of projects (Makefile, Visual Studio projects, Eclipse projects, etc.).
 
