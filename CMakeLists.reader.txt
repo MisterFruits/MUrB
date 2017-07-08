@@ -3,25 +3,11 @@ cmake_minimum_required (VERSION 2.6)
 
 project (reader)
 
+# Set the path to the CMake modules
+set (CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/Modules/")
+
 # Specify bin path
 set (EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
-
-find_package (OpenGL REQUIRED)
-
-# Compile external dependencies 
-add_subdirectory (lib/glfw-3.0.4)
-
-# Compile glew library
-add_library( 
-	glew STATIC
-	lib/glew-1.11.0/src/glew.c
-	lib/glew-1.11.0/include
-)
-
-# Add include from external dependencies
-include_directories (lib/glfw-3.0.4/include)
-include_directories (lib/glm-0.9.5.4)
-include_directories (lib/glew-1.11.0/include)
 
 # Génération de la liste des fichiers sources
 file (GLOB_RECURSE source_files src/common/* src/reader/*)
@@ -29,8 +15,28 @@ file (GLOB_RECURSE source_files src/common/* src/reader/*)
 # Déclaration de l'exécutable
 add_executable (reader ${source_files})
 
-# Add librairies for linking
-target_link_libraries(reader glew glfw ${GLFW_LIBRARIES})
+find_package (OpenGL REQUIRED)
+if (OPENGL_FOUND)
+	include_directories (${OPENGL_INCLUDE_DIR})
+	target_link_libraries(murb ${OPENGL_LIBRARIES})
+endif (OPENGL_FOUND)
+
+find_package (GLEW REQUIRED)
+if (GLEW_FOUND)
+    include_directories (${GLEW_INCLUDE_DIRS})
+    target_link_libraries (murb "${GLEW_LIBRARIES}")
+endif (GLEW_FOUND)
+
+find_package (GLM REQUIRED)
+if (GLM_FOUND)
+    include_directories (${GLM_INCLUDE_DIRS})
+endif (GLM_FOUND)
+
+find_package (GLFW REQUIRED)
+if (GLFW_FOUND)
+    include_directories (${GLFW_INCLUDE_DIR})
+    target_link_libraries (murb "${GLFW_LIBRARIES}")
+endif (GLFW_FOUND)
 
 # Enable C++11
 if(CMAKE_COMPILER_IS_GNUCXX)
