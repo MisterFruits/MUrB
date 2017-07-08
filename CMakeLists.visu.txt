@@ -17,8 +17,8 @@ add_executable (murb ${source_files})
 
 find_package (OpenGL REQUIRED)
 if (OPENGL_FOUND)
-	include_directories (${OPENGL_INCLUDE_DIR})
-	target_link_libraries(murb ${OPENGL_LIBRARIES})
+    include_directories (${OPENGL_INCLUDE_DIR})
+    target_link_libraries(murb ${OPENGL_LIBRARIES})
 endif (OPENGL_FOUND)
 
 find_package (GLEW REQUIRED)

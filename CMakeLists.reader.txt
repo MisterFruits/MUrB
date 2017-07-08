@@ -17,14 +17,14 @@ add_executable (reader ${source_files})
 
 find_package (OpenGL REQUIRED)
 if (OPENGL_FOUND)
-	include_directories (${OPENGL_INCLUDE_DIR})
-	target_link_libraries(murb ${OPENGL_LIBRARIES})
+    include_directories (${OPENGL_INCLUDE_DIR})
+    target_link_libraries(reader ${OPENGL_LIBRARIES})
 endif (OPENGL_FOUND)
 
 find_package (GLEW REQUIRED)
 if (GLEW_FOUND)
     include_directories (${GLEW_INCLUDE_DIRS})
-    target_link_libraries (murb "${GLEW_LIBRARIES}")
+    target_link_libraries (reader "${GLEW_LIBRARIES}")
 endif (GLEW_FOUND)
 
 find_package (GLM REQUIRED)
@@ -35,7 +35,7 @@ endif (GLM_FOUND)
 find_package (GLFW REQUIRED)
 if (GLFW_FOUND)
     include_directories (${GLFW_INCLUDE_DIR})
-    target_link_libraries (murb "${GLFW_LIBRARIES}")
+    target_link_libraries (reader "${GLFW_LIBRARIES}")
 endif (GLFW_FOUND)
 
 # Enable C++11
