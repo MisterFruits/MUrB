@@ -1,5 +1,7 @@
 # MoveUrBody (MUrB), a n-body code
 
+The physics used in the MUrB simulator is detailed in the following document : [moveUrBody.pdf](doc/murb/moveUrBody.pdf).
+
 ![](doc/murb/images/murb.png)
 
 # How to compile and run the code
