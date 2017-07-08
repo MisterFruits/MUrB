@@ -19,6 +19,11 @@ MUrB depends on some other Git repositories (or submodules). It is highly recomm
 
     $ git submodule update --init --recursive
 
+## Other dependencies
+
+MUrB comes with a realy cool real time display engine, to get it, you have to install some dependencies: `OpenGL`, `GLEW`, `GLM` and `GLFW` libraries are required.
+If one on these libraries is missing on your system, then MUrB will be compiled in console mode only.
+
 ## Exemple of a Makefile project generation (with the C++ GNU compiler)
 
 Open a shell and type (from the `MUrB` root folder):
