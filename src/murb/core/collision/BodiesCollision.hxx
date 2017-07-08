@@ -15,8 +15,6 @@
 #include <iostream>
 #include <sys/stat.h>
 
-#include "../../../common/utils/mipp.h"
-
 #include "BodiesCollision.h"
 
 template <typename T>

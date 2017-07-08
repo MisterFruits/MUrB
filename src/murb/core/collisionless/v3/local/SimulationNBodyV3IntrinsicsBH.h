@@ -11,8 +11,7 @@
 #define SIMULATION_N_BODY_V3_INTRINSICS_BH_H_
 
 #include <string>
-
-#include "../../../../../common/utils/mipp.h"
+#include <mipp.h>
 
 #include "SimulationNBodyV3Intrinsics.h"
 

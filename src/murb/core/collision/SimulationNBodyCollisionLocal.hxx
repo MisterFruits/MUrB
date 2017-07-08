@@ -26,8 +26,6 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "../../../common/utils/mipp.h"
-
 #include "BodiesCollision.h"
 #include "SimulationNBodyCollisionLocal.h"
 

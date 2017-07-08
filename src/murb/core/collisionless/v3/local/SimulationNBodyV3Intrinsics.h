@@ -11,8 +11,7 @@
 #define SIMULATION_N_BODY_V3_INTRINSICS_H_
 
 #include <string>
-
-#include "../../../../../common/utils/mipp.h"
+#include <mipp.h>
 
 #include "SimulationNBodyV3.h"
 
@@ -34,19 +33,19 @@ protected:
 	virtual void initIteration();
 	virtual void computeLocalBodiesAcceleration();
 
-	static inline void computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
-	                                                       const mipp::vec &rSoftSquared,
-	                                                       const mipp::vec &rqiX,
-	                                                       const mipp::vec &rqiY,
-	                                                       const mipp::vec &rqiZ,
-	                                                             mipp::vec &raiX,
-	                                                             mipp::vec &raiY,
-	                                                             mipp::vec &raiZ,
-	                                                             mipp::vec &rclosNeighi,
-	                                                       const mipp::vec &rmj,
-	                                                       const mipp::vec &rqjX,
-	                                                       const mipp::vec &rqjY,
-	                                                       const mipp::vec &rqjZ);
+	static inline void computeAccelerationBetweenTwoBodies(const mipp::reg &rG,
+	                                                       const mipp::reg &rSoftSquared,
+	                                                       const mipp::reg &rqiX,
+	                                                       const mipp::reg &rqiY,
+	                                                       const mipp::reg &rqiZ,
+	                                                             mipp::reg &raiX,
+	                                                             mipp::reg &raiY,
+	                                                             mipp::reg &raiZ,
+	                                                             mipp::reg &rclosNeighi,
+	                                                       const mipp::reg &rmj,
+	                                                       const mipp::reg &rqjX,
+	                                                       const mipp::reg &rqjY,
+	                                                       const mipp::reg &rqjZ);
 private:
 	void init();
 	void _computeLocalBodiesAcceleration();

@@ -13,6 +13,7 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <mipp.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -100,11 +101,11 @@ void SimulationNBodyV2<T>::reAllocateBuffers()
 			_mm_free(this->accelerations.z);
 
 		this->accelerations.x = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 		this->accelerations.y = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 		this->accelerations.z = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 #endif
 		this->allocatedBytes += (this->bodies->getN() + this->bodies->getPadding()) *
 		                        sizeof(T) * (this->nMaxThreads - 1) * 3;

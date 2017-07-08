@@ -13,6 +13,7 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <mipp.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -25,8 +26,6 @@ inline int  omp_get_max_threads(   ) { return 1; }
 inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
-
-#include "../../../../../common/utils/mipp.h"
 
 #include "SimulationNBodyV2Vectors.h"
 
@@ -102,11 +101,11 @@ void SimulationNBodyV2Vectors<T>::reAllocateBuffers()
 			_mm_free(this->accelerations.z);
 
 		this->accelerations.x = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 		this->accelerations.y = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 		this->accelerations.z = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 #endif
 		this->allocatedBytes += (this->bodies->getN() + this->bodies->getPadding()) *
 		                        sizeof(T) * (this->nMaxThreads - 1) * 3;
@@ -146,13 +145,13 @@ void SimulationNBodyV2Vectors<T>::computeLocalBodiesAcceleration()
 #pragma omp for schedule(runtime)
 	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 	{
-		const unsigned long iVecOff = iVec * mipp::vectorSize<T>();
+		const unsigned long iVecOff = iVec * mipp::N<T>();
   
 		// computation of the vector number iVec with itself
-		for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+		for(unsigned short iVecPos = 0; iVecPos < mipp::N<T>(); iVecPos++)
 		{
 			const unsigned long iBody = iVecPos + iVecOff;
-			for(unsigned short jVecPos = iVecPos +1; jVecPos < mipp::vectorSize<T>(); jVecPos++)
+			for(unsigned short jVecPos = iVecPos +1; jVecPos < mipp::N<T>(); jVecPos++)
 			{
 				const unsigned long jBody = jVecPos + iVecOff;
 				SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(this->G,
@@ -177,12 +176,12 @@ void SimulationNBodyV2Vectors<T>::computeLocalBodiesAcceleration()
 
 		// computation of the vector number iVec with the following other vectors
 		for(unsigned long jVec = iVec +1; jVec < this->bodies->getNVecs(); jVec++)
-			for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+			for(unsigned short iVecPos = 0; iVecPos < mipp::N<T>(); iVecPos++)
 			{
 				const unsigned long iBody = iVecPos + iVecOff;
-				for(unsigned short jVecPos = 0; jVecPos < mipp::vectorSize<T>(); jVecPos++)
+				for(unsigned short jVecPos = 0; jVecPos < mipp::N<T>(); jVecPos++)
 				{
-					const unsigned long jBody = jVecPos + jVec * mipp::vectorSize<T>();
+					const unsigned long jBody = jVecPos + jVec * mipp::N<T>();
 					SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(this->G,
 					                                                          masses                   [iBody          ],
 					                                                          positionsX               [iBody          ],

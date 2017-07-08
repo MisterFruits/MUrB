@@ -90,8 +90,8 @@ void SimulationNBodyV3IntrinsicsBH<T>::_computeLocalBodiesAcceleration()
 {
 	// TODO: be careful with the V1Intrinsics version: with fake bodies added at the end of the last vector, the
 	//       dynamic time step is broken.
-	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
-	assert(this->dtConstant || (this->bodies->getN() % mipp::vectorSize<T>() == 0));
+	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::N<T>()!
+	assert(this->dtConstant || (this->bodies->getN() % mipp::N<T>() == 0));
 
 	const T *masses = this->getBodies()->getMasses();
 
@@ -99,34 +99,34 @@ void SimulationNBodyV3IntrinsicsBH<T>::_computeLocalBodiesAcceleration()
 	const T *positionsY = this->getBodies()->getPositionsY();
 	const T *positionsZ = this->getBodies()->getPositionsZ();
 
-	const mipp::vec rG           = mipp::set1<T>(this->G);
-	const mipp::vec rSoftSquared = mipp::set1<T>(this->softeningSquared);
+	const mipp::reg rG           = mipp::set1<T>(this->G);
+	const mipp::reg rSoftSquared = mipp::set1<T>(this->softeningSquared);
 
 #pragma omp parallel for schedule(runtime) firstprivate(rG)
 	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 	{
 		// load vectors
-		const mipp::vec rqiX = mipp::load<T>(positionsX + iVec * mipp::vectorSize<T>());
-		const mipp::vec rqiY = mipp::load<T>(positionsY + iVec * mipp::vectorSize<T>());
-		const mipp::vec rqiZ = mipp::load<T>(positionsZ + iVec * mipp::vectorSize<T>());
+		const mipp::reg rqiX = mipp::load<T>(positionsX + iVec * mipp::N<T>());
+		const mipp::reg rqiY = mipp::load<T>(positionsY + iVec * mipp::N<T>());
+		const mipp::reg rqiZ = mipp::load<T>(positionsZ + iVec * mipp::N<T>());
 
-		mipp::vec raiX = mipp::load<T>(this->accelerations.x + iVec * mipp::vectorSize<T>());
-		mipp::vec raiY = mipp::load<T>(this->accelerations.y + iVec * mipp::vectorSize<T>());
-		mipp::vec raiZ = mipp::load<T>(this->accelerations.z + iVec * mipp::vectorSize<T>());
+		mipp::reg raiX = mipp::load<T>(this->accelerations.x + iVec * mipp::N<T>());
+		mipp::reg raiY = mipp::load<T>(this->accelerations.y + iVec * mipp::N<T>());
+		mipp::reg raiZ = mipp::load<T>(this->accelerations.z + iVec * mipp::N<T>());
 
-		mipp::vec rclosNeighi = mipp::set1<T>(0.0);
+		mipp::reg rclosNeighi = mipp::set1<T>(0.0);
 		if(!this->dtConstant)
-			rclosNeighi = mipp::load<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>());
+			rclosNeighi = mipp::load<T>(this->closestNeighborDist + iVec * mipp::N<T>());
 
 		for(unsigned long jVec = 0; jVec < this->bodies->getNVecs(); jVec++)
 		{
 			// load vectors
-			mipp::vec rmj  = mipp::load<T>(masses     + jVec * mipp::vectorSize<T>());
-			mipp::vec rqjX = mipp::load<T>(positionsX + jVec * mipp::vectorSize<T>());
-			mipp::vec rqjY = mipp::load<T>(positionsY + jVec * mipp::vectorSize<T>());
-			mipp::vec rqjZ = mipp::load<T>(positionsZ + jVec * mipp::vectorSize<T>());
+			mipp::reg rmj  = mipp::load<T>(masses     + jVec * mipp::N<T>());
+			mipp::reg rqjX = mipp::load<T>(positionsX + jVec * mipp::N<T>());
+			mipp::reg rqjY = mipp::load<T>(positionsY + jVec * mipp::N<T>());
+			mipp::reg rqjZ = mipp::load<T>(positionsZ + jVec * mipp::N<T>());
 
-			for(unsigned short iRot = 0; iRot < mipp::vectorSize<T>(); iRot++)
+			for(unsigned short iRot = 0; iRot < mipp::N<T>(); iRot++)
 			{
 				SimulationNBodyV3Intrinsics<T>::computeAccelerationBetweenTwoBodies(rG, rSoftSquared,
 				                                                                    rqiX, rqiY, rqiZ,
@@ -136,17 +136,17 @@ void SimulationNBodyV3IntrinsicsBH<T>::_computeLocalBodiesAcceleration()
 				                                                                    rqjX, rqjY, rqjZ);
 
 				// we make one useless rotate in the last iteration...
-				rmj  = mipp::rot<T>(rmj);
-				rqjX = mipp::rot<T>(rqjX); rqjY = mipp::rot<T>(rqjY); rqjZ = mipp::rot<T>(rqjZ);
+				rmj  = mipp::rrot<T>(rmj);
+				rqjX = mipp::rrot<T>(rqjX); rqjY = mipp::rrot<T>(rqjY); rqjZ = mipp::rrot<T>(rqjZ);
 			}
 		}
 
 		// store vectors
-		mipp::store<T>(this->accelerations.x + iVec * mipp::vectorSize<T>(), raiX);
-		mipp::store<T>(this->accelerations.y + iVec * mipp::vectorSize<T>(), raiY);
-		mipp::store<T>(this->accelerations.z + iVec * mipp::vectorSize<T>(), raiZ);
+		mipp::store<T>(this->accelerations.x + iVec * mipp::N<T>(), raiX);
+		mipp::store<T>(this->accelerations.y + iVec * mipp::N<T>(), raiY);
+		mipp::store<T>(this->accelerations.z + iVec * mipp::N<T>(), raiZ);
 		if(!this->dtConstant)
-			mipp::store<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>(), rclosNeighi);
+			mipp::store<T>(this->closestNeighborDist + iVec * mipp::N<T>(), rclosNeighi);
 	}
 }
 

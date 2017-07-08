@@ -13,6 +13,7 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <mipp.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -26,7 +27,6 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
 
-#include "../../../common/utils/mipp.h"
 #include "../../../common/utils/ToMPIDatatype.h"
 
 #include "SimulationNBodyMPI.h"

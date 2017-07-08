@@ -15,6 +15,16 @@ file (GLOB_RECURSE source_files src/common/* src/murb/*)
 # Déclaration de l'exécutable
 add_executable (murb ${source_files})
 
+# MIPP wrapper includes
+if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/MIPP/src/mipp.h")
+    add_definitions (-DMIPP_ENABLE_BACKTRACE)
+    include_directories ("${CMAKE_CURRENT_SOURCE_DIR}/lib/MIPP/src/")
+    message(STATUS "MIPP found")
+else ()
+    message(FATAL_ERROR "MIPP can't be found, try to init the submodules with the following cmd:\n"
+                        "$ git submodule update --init -- ../lib/MIPP/")
+endif ()
+
 find_package (OpenGL REQUIRED)
 if (OPENGL_FOUND)
     include_directories (${OPENGL_INCLUDE_DIR})

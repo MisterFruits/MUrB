@@ -13,6 +13,7 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <mipp.h>
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -25,8 +26,6 @@ inline int  omp_get_max_threads(   ) { return 1; }
 inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
-
-#include "../../common/utils/mipp.h"
 
 #include "SimulationNBody.h"
 
@@ -99,14 +98,14 @@ void SimulationNBody<T>::allocateBuffers()
 	this->closestNeighborDist = new T[this->bodies->getN() + this->bodies->getPadding()];
 #else
 	this->accelerations.x = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
-	                                       mipp::RequiredAlignement);
+	                                       mipp::RequiredAlignment);
 	this->accelerations.y = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
-	                                       mipp::RequiredAlignement);
+	                                       mipp::RequiredAlignment);
 	this->accelerations.z = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
-	                                       mipp::RequiredAlignement);
+	                                       mipp::RequiredAlignment);
 
 	this->closestNeighborDist = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
-	                                           mipp::RequiredAlignement);
+	                                           mipp::RequiredAlignment);
 #endif
 
 	this->allocatedBytes += (this->bodies->getN() + this->bodies->getPadding()) * sizeof(T) * 4;

@@ -100,11 +100,11 @@ void SimulationNBodyV2Intrinsics<T>::_reAllocateBuffers()
 			_mm_free(this->accelerations.z);
 
 		this->accelerations.x = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 		this->accelerations.y = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 		this->accelerations.z = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) *
-		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignement);
+		                                        this->nMaxThreads * sizeof(T), mipp::RequiredAlignment);
 #endif
 		this->allocatedBytes += (this->bodies->getN() + this->bodies->getPadding()) *
 		                        sizeof(T) * (this->nMaxThreads - 1) * 3;
@@ -164,7 +164,7 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 	const T *positionsY = this->bodies->getPositionsY();
 	const T *positionsZ = this->bodies->getPositionsZ();
 
-	const mipp::vec rG = mipp::set1<T>(this->G);
+	const mipp::reg rG = mipp::set1<T>(this->G);
 
 #pragma omp parallel firstprivate(rG)
 {
@@ -175,12 +175,12 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 	{
 		// computation of the vector number iVec with itself
-		for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+		for(unsigned short iVecPos = 0; iVecPos < mipp::N<T>(); iVecPos++)
 		{
-			const unsigned long iBody = iVecPos + iVec * mipp::vectorSize<T>();
-			for(unsigned short jVecPos = iVecPos +1; jVecPos < mipp::vectorSize<T>(); jVecPos++)
+			const unsigned long iBody = iVecPos + iVec * mipp::N<T>();
+			for(unsigned short jVecPos = iVecPos +1; jVecPos < mipp::N<T>(); jVecPos++)
 			{
-				const unsigned long jBody = jVecPos + iVec * mipp::vectorSize<T>();
+				const unsigned long jBody = jVecPos + iVec * mipp::N<T>();
 				SimulationNBodyV2<T>::computeAccelerationBetweenTwoBodies(this->G,
 				                                                          masses                   [iBody          ],
 				                                                          positionsX               [iBody          ],
@@ -202,36 +202,36 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 		}
 		
 		// load vectors
-		const mipp::vec rmi  = mipp::load<T>(masses     + iVec * mipp::vectorSize<T>());
-		const mipp::vec rqiX = mipp::load<T>(positionsX + iVec * mipp::vectorSize<T>());
-		const mipp::vec rqiY = mipp::load<T>(positionsY + iVec * mipp::vectorSize<T>());
-		const mipp::vec rqiZ = mipp::load<T>(positionsZ + iVec * mipp::vectorSize<T>());
+		const mipp::reg rmi  = mipp::load<T>(masses     + iVec * mipp::N<T>());
+		const mipp::reg rqiX = mipp::load<T>(positionsX + iVec * mipp::N<T>());
+		const mipp::reg rqiY = mipp::load<T>(positionsY + iVec * mipp::N<T>());
+		const mipp::reg rqiZ = mipp::load<T>(positionsZ + iVec * mipp::N<T>());
 
-		mipp::vec raiX = mipp::load<T>(this->accelerations.x + iVec * mipp::vectorSize<T>() + tStride);
-		mipp::vec raiY = mipp::load<T>(this->accelerations.y + iVec * mipp::vectorSize<T>() + tStride);
-		mipp::vec raiZ = mipp::load<T>(this->accelerations.z + iVec * mipp::vectorSize<T>() + tStride);
+		mipp::reg raiX = mipp::load<T>(this->accelerations.x + iVec * mipp::N<T>() + tStride);
+		mipp::reg raiY = mipp::load<T>(this->accelerations.y + iVec * mipp::N<T>() + tStride);
+		mipp::reg raiZ = mipp::load<T>(this->accelerations.z + iVec * mipp::N<T>() + tStride);
 
-		mipp::vec rclosNeighi;
+		mipp::reg rclosNeighi;
 		if(!this->dtConstant)
-			rclosNeighi = mipp::load<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>());
+			rclosNeighi = mipp::load<T>(this->closestNeighborDist + iVec * mipp::N<T>());
 		
 		// computation of the vector number iVec with the following other vectors
 		for(unsigned long jVec = iVec +1; jVec < this->bodies->getNVecs(); jVec++)
 		{
-			mipp::vec rmj  = mipp::load<T>(masses     + jVec * mipp::vectorSize<T>());
-			mipp::vec rqjX = mipp::load<T>(positionsX + jVec * mipp::vectorSize<T>());
-			mipp::vec rqjY = mipp::load<T>(positionsY + jVec * mipp::vectorSize<T>());
-			mipp::vec rqjZ = mipp::load<T>(positionsZ + jVec * mipp::vectorSize<T>());
+			mipp::reg rmj  = mipp::load<T>(masses     + jVec * mipp::N<T>());
+			mipp::reg rqjX = mipp::load<T>(positionsX + jVec * mipp::N<T>());
+			mipp::reg rqjY = mipp::load<T>(positionsY + jVec * mipp::N<T>());
+			mipp::reg rqjZ = mipp::load<T>(positionsZ + jVec * mipp::N<T>());
 
-			mipp::vec rajX = mipp::load<T>(this->accelerations.x + jVec * mipp::vectorSize<T>() + tStride);
-			mipp::vec rajY = mipp::load<T>(this->accelerations.y + jVec * mipp::vectorSize<T>() + tStride);
-			mipp::vec rajZ = mipp::load<T>(this->accelerations.z + jVec * mipp::vectorSize<T>() + tStride);
+			mipp::reg rajX = mipp::load<T>(this->accelerations.x + jVec * mipp::N<T>() + tStride);
+			mipp::reg rajY = mipp::load<T>(this->accelerations.y + jVec * mipp::N<T>() + tStride);
+			mipp::reg rajZ = mipp::load<T>(this->accelerations.z + jVec * mipp::N<T>() + tStride);
 
-			mipp::vec rclosNeighj;
+			mipp::reg rclosNeighj;
 			if(!this->dtConstant)
-				rclosNeighj = mipp::load<T>(this->closestNeighborDist + jVec * mipp::vectorSize<T>());
+				rclosNeighj = mipp::load<T>(this->closestNeighborDist + jVec * mipp::N<T>());
 	
-			for(unsigned short iRot = 0; iRot < mipp::vectorSize<T>(); iRot++)
+			for(unsigned short iRot = 0; iRot < mipp::N<T>(); iRot++)
 			{
 				SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(rG,
 				                                                                    rmi,
@@ -243,27 +243,27 @@ void SimulationNBodyV2Intrinsics<T>::_computeLocalBodiesAcceleration()
 				                                                                    rajX, rajY, rajZ,
 				                                                                    rclosNeighj);
 
-				rmj  = mipp::rot<T>(rmj);
-				rqjX = mipp::rot<T>(rqjX); rqjY = mipp::rot<T>(rqjY); rqjZ = mipp::rot<T>(rqjZ);
-				rajX = mipp::rot<T>(rajX); rajY = mipp::rot<T>(rajY); rajZ = mipp::rot<T>(rajZ);
-				rclosNeighj = mipp::rot<T>(rclosNeighj);
+				rmj  = mipp::rrot<T>(rmj);
+				rqjX = mipp::rrot<T>(rqjX); rqjY = mipp::rrot<T>(rqjY); rqjZ = mipp::rrot<T>(rqjZ);
+				rajX = mipp::rrot<T>(rajX); rajY = mipp::rrot<T>(rajY); rajZ = mipp::rrot<T>(rajZ);
+				rclosNeighj = mipp::rrot<T>(rclosNeighj);
 			}
 			
-			mipp::store<T>(this->accelerations.x + jVec * mipp::vectorSize<T>() + tStride, rajX);
-			mipp::store<T>(this->accelerations.y + jVec * mipp::vectorSize<T>() + tStride, rajY);
-			mipp::store<T>(this->accelerations.z + jVec * mipp::vectorSize<T>() + tStride, rajZ);
+			mipp::store<T>(this->accelerations.x + jVec * mipp::N<T>() + tStride, rajX);
+			mipp::store<T>(this->accelerations.y + jVec * mipp::N<T>() + tStride, rajY);
+			mipp::store<T>(this->accelerations.z + jVec * mipp::N<T>() + tStride, rajZ);
 		
 			if(!this->dtConstant)
 #pragma omp critical //TODO: this critical section is bad for performances when we use variable time step
-				mipp::store<T>(this->closestNeighborDist + jVec * mipp::vectorSize<T>(), rclosNeighj);
+				mipp::store<T>(this->closestNeighborDist + jVec * mipp::N<T>(), rclosNeighj);
 		}
 
-		mipp::store<T>(this->accelerations.x + iVec * mipp::vectorSize<T>() + tStride, raiX);
-		mipp::store<T>(this->accelerations.y + iVec * mipp::vectorSize<T>() + tStride, raiY);
-		mipp::store<T>(this->accelerations.z + iVec * mipp::vectorSize<T>() + tStride, raiZ);
+		mipp::store<T>(this->accelerations.x + iVec * mipp::N<T>() + tStride, raiX);
+		mipp::store<T>(this->accelerations.y + iVec * mipp::N<T>() + tStride, raiY);
+		mipp::store<T>(this->accelerations.z + iVec * mipp::N<T>() + tStride, raiZ);
 
 		if(!this->dtConstant)
-			mipp::store<T>(this->closestNeighborDist + iVec * mipp::vectorSize<T>(), rclosNeighi);
+			mipp::store<T>(this->closestNeighborDist + iVec * mipp::N<T>(), rclosNeighi);
 	}
 }
 
@@ -298,44 +298,44 @@ void SimulationNBodyV2Intrinsics<float>::computeLocalBodiesAcceleration()
 
 // 26 flops
 template <typename T>
-void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
-                                                                         const mipp::vec &rmi,
-                                                                         const mipp::vec &rqiX,
-                                                                         const mipp::vec &rqiY,
-                                                                         const mipp::vec &rqiZ,
-                                                                               mipp::vec &raiX,
-                                                                               mipp::vec &raiY,
-                                                                               mipp::vec &raiZ,
-                                                                               mipp::vec &rclosNeighi,
-                                                                         const mipp::vec &rmj,
-                                                                         const mipp::vec &rqjX,
-                                                                         const mipp::vec &rqjY,
-                                                                         const mipp::vec &rqjZ,
-                                                                               mipp::vec &rajX,
-                                                                               mipp::vec &rajY,
-                                                                               mipp::vec &rajZ,
-                                                                               mipp::vec &rclosNeighj)
+void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(const mipp::reg &rG,
+                                                                         const mipp::reg &rmi,
+                                                                         const mipp::reg &rqiX,
+                                                                         const mipp::reg &rqiY,
+                                                                         const mipp::reg &rqiZ,
+                                                                               mipp::reg &raiX,
+                                                                               mipp::reg &raiY,
+                                                                               mipp::reg &raiZ,
+                                                                               mipp::reg &rclosNeighi,
+                                                                         const mipp::reg &rmj,
+                                                                         const mipp::reg &rqjX,
+                                                                         const mipp::reg &rqjY,
+                                                                         const mipp::reg &rqjZ,
+                                                                               mipp::reg &rajX,
+                                                                               mipp::reg &rajY,
+                                                                               mipp::reg &rajZ,
+                                                                               mipp::reg &rclosNeighj)
 {
-	mipp::vec rrijX = mipp::sub<T>(rqjX, rqiX);
-	mipp::vec rrijY = mipp::sub<T>(rqjY, rqiY);
-	mipp::vec rrijZ = mipp::sub<T>(rqjZ, rqiZ);
+	mipp::reg rrijX = mipp::sub<T>(rqjX, rqiX);
+	mipp::reg rrijY = mipp::sub<T>(rqjY, rqiY);
+	mipp::reg rrijZ = mipp::sub<T>(rqjZ, rqiZ);
 
-	mipp::vec rrijSquared = mipp::set1<T>(0);	
+	mipp::reg rrijSquared = mipp::set1<T>((T)0);	
 	rrijSquared = mipp::fmadd<T>(rrijX, rrijX, rrijSquared); // 2 flops
 	rrijSquared = mipp::fmadd<T>(rrijY, rrijY, rrijSquared); // 2 flops
 	rrijSquared = mipp::fmadd<T>(rrijZ, rrijZ, rrijSquared); // 2 flops
 
-	mipp::vec rrij = mipp::sqrt<T>(rrijSquared); // 1 flop
+	mipp::reg rrij = mipp::sqrt<T>(rrijSquared); // 1 flop
 
-	mipp::vec raTmp = mipp::div<T>(rG, mipp::mul<T>(rrij, rrijSquared)); // 2 flops
+	mipp::reg raTmp = mipp::div<T>(rG, mipp::mul<T>(rrij, rrijSquared)); // 2 flops
 
-	mipp::vec rai = mipp::mul<T>(raTmp, rmj); // 1 flop
+	mipp::reg rai = mipp::mul<T>(raTmp, rmj); // 1 flop
 
 	raiX = mipp::fmadd<T>(rai, rrijX, raiX); // 2 flops
 	raiY = mipp::fmadd<T>(rai, rrijY, raiY); // 2 flops
 	raiZ = mipp::fmadd<T>(rai, rrijZ, raiZ); // 2 flops
 
-	mipp::vec raj = mipp::mul<T>(raTmp, rmi); // 1 flop
+	mipp::reg raj = mipp::mul<T>(raTmp, rmi); // 1 flop
 
 	rajX = mipp::fnmadd<T>(raj, rrijX, rajX); // 2 flops
 	rajY = mipp::fnmadd<T>(raj, rrijY, rajY); // 2 flops
@@ -347,44 +347,44 @@ void SimulationNBodyV2Intrinsics<T>::computeAccelerationBetweenTwoBodies(const m
 
 // 27 flops
 template <>
-void SimulationNBodyV2Intrinsics<float>::computeAccelerationBetweenTwoBodies(const mipp::vec &rG,
-                                                                             const mipp::vec &rmi,
-                                                                             const mipp::vec &rqiX,
-                                                                             const mipp::vec &rqiY,
-                                                                             const mipp::vec &rqiZ,
-                                                                                   mipp::vec &raiX,
-                                                                                   mipp::vec &raiY,
-                                                                                   mipp::vec &raiZ,
-                                                                                   mipp::vec &rclosNeighi,
-                                                                             const mipp::vec &rmj,
-                                                                             const mipp::vec &rqjX,
-                                                                             const mipp::vec &rqjY,
-                                                                             const mipp::vec &rqjZ,
-                                                                                   mipp::vec &rajX,
-                                                                                   mipp::vec &rajY,
-                                                                                   mipp::vec &rajZ,
-                                                                                   mipp::vec &rclosNeighj)
+void SimulationNBodyV2Intrinsics<float>::computeAccelerationBetweenTwoBodies(const mipp::reg &rG,
+                                                                             const mipp::reg &rmi,
+                                                                             const mipp::reg &rqiX,
+                                                                             const mipp::reg &rqiY,
+                                                                             const mipp::reg &rqiZ,
+                                                                                   mipp::reg &raiX,
+                                                                                   mipp::reg &raiY,
+                                                                                   mipp::reg &raiZ,
+                                                                                   mipp::reg &rclosNeighi,
+                                                                             const mipp::reg &rmj,
+                                                                             const mipp::reg &rqjX,
+                                                                             const mipp::reg &rqjY,
+                                                                             const mipp::reg &rqjZ,
+                                                                                   mipp::reg &rajX,
+                                                                                   mipp::reg &rajY,
+                                                                                   mipp::reg &rajZ,
+                                                                                   mipp::reg &rclosNeighj)
 {
-	mipp::vec rrijX = mipp::sub<float>(rqjX, rqiX); // 1 flop
-	mipp::vec rrijY = mipp::sub<float>(rqjY, rqiY); // 1 flop
-	mipp::vec rrijZ = mipp::sub<float>(rqjZ, rqiZ); // 1 flop
+	mipp::reg rrijX = mipp::sub<float>(rqjX, rqiX); // 1 flop
+	mipp::reg rrijY = mipp::sub<float>(rqjY, rqiY); // 1 flop
+	mipp::reg rrijZ = mipp::sub<float>(rqjZ, rqiZ); // 1 flop
 
-	mipp::vec rrijSquared = mipp::set1<float>(0);	
+	mipp::reg rrijSquared = mipp::set1<float>(0.f);	
 	rrijSquared = mipp::fmadd<float>(rrijX, rrijX, rrijSquared); // 2 flops
 	rrijSquared = mipp::fmadd<float>(rrijY, rrijY, rrijSquared); // 2 flops
 	rrijSquared = mipp::fmadd<float>(rrijZ, rrijZ, rrijSquared); // 2 flops
 
-	mipp::vec rrijInv = mipp::rsqrt<float>(rrijSquared); // 1 flop
+	mipp::reg rrijInv = mipp::rsqrt<float>(rrijSquared); // 1 flop
 
-	mipp::vec raTmp = mipp::mul<float>(rG, mipp::mul<float>(mipp::mul<float>(rrijInv, rrijInv), rrijInv)); // 3 flops
+	mipp::reg raTmp = mipp::mul<float>(rG, mipp::mul<float>(mipp::mul<float>(rrijInv, rrijInv), rrijInv)); // 3 flops
 
-	mipp::vec rai = mipp::mul<float>(raTmp, rmj); // 1 flop
+	mipp::reg rai = mipp::mul<float>(raTmp, rmj); // 1 flop
 
 	raiX = mipp::fmadd<float>(rai, rrijX, raiX); // 2 flops
 	raiY = mipp::fmadd<float>(rai, rrijY, raiY); // 2 flops
 	raiZ = mipp::fmadd<float>(rai, rrijZ, raiZ); // 2 flops
 
-	mipp::vec raj = mipp::mul<float>(raTmp, rmi); // 1 flop
+	mipp::reg raj = mipp::mul<float>(raTmp, rmi); // 1 flop
 
 	rajX = mipp::fnmadd<float>(raj, rrijX, rajX); // 2 flops
 	rajY = mipp::fnmadd<float>(raj, rrijY, rajY); // 2 flops

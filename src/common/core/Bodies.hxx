@@ -14,9 +14,9 @@
 #include <fstream>
 #include <iostream>
 #include <sys/stat.h>
+#include <mipp.h>
 
 #include "../utils/Perf.h"
-#include "../utils/mipp.h"
 
 #include "Bodies.h"
 
@@ -36,8 +36,8 @@ Bodies<T>::Bodies(const unsigned long n, const unsigned long randInit)
 	: n             (n),
 	  masses        (nullptr),
 	  radiuses      (nullptr),
-	  nVecs         (ceil((T) n / (T) mipp::vectorSize<T>())),
-	  padding       ((this->nVecs * mipp::vectorSize<T>()) - this->n),
+	  nVecs         (ceil((T) n / (T) mipp::N<T>())),
+	  padding       ((this->nVecs * mipp::N<T>()) - this->n),
 	  allocatedBytes(0)
 {
 	assert(n > 0);
@@ -122,17 +122,17 @@ void Bodies<T>::allocateBuffers()
 	this->velocities.y = new T[this->n + this->padding];
 	this->velocities.z = new T[this->n + this->padding];
 #else
-	this->masses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->masses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
 
-	this->radiuses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->radiuses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
 
-	this->positions.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
-	this->positions.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
-	this->positions.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->positions.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
+	this->positions.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
+	this->positions.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
 
-	this->velocities.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
-	this->velocities.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
-	this->velocities.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignement);
+	this->velocities.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
+	this->velocities.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
+	this->velocities.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
 #endif
 
 	this->allocatedBytes = (this->n + this->padding) * sizeof(T) * 11;
@@ -512,8 +512,8 @@ bool Bodies<T>::read(std::istream& stream)
 	unsigned long newN = 0;
 	stream >> newN;
 
-	this->nVecs   = ceil((T) newN / (T) mipp::vectorSize<T>());
-	this->padding = (this->nVecs * mipp::vectorSize<T>()) - newN;
+	this->nVecs   = ceil((T) newN / (T) mipp::N<T>());
+	this->padding = (this->nVecs * mipp::N<T>()) - newN;
 
 	if(newN && (this->n == 0))
 	{
@@ -577,8 +577,8 @@ bool Bodies<T>::readBinary(std::istream& stream)
 	unsigned long *tmp = (unsigned long*) cn;
 	unsigned long newN = *tmp;
 
-	this->nVecs   = ceil((T) newN / (T) mipp::vectorSize<T>());
-	this->padding = (this->nVecs * mipp::vectorSize<T>()) - newN;
+	this->nVecs   = ceil((T) newN / (T) mipp::N<T>());
+	this->padding = (this->nVecs * mipp::N<T>()) - newN;
 
 	if(newN && (this->n == 0))
 	{

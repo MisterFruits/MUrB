@@ -13,6 +13,8 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
+#include <mipp.h>
+
 
 #ifdef _OPENMP
 #include <omp.h>
@@ -25,8 +27,6 @@ inline int  omp_get_max_threads(   ) { return 1; }
 inline int  omp_get_thread_num (   ) { return 0; }
 #endif
 #endif
-
-#include "../../../../../common/utils/mipp.h"
 
 #include "SimulationNBodyV1Vectors.h"
 
@@ -81,12 +81,12 @@ void SimulationNBodyV1Vectors<T>::computeLocalBodiesAcceleration()
 	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 		for(unsigned long jVec = 0; jVec < this->bodies->getNVecs(); jVec++)
 			if(iVec != jVec)
-				for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+				for(unsigned short iVecPos = 0; iVecPos < mipp::N<T>(); iVecPos++)
 				{
-					const unsigned long iBody = iVecPos + iVec * mipp::vectorSize<T>();
-					for(unsigned short jVecPos = 0; jVecPos < mipp::vectorSize<T>(); jVecPos++)
+					const unsigned long iBody = iVecPos + iVec * mipp::N<T>();
+					for(unsigned short jVecPos = 0; jVecPos < mipp::N<T>(); jVecPos++)
 					{
-						const unsigned long jBody = jVecPos + jVec * mipp::vectorSize<T>();
+						const unsigned long jBody = jVecPos + jVec * mipp::N<T>();
 						SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(this->G,
 						                                                          positionsX               [iBody],
 						                                                          positionsY               [iBody],
@@ -102,12 +102,12 @@ void SimulationNBodyV1Vectors<T>::computeLocalBodiesAcceleration()
 					}
 				}
 			else
-				for(unsigned short iVecPos = 0; iVecPos < mipp::vectorSize<T>(); iVecPos++)
+				for(unsigned short iVecPos = 0; iVecPos < mipp::N<T>(); iVecPos++)
 				{
-					const unsigned long iBody = iVecPos + iVec * mipp::vectorSize<T>();
-					for(unsigned short jVecPos = 0; jVecPos < mipp::vectorSize<T>(); jVecPos++)
+					const unsigned long iBody = iVecPos + iVec * mipp::N<T>();
+					for(unsigned short jVecPos = 0; jVecPos < mipp::N<T>(); jVecPos++)
 					{
-						const unsigned long jBody = jVecPos + jVec * mipp::vectorSize<T>();
+						const unsigned long jBody = jVecPos + jVec * mipp::N<T>();
 						if(iVecPos != jVecPos)
 							SimulationNBodyV1<T>::computeAccelerationBetweenTwoBodies(this->G,
 							                                                          positionsX               [iBody],
