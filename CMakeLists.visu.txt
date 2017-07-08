@@ -1,0 +1,41 @@
+# CMake entry point
+cmake_minimum_required (VERSION 2.6)
+
+project (murb)
+
+# Specify bin path
+set (EXECUTABLE_OUTPUT_PATH bin/${CMAKE_BUILD_TYPE})
+
+find_package (OpenGL REQUIRED)
+
+# Compile external dependencies 
+add_subdirectory (lib/glfw-3.0.4)
+
+# Compile glew library
+add_library( 
+	glew STATIC
+	lib/glew-1.11.0/src/glew.c
+	lib/glew-1.11.0/include
+)
+
+# Add include from external dependencies
+include_directories (lib/glfw-3.0.4/include)
+include_directories (lib/glm-0.9.5.4)
+include_directories (lib/glew-1.11.0/include)
+
+# Génération de la liste des fichiers sources
+file (GLOB_RECURSE source_files src/common/* src/murb/*)
+
+# Déclaration de l'exécutable
+add_executable (murb ${source_files})
+
+# Add librairies for linking
+target_link_libraries(murb glew glfw ${GLFW_LIBRARIES})
+
+# Enable C++11
+if(CMAKE_COMPILER_IS_GNUCXX)
+    add_definitions(-std=c++11)
+endif()
+
+# Enable visualization
+add_definitions(-DVISU)
