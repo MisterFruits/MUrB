@@ -10,6 +10,7 @@
  * \section DESCRIPTION
  * This is the traditional entry file for the code execution.
  */
+#ifdef VISU
 #include <string>
 #include <chrono>
 #include <thread>
@@ -129,3 +130,4 @@ template class OGLSpheresVisuGS<double>;
 template class OGLSpheresVisuGS<float>;
 #endif
 // ==================================================================================== explicit template instantiation
+#endif
