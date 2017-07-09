@@ -110,84 +110,84 @@ public:
 	 *
 	 *  \return The number of bodies.
 	 */
-	inline const unsigned long& getN() const;
+	const unsigned long& getN() const;
 
 	/*!
 	 *  \brief NVecs getter.
 	 *
 	 *  \return The number of vectors.
 	 */
-	inline const unsigned long& getNVecs() const;
+	const unsigned long& getNVecs() const;
 
 	/*!
 	 *  \brief Padding getter.
 	 *
 	 *  \return The number of bodies in the padding zone.
 	 */
-	inline const unsigned short& getPadding() const;
+	const unsigned short& getPadding() const;
 
 	/*!
 	 *  \brief Masses getter.
 	 *
 	 *  \return Array of masses.
 	 */
-	inline const T* getMasses() const;
+	const T* getMasses() const;
 
 	/*!
 	 *  \brief Radiuses getter.
 	 *
 	 *  \return Array of radiuses.
 	 */
-	inline const T* getRadiuses() const;
+	const T* getRadiuses() const;
 
 	/*!
 	 *  \brief Positions getter.
 	 *
 	 *  \return Array of positions (first dimension).
 	 */
-	inline const T* getPositionsX() const;
+	const T* getPositionsX() const;
 
 	/*!
 	 *  \brief Positions getter.
 	 *
 	 *  \return Array of positions (second dimension).
 	 */
-	inline const T* getPositionsY() const;
+	const T* getPositionsY() const;
 
 	/*!
 	 *  \brief Positions getter.
 	 *
 	 *  \return Array of positions (third dimension).
 	 */
-	inline const T* getPositionsZ() const;
+	const T* getPositionsZ() const;
 
 	/*!
 	 *  \brief Velocities getter.
 	 *
 	 *  \return Array of velocities (first dimension).
 	 */
-	inline const T* getVelocitiesX() const;
+	const T* getVelocitiesX() const;
 
 	/*!
 	 *  \brief Velocities getter.
 	 *
 	 *  \return Array of velocities (second dimension).
 	 */
-	inline const T* getVelocitiesY() const;
+	const T* getVelocitiesY() const;
 
 	/*!
 	 *  \brief Velocities getter.
 	 *
 	 *  \return Array of velocities (third dimension).
 	 */
-	inline const T* getVelocitiesZ() const;
+	const T* getVelocitiesZ() const;
 
 	/*!
 	 *  \brief Allocated bytes getter.
 	 *
 	 *  \return The number of allocated bytes.
 	 */
-	inline const float& getAllocatedBytes() const;
+	const float& getAllocatedBytes() const;
 
 	/*!
 	 *  \brief Update positions and velocities array.
@@ -351,7 +351,5 @@ protected:
  */
 template <typename T>
 std::ostream& operator<<(std::ostream &o, const Bodies<T>& s);
-
-#include "Bodies.hxx"
 
 #endif /* BODIES_H_ */

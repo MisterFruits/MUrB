@@ -58,3 +58,11 @@ bool SpheresVisuNo<T>::pressedPageDown()
 {
 	return false;
 }
+
+// ==================================================================================== explicit template instantiation
+#ifdef NBODY_DOUBLE
+template class SpheresVisuNo<double>;
+#else
+template class SpheresVisuNo<float>;
+#endif
+// ==================================================================================== explicit template instantiation

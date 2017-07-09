@@ -47,6 +47,4 @@ public:
 	void refreshDisplay();
 };
 
-#include "OGLSpheresVisuInst.hxx"
-
 #endif /* OGL_SPHERES_VISU_INST_H_ */

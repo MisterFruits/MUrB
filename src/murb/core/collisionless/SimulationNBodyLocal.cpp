@@ -77,3 +77,11 @@ void SimulationNBodyLocal<T>::findTimeStep()
 			this->dt = this->minDt;
 	}
 }
+
+// ==================================================================================== explicit template instantiation
+#ifdef NBODY_DOUBLE
+template class SimulationNBodyLocal<double>;
+#else
+template class SimulationNBodyLocal<float>;
+#endif
+// ==================================================================================== explicit template instantiation

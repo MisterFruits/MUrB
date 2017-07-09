@@ -29,6 +29,4 @@ public:
 	bool pressedPageDown();
 };
 
-#include "SpheresVisuNo.hxx"
-
 #endif /* OGL_SPHERES_VISU_NO_H_ */

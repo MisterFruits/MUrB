@@ -59,42 +59,42 @@ public:
 	 *
 	 *  \return Bodies class.
 	 */
-	inline const Bodies<T>* getBodies() const;
+	const Bodies<T>* getBodies() const;
 
 	/*!
 	 *  \brief DtConstant setter.
 	 *
 	 *  \param dtVal : Constant time step value.
 	 */
-	inline void setDtConstant(T dtVal);
+	void setDtConstant(T dtVal);
 
 	/*!
 	 *  \brief DtVariable setter.
 	 *
 	 *  \param minDt : Minimum time step value.
 	 */
-	inline void setDtVariable(T minDt);
+	void setDtVariable(T minDt);
 
 	/*!
 	 *  \brief Time step getter.
 	 *
 	 *  \return Time step value.
 	 */
-	inline const T& getDt() const;
+	const T& getDt() const;
 
 	/*!
 	 *  \brief Flops per iteration getter.
 	 *
 	 *  \return Flops per iteration.
 	 */
-	inline const float& getFlopsPerIte() const;
+	const float& getFlopsPerIte() const;
 
 	/*!
 	 *  \brief Allocated bytes getter.
 	 *
 	 *  \return Number of allocated bytes.
 	 */
-	inline const float& getAllocatedBytes() const;
+	const float& getAllocatedBytes() const;
 
 	/*!
 	 *  \brief Main compute method.
@@ -121,7 +121,7 @@ protected:
 	 *
 	 *  \return Computed time step for iBody.
 	 */
-	inline T computeTimeStep(const unsigned long iBody);
+	T computeTimeStep(const unsigned long iBody);
 
 private:
 	/*!
@@ -129,7 +129,5 @@ private:
 	 */
 	void allocateBuffers();
 };
-
-#include "SimulationNBody.hxx"
 
 #endif /* SIMULATION_N_BODY_H_ */

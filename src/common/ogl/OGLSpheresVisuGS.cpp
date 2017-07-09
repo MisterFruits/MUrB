@@ -21,11 +21,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "OGLTools.h"
 #include "OGLSpheresVisuGS.h"
 
+#include "OGLTools.h"
+
 template <typename T>
-OGLSpheresVisuGS<T>::OGLSpheresVisuGS(const string winName,
+OGLSpheresVisuGS<T>::OGLSpheresVisuGS(const std::string winName,
                                       const int winWidth,
                                       const int winHeight,
                                       const T *positionsX,
@@ -38,8 +39,8 @@ OGLSpheresVisuGS<T>::OGLSpheresVisuGS(const string winName,
 	if(this->window)
 	{
 		// specify shaders path and compile them
-		vector<GLenum> shadersType(3);
-		vector<string> shadersFiles(3);
+		std::vector<GLenum> shadersType(3);
+		std::vector<std::string> shadersFiles(3);
 		shadersType[0] = GL_VERTEX_SHADER;   shadersFiles[0] = "../src/common/ogl/shaders/vertex150.glsl";
 		shadersType[1] = GL_GEOMETRY_SHADER; shadersFiles[1] = "../src/common/ogl/shaders/geometry150.glsl";
 		shadersType[2] = GL_FRAGMENT_SHADER; shadersFiles[2] = "../src/common/ogl/shaders/fragment150.glsl";
@@ -120,3 +121,11 @@ void OGLSpheresVisuGS<T>::refreshDisplay()
 		//std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 	}
 }
+
+// ==================================================================================== explicit template instantiation
+#ifdef NBODY_DOUBLE
+template class OGLSpheresVisuGS<double>;
+#else
+template class OGLSpheresVisuGS<float>;
+#endif
+// ==================================================================================== explicit template instantiation

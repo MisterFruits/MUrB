@@ -149,3 +149,11 @@ T SimulationNBody<T>::computeTimeStep(const unsigned long iBody)
 
 	return dt;
 }
+
+// ==================================================================================== explicit template instantiation
+#ifdef NBODY_DOUBLE
+template class SimulationNBody<double>;
+#else
+template class SimulationNBody<float>;
+#endif
+// ==================================================================================== explicit template instantiation

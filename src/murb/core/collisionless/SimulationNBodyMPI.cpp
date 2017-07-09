@@ -7,6 +7,7 @@
  * \section LICENSE
  * This file is under MIT license (https://opensource.org/licenses/MIT).
  */
+#ifdef USE_MPI
 #include <cmath>
 #include <limits>
 #include <string>
@@ -187,3 +188,12 @@ void SimulationNBodyMPI<T>::findTimeStep()
 			this->dt = this->minDt;
 	}
 }
+
+// ==================================================================================== explicit template instantiation
+#ifdef NBODY_DOUBLE
+template class SimulationNBodyMPI<double>;
+#else
+template class SimulationNBodyMPI<float>;
+#endif
+// ==================================================================================== explicit template instantiation
+#endif

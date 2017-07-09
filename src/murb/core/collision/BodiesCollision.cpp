@@ -241,3 +241,11 @@ void BodiesCollision<T>::applyCollisions(std::vector<std::vector<unsigned long>>
 		}
 	}
 }
+
+// ==================================================================================== explicit template instantiation
+#ifdef NBODY_DOUBLE
+template class BodiesCollision<double>;
+#else
+template class BodiesCollision<float>;
+#endif
+// ==================================================================================== explicit template instantiation

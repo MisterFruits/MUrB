@@ -388,7 +388,7 @@ template <typename T>
 bool Bodies<T>::initFromFileBinary(const std::string inputFileName)
 {
 	std::ifstream bodiesFile;
-	bodiesFile.open(inputFileName.c_str(), std::ios::in | ios::binary);
+	bodiesFile.open(inputFileName.c_str(), std::ios::in | std::ios::binary);
 
 	if(!bodiesFile.is_open())
 	{
@@ -630,7 +630,7 @@ bool Bodies<T>::writeIntoFile(const std::string outputFileName) const
 template <typename T>
 bool Bodies<T>::writeIntoFileBinary(const std::string outputFileName) const
 {
-	std::fstream bodiesFile(outputFileName.c_str(), ios::out | ios::binary);
+	std::fstream bodiesFile(outputFileName.c_str(), std::ios::out | std::ios::binary);
 	if(!bodiesFile.is_open())
 	{
 		std::cout << "Can't open \"" << outputFileName << "\" file (writing). Exiting..." << std::endl;
@@ -677,9 +677,9 @@ bool Bodies<T>::writeIntoFileMPIBinary(const std::string outputFileName, const u
 	std::fstream bodiesFile;
 
 	if(MPINBodies)
-		bodiesFile.open(outputFileName.c_str(), std::fstream::out | ios::binary | std::fstream::trunc);
+		bodiesFile.open(outputFileName.c_str(), std::fstream::out | std::ios::binary | std::fstream::trunc);
 	else
-		bodiesFile.open(outputFileName.c_str(), std::fstream::out | ios::binary | std::fstream::app);
+		bodiesFile.open(outputFileName.c_str(), std::fstream::out | std::ios::binary | std::fstream::app);
 
 	if(!bodiesFile.is_open())
 	{
@@ -707,3 +707,13 @@ std::ostream& operator<<(std::ostream &o, const Bodies<T>& s)
 	s.write(o);
 	return o;
 }
+
+// ==================================================================================== explicit template instantiation
+#ifdef NBODY_DOUBLE
+template class Bodies<double>;
+template std::ostream& operator<<<double>(std::ostream &o, const Bodies<double>& s);
+#else
+template class Bodies<float>;
+template std::ostream& operator<<<float >(std::ostream &o, const Bodies<float >& s);
+#endif
+// ==================================================================================== explicit template instantiation

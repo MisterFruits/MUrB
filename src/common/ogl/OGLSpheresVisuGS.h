@@ -40,6 +40,4 @@ public:
 	void refreshDisplay();
 };
 
-#include "OGLSpheresVisuGS.hxx"
-
 #endif /* OGL_SPHERES_VISU_GS_H_ */

@@ -21,12 +21,12 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/transform.hpp>
 
-#include "OGLTools.h"
-
 #include "OGLSpheresVisu.h"
 
+#include "OGLTools.h"
+
 template <typename T>
-OGLSpheresVisu<T>::OGLSpheresVisu(const string winName,
+OGLSpheresVisu<T>::OGLSpheresVisu(const std::string winName,
                                   const int winWidth,
                                   const int winHeight,
                                   const T *positionsX,
@@ -247,3 +247,11 @@ bool OGLSpheresVisu<T>::pressedPageDown()
 {
 	return glfwGetKey( this->window, GLFW_KEY_PAGE_DOWN );
 }
+
+// ==================================================================================== explicit template instantiation
+#ifdef NBODY_DOUBLE
+template class OGLSpheresVisu<double>;
+#else
+template class OGLSpheresVisu<float>;
+#endif
+// ==================================================================================== explicit template instantiation

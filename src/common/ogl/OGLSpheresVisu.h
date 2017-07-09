@@ -75,6 +75,4 @@ protected:
 	void updatePositions();
 };
 
-#include "OGLSpheresVisu.hxx"
-
 #endif /* OGL_SPHERES_VISU_H_ */

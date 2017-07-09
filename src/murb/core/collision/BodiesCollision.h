@@ -11,6 +11,7 @@
 #define BODIES_COLLISION_H_
 
 #include <string>
+#include <vector>
 
 #include "../../../common/core/Bodies.h"
 
@@ -33,7 +34,5 @@ public:
 
 	void applyCollisions(std::vector<std::vector<unsigned long>> collisions);
 };
-
-#include "BodiesCollision.hxx"
 
 #endif /* BODIES_COLLISION_H_ */

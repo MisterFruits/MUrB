@@ -40,6 +40,4 @@ private:
 	void findTimeStep();
 };
 
-#include "SimulationNBodyLocal.hxx"
-
 #endif /* SIMULATION_N_BODY_LOCAL_H_ */

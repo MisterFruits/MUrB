@@ -11,6 +11,7 @@
 #define SIMULATION_N_BODY_COLLISION_LOCAL_H_
 
 #include <string>
+#include <vector>
 
 #include "../SimulationNBody.h"
 
@@ -41,7 +42,5 @@ protected:
 private:
 	void findTimeStep();
 };
-
-#include "SimulationNBodyCollisionLocal.hxx"
 
 #endif /* SIMULATION_N_BODY_COLLISION_LOCAL_H_ */

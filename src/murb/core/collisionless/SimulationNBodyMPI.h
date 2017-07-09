@@ -7,6 +7,7 @@
  * \section LICENSE
  * This file is under MIT license (https://opensource.org/licenses/MIT).
  */
+#ifdef USE_MPI
 #ifndef SIMULATION_N_BODY_MPI_H_
 #define SIMULATION_N_BODY_MPI_H_
 
@@ -54,6 +55,5 @@ private:
 	void findTimeStep();
 };
 
-#include "SimulationNBodyMPI.hxx"
-
 #endif /* SIMULATION_N_BODY_MPI_H_ */
+#endif
