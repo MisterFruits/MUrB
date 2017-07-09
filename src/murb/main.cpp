@@ -207,7 +207,14 @@ void argsReader(int argc, char** argv)
 	if(argsReader.exist_argument("-im"))
 		ImplId = stoi(argsReader.get_argument("-im"));
 	if(argsReader.exist_argument("-soft"))
+	{
 		Softening = stof(argsReader.get_argument("-soft"));
+		if (Softening == (floatType)0)
+		{
+			cout << "Softening factor can't be equal to 0... exiting." << endl;
+			exit(-1);
+		}
+	}
 }
 
 /*!
@@ -239,8 +246,8 @@ string strDate(T timestamp)
 	stringstream res;
 	res << setprecision(0) << std::fixed << setw(4) << days    << "d "
 	    << setprecision(0) << std::fixed << setw(4) << hours   << "h "
-		<< setprecision(0) << std::fixed << setw(4) << minutes << "m "
-		<< setprecision(3) << std::fixed << setw(5) << rest    << "s";
+	    << setprecision(0) << std::fixed << setw(4) << minutes << "m "
+	    << setprecision(3) << std::fixed << setw(5) << rest    << "s";
 
 	return res.str();
 }
@@ -537,6 +544,8 @@ int main(int argc, char** argv)
 		cout << "  -> mem. allocated        : " << Mbytes << " MB" << endl;
 		cout << "  -> geometry shader       : " << ((GSEnable) ? "enable" : "disable") << endl;
 		cout << "  -> time step             : " << ((DtVariable) ? "variable" : to_string(Dt) + " sec") << endl;
+		if (ImplId >= 30 && ImplId <= 39)
+		cout << "  -> softening factor      : " << Softening << endl;
 		cout << "  -> nb. of MPI procs      : " << MPI::COMM_WORLD.Get_size() << endl;
 		cout << "  -> nb. of threads        : " << omp_get_max_threads() << endl << endl;
 	}
