@@ -38,28 +38,36 @@ if (ENABLE_VISU)
     endif ()
 endif ()
 
+# Génération de la liste des fichiers sources
+file (GLOB_RECURSE source_common src/common/*)
+
+# Object
+add_library (common-lib OBJECT ${source_common})
+
 if (ENABLE_MURB)
     # Génération de la liste des fichiers sources
-    file (GLOB_RECURSE source_murb_files src/common/* src/murb/*)
+    file (GLOB_RECURSE source_murb_files src/murb/*)
 
     # Déclaration de l'exécutable
-    add_executable (murb ${source_murb_files})
+    add_executable (murb-bin $<TARGET_OBJECTS:common-lib> ${source_murb_files})
+    set_target_properties (murb-bin PROPERTIES OUTPUT_NAME murb)
 endif ()
 
 if ((ENABLE_MURB_READER) AND (COMPILE_READER))
     # Génération de la liste des fichiers sources
-    file (GLOB_RECURSE source_reader_files src/common/* src/reader/*)
+    file (GLOB_RECURSE source_reader_files src/reader/*)
 
     # Déclaration de l'exécutable
-    add_executable (reader ${source_reader_files})
+    add_executable (reader-bin $<TARGET_OBJECTS:common-lib> ${source_reader_files})
+    set_target_properties (reader-bin PROPERTIES OUTPUT_NAME reader)
 endif ()
 
 macro (murb_link_libraries lib)
     if (ENABLE_MURB)
-        target_link_libraries (murb ${lib})
+        target_link_libraries (murb-bin ${lib})
     endif (ENABLE_MURB)
     if (ENABLE_MURB_READER)
-        target_link_libraries (reader ${lib})
+        target_link_libraries (reader-bin ${lib})
     endif (ENABLE_MURB_READER)
 endmacro()
 
@@ -111,11 +119,11 @@ if ((ENABLE_MURB_MPI) AND (ENABLE_MURB))
         murb_link_libraries ("${MPI_CXX_LIBRARIES}")
 
         if (MPI_CXX_COMPILE_FLAGS)
-            set_target_properties(murb PROPERTIES COMPILE_FLAGS "${MPI_CXX_COMPILE_FLAGS}")
+            set_target_properties(murb-bin PROPERTIES COMPILE_FLAGS "${MPI_CXX_COMPILE_FLAGS}")
         endif (MPI_CXX_COMPILE_FLAGS)
 
         if (MPI_CXX_LINK_FLAGS)
-            set_target_properties(murb PROPERTIES LINK_FLAGS "${MPI_CXX_LINK_FLAGS}")
+            set_target_properties(murb-bin PROPERTIES LINK_FLAGS "${MPI_CXX_LINK_FLAGS}")
         endif (MPI_CXX_LINK_FLAGS)
 
     endif (MPI_CXX_FOUND)

@@ -5,7 +5,7 @@
  * \date    2014
  *
  * \section LICENSE
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ * This file is under MIT license (https://opensource.org/licenses/MIT).
  */
 #ifndef SIMULATION_N_BODY_V3_INTRINSICS_H_
 #define SIMULATION_N_BODY_V3_INTRINSICS_H_
@@ -33,19 +33,19 @@ protected:
 	virtual void initIteration();
 	virtual void computeLocalBodiesAcceleration();
 
-	static inline void computeAccelerationBetweenTwoBodies(const mipp::reg &rG,
-	                                                       const mipp::reg &rSoftSquared,
-	                                                       const mipp::reg &rqiX,
-	                                                       const mipp::reg &rqiY,
-	                                                       const mipp::reg &rqiZ,
-	                                                             mipp::reg &raiX,
-	                                                             mipp::reg &raiY,
-	                                                             mipp::reg &raiZ,
-	                                                             mipp::reg &rclosNeighi,
-	                                                       const mipp::reg &rmj,
-	                                                       const mipp::reg &rqjX,
-	                                                       const mipp::reg &rqjY,
-	                                                       const mipp::reg &rqjZ);
+	static inline void computeAccelerationBetweenTwoBodies(const mipp::Reg<T> &rG,
+	                                                       const mipp::Reg<T> &rSoftSquared,
+	                                                       const mipp::Reg<T> &rqiX,
+	                                                       const mipp::Reg<T> &rqiY,
+	                                                       const mipp::Reg<T> &rqiZ,
+	                                                             mipp::Reg<T> &raiX,
+	                                                             mipp::Reg<T> &raiY,
+	                                                             mipp::Reg<T> &raiZ,
+	                                                             mipp::Reg<T> &rclosNeighi,
+	                                                       const mipp::Reg<T> &rmj,
+	                                                       const mipp::Reg<T> &rqjX,
+	                                                       const mipp::Reg<T> &rqjY,
+	                                                       const mipp::Reg<T> &rqjZ);
 private:
 	void init();
 	void _computeLocalBodiesAcceleration();

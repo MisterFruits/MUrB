@@ -5,7 +5,7 @@
  * \date    2014
  *
  * \section LICENSE
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ * This file is under MIT license (https://opensource.org/licenses/MIT).
  */
 #include <cmath>
 #include <limits>
@@ -93,38 +93,41 @@ void SimulationNBodyV3IntrinsicsBH<T>::_computeLocalBodiesAcceleration()
 	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::N<T>()!
 	assert(this->dtConstant || (this->bodies->getN() % mipp::N<T>() == 0));
 
-	const T *masses = this->getBodies()->getMasses();
+	const auto mass  = (mipp::Reg<T>*)this->getBodies()->getMasses();
+	const auto posX  = (mipp::Reg<T>*)this->getBodies()->getPositionsX();
+	const auto posY  = (mipp::Reg<T>*)this->getBodies()->getPositionsY();
+	const auto posZ  = (mipp::Reg<T>*)this->getBodies()->getPositionsZ();
+	      auto accX  = (mipp::Reg<T>*)this->accelerations.x;
+	      auto accY  = (mipp::Reg<T>*)this->accelerations.y;
+	      auto accZ  = (mipp::Reg<T>*)this->accelerations.z;
+	      auto closN = (mipp::Reg<T>*)this->closestNeighborDist;
 
-	const T *positionsX = this->getBodies()->getPositionsX();
-	const T *positionsY = this->getBodies()->getPositionsY();
-	const T *positionsZ = this->getBodies()->getPositionsZ();
-
-	const mipp::reg rG           = mipp::set1<T>(this->G);
-	const mipp::reg rSoftSquared = mipp::set1<T>(this->softeningSquared);
+	const mipp::Reg<T> rG           = (T)this->G;
+	const mipp::Reg<T> rSoftSquared = (T)this->softeningSquared;
 
 #pragma omp parallel for schedule(runtime) firstprivate(rG)
-	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
+	for(unsigned long i = 0; i < this->bodies->getNVecs(); i++)
 	{
 		// load vectors
-		const mipp::reg rqiX = mipp::load<T>(positionsX + iVec * mipp::N<T>());
-		const mipp::reg rqiY = mipp::load<T>(positionsY + iVec * mipp::N<T>());
-		const mipp::reg rqiZ = mipp::load<T>(positionsZ + iVec * mipp::N<T>());
+		const auto rqiX = posX[i];
+		const auto rqiY = posY[i];
+		const auto rqiZ = posZ[i];
 
-		mipp::reg raiX = mipp::load<T>(this->accelerations.x + iVec * mipp::N<T>());
-		mipp::reg raiY = mipp::load<T>(this->accelerations.y + iVec * mipp::N<T>());
-		mipp::reg raiZ = mipp::load<T>(this->accelerations.z + iVec * mipp::N<T>());
+		auto raiX = accX[i];
+		auto raiY = accY[i];
+		auto raiZ = accZ[i];
 
-		mipp::reg rclosNeighi = mipp::set1<T>(0.0);
+		mipp::Reg<T> rclosNeighi = (T)0;
 		if(!this->dtConstant)
-			rclosNeighi = mipp::load<T>(this->closestNeighborDist + iVec * mipp::N<T>());
+			rclosNeighi = closN[i];
 
-		for(unsigned long jVec = 0; jVec < this->bodies->getNVecs(); jVec++)
+		for(unsigned long j = 0; j < this->bodies->getNVecs(); j++)
 		{
 			// load vectors
-			mipp::reg rmj  = mipp::load<T>(masses     + jVec * mipp::N<T>());
-			mipp::reg rqjX = mipp::load<T>(positionsX + jVec * mipp::N<T>());
-			mipp::reg rqjY = mipp::load<T>(positionsY + jVec * mipp::N<T>());
-			mipp::reg rqjZ = mipp::load<T>(positionsZ + jVec * mipp::N<T>());
+			auto rmj  = mass[j];
+			auto rqjX = posX[j];
+			auto rqjY = posY[j];
+			auto rqjZ = posZ[j];
 
 			for(unsigned short iRot = 0; iRot < mipp::N<T>(); iRot++)
 			{
@@ -136,17 +139,18 @@ void SimulationNBodyV3IntrinsicsBH<T>::_computeLocalBodiesAcceleration()
 				                                                                    rqjX, rqjY, rqjZ);
 
 				// we make one useless rotate in the last iteration...
-				rmj  = mipp::rrot<T>(rmj);
-				rqjX = mipp::rrot<T>(rqjX); rqjY = mipp::rrot<T>(rqjY); rqjZ = mipp::rrot<T>(rqjZ);
+				rmj  = mipp::rrot(rmj);
+				rqjX = mipp::rrot(rqjX); rqjY = mipp::rrot(rqjY); rqjZ = mipp::rrot(rqjZ);
 			}
 		}
 
 		// store vectors
-		mipp::store<T>(this->accelerations.x + iVec * mipp::N<T>(), raiX);
-		mipp::store<T>(this->accelerations.y + iVec * mipp::N<T>(), raiY);
-		mipp::store<T>(this->accelerations.z + iVec * mipp::N<T>(), raiZ);
+		raiX.store(this->accelerations.x + i * mipp::N<T>());
+		raiY.store(this->accelerations.y + i * mipp::N<T>());
+		raiZ.store(this->accelerations.z + i * mipp::N<T>());
+
 		if(!this->dtConstant)
-			mipp::store<T>(this->closestNeighborDist + iVec * mipp::N<T>(), rclosNeighi);
+			rclosNeighi.store(this->closestNeighborDist + i * mipp::N<T>());
 	}
 }
 

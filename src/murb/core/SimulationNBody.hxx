@@ -5,7 +5,7 @@
  * \date    2014
  *
  * \section LICENSE
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ * This file is under MIT license (https://opensource.org/licenses/MIT).
  */
 #include <cmath>
 #include <limits>
@@ -48,65 +48,32 @@ SimulationNBody<T>::SimulationNBody(Bodies<T> *bodies)
 template <typename T>
 SimulationNBody<T>::~SimulationNBody()
 {
-#ifdef __ARM_NEON__
 	if(this->accelerations.x != nullptr) {
-		delete[] this->accelerations.x;
+		mipp::free(this->accelerations.x);
 		this->accelerations.x = nullptr;
 	}
 	if(this->accelerations.y != nullptr) {
-		delete[] this->accelerations.y;
+		mipp::free(this->accelerations.y);
 		this->accelerations.y = nullptr;
 	}
 	if(this->accelerations.z != nullptr) {
-		delete[] this->accelerations.z;
+		mipp::free(this->accelerations.z);
 		this->accelerations.z = nullptr;
 	}
 
 	if(this->closestNeighborDist != nullptr) {
-		delete[] this->closestNeighborDist;
+		mipp::free(this->closestNeighborDist);
 		this->closestNeighborDist = nullptr;
 	}
-#else
-	if(this->accelerations.x != nullptr) {
-		_mm_free(this->accelerations.x);
-		this->accelerations.x = nullptr;
-	}
-	if(this->accelerations.y != nullptr) {
-		_mm_free(this->accelerations.y);
-		this->accelerations.y = nullptr;
-	}
-	if(this->accelerations.z != nullptr) {
-		_mm_free(this->accelerations.z);
-		this->accelerations.z = nullptr;
-	}
-
-	if(this->closestNeighborDist != nullptr) {
-		_mm_free(this->closestNeighborDist);
-		this->closestNeighborDist = nullptr;
-	}
-#endif
 }
 
 template <typename T>
 void SimulationNBody<T>::allocateBuffers()
 {
-#ifdef __ARM_NEON__
-	this->accelerations.x = new T[this->bodies->getN() + this->bodies->getPadding()];
-	this->accelerations.y = new T[this->bodies->getN() + this->bodies->getPadding()];
-	this->accelerations.z = new T[this->bodies->getN() + this->bodies->getPadding()];
-
-	this->closestNeighborDist = new T[this->bodies->getN() + this->bodies->getPadding()];
-#else
-	this->accelerations.x = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
-	                                       mipp::RequiredAlignment);
-	this->accelerations.y = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
-	                                       mipp::RequiredAlignment);
-	this->accelerations.z = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
-	                                       mipp::RequiredAlignment);
-
-	this->closestNeighborDist = (T*)_mm_malloc((this->bodies->getN() + this->bodies->getPadding()) * sizeof(T),
-	                                           mipp::RequiredAlignment);
-#endif
+	this->accelerations.x     = mipp::malloc<T>(this->bodies->getN() + this->bodies->getPadding());
+	this->accelerations.y     = mipp::malloc<T>(this->bodies->getN() + this->bodies->getPadding());
+	this->accelerations.z     = mipp::malloc<T>(this->bodies->getN() + this->bodies->getPadding());
+	this->closestNeighborDist = mipp::malloc<T>(this->bodies->getN() + this->bodies->getPadding());
 
 	this->allocatedBytes += (this->bodies->getN() + this->bodies->getPadding()) * sizeof(T) * 4;
 }

@@ -5,7 +5,7 @@
  * \date    2014
  *
  * \section LICENSE
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ * This file is under MIT license (https://opensource.org/licenses/MIT).
  */
 #include <cmath>
 #include <limits>
@@ -13,7 +13,6 @@
 #include <cassert>
 #include <fstream>
 #include <iostream>
-#include <mipp.h>
 
 #ifdef _OPENMP
 #include <omp.h>

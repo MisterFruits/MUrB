@@ -5,7 +5,7 @@
  * \date    2014
  *
  * \section LICENSE
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ * This file is under MIT license (https://opensource.org/licenses/MIT).
  */
 #include <cmath>
 #include <limits>
@@ -93,37 +93,40 @@ void SimulationNBodyV1Intrinsics<T>::_computeLocalBodiesAcceleration()
 	//       It is necessary to launch the simulation with a number of bodies multiple of mipp::vectorSize<T>()!
 	assert(this->dtConstant || (this->bodies->getN() % mipp::N<T>() == 0));
 
-	const T *masses = this->getBodies()->getMasses();
+	const auto mass  = (mipp::Reg<T>*)this->getBodies()->getMasses();
+	const auto posX  = (mipp::Reg<T>*)this->getBodies()->getPositionsX();
+	const auto posY  = (mipp::Reg<T>*)this->getBodies()->getPositionsY();
+	const auto posZ  = (mipp::Reg<T>*)this->getBodies()->getPositionsZ();
+	      auto accX  = (mipp::Reg<T>*)this->accelerations.x;
+	      auto accY  = (mipp::Reg<T>*)this->accelerations.y;
+	      auto accZ  = (mipp::Reg<T>*)this->accelerations.z;
+	      auto closN = (mipp::Reg<T>*)this->closestNeighborDist;
 
-	const T *positionsX = this->getBodies()->getPositionsX();
-	const T *positionsY = this->getBodies()->getPositionsY();
-	const T *positionsZ = this->getBodies()->getPositionsZ();
-
-	const mipp::reg rG = mipp::set1<T>(this->G);
+	const mipp::Reg<T> rG = (T)this->G;
 
 #pragma omp parallel for schedule(runtime) firstprivate(rG)
 	for(unsigned long iVec = 0; iVec < this->bodies->getNVecs(); iVec++)
 	{
 		// load vectors
-		const mipp::reg rqiX = mipp::load<T>(positionsX + iVec * mipp::N<T>());
-		const mipp::reg rqiY = mipp::load<T>(positionsY + iVec * mipp::N<T>());
-		const mipp::reg rqiZ = mipp::load<T>(positionsZ + iVec * mipp::N<T>());
+		const auto rqiX = posX[iVec]; // load
+		const auto rqiY = posY[iVec]; // load
+		const auto rqiZ = posZ[iVec]; // load
 
-		mipp::reg raiX = mipp::load<T>(this->accelerations.x + iVec * mipp::N<T>());
-		mipp::reg raiY = mipp::load<T>(this->accelerations.y + iVec * mipp::N<T>());
-		mipp::reg raiZ = mipp::load<T>(this->accelerations.z + iVec * mipp::N<T>());
+		auto raiX = accX[iVec]; // load
+		auto raiY = accY[iVec]; // load
+		auto raiZ = accZ[iVec]; // load
 
-		mipp::reg rclosNeighi = mipp::set1<T>((T)0.0);
+		mipp::Reg<T> rclosNeighi = (T)0;
 		if(!this->dtConstant)
-			rclosNeighi = mipp::load<T>(this->closestNeighborDist + iVec * mipp::N<T>());
+			rclosNeighi = closN[iVec]; // load
 
 		for(unsigned long jVec = 0; jVec < this->bodies->getNVecs(); jVec++)
 		{
 			// load vectors
-			mipp::reg rmj  = mipp::load<T>(masses     + jVec * mipp::N<T>());
-			mipp::reg rqjX = mipp::load<T>(positionsX + jVec * mipp::N<T>());
-			mipp::reg rqjY = mipp::load<T>(positionsY + jVec * mipp::N<T>());
-			mipp::reg rqjZ = mipp::load<T>(positionsZ + jVec * mipp::N<T>());
+			auto rmj  = mass[jVec]; // load
+			auto rqjX = posX[jVec]; // load
+			auto rqjY = posY[jVec]; // load
+			auto rqjZ = posZ[jVec]; // load
 
 			if(iVec != jVec)
 			{
@@ -137,16 +140,20 @@ void SimulationNBodyV1Intrinsics<T>::_computeLocalBodiesAcceleration()
 					                                                                    rqjX, rqjY, rqjZ);
 
 					// we make one useless rotate in the last iteration...
-					rmj  = mipp::rrot<T>(rmj);
-					rqjX = mipp::rrot<T>(rqjX); rqjY = mipp::rrot<T>(rqjY); rqjZ = mipp::rrot<T>(rqjZ);
+					rmj  = mipp::rrot(rmj);
+					rqjX = mipp::rrot(rqjX);
+					rqjY = mipp::rrot(rqjY);
+					rqjZ = mipp::rrot(rqjZ);
 				}
 			}
 			else
 			{
 				for(unsigned short iRot = 1; iRot < mipp::N<T>(); iRot++)
 				{
-					rmj  = mipp::rrot<T>(rmj);
-					rqjX = mipp::rrot<T>(rqjX); rqjY = mipp::rrot<T>(rqjY); rqjZ = mipp::rrot<T>(rqjZ);
+					rmj  = mipp::rrot(rmj);
+					rqjX = mipp::rrot(rqjX);
+					rqjY = mipp::rrot(rqjY);
+					rqjZ = mipp::rrot(rqjZ);
 
 					SimulationNBodyV1Intrinsics<T>::computeAccelerationBetweenTwoBodies(rG,
 					                                                                    rqiX, rqiY, rqiZ,
@@ -159,11 +166,12 @@ void SimulationNBodyV1Intrinsics<T>::_computeLocalBodiesAcceleration()
 		}
 
 		// store vectors
-		mipp::store<T>(this->accelerations.x + iVec * mipp::N<T>(), raiX);
-		mipp::store<T>(this->accelerations.y + iVec * mipp::N<T>(), raiY);
-		mipp::store<T>(this->accelerations.z + iVec * mipp::N<T>(), raiZ);
+		raiX.store(this->accelerations.x + iVec * mipp::N<T>());
+		raiY.store(this->accelerations.y + iVec * mipp::N<T>());
+		raiZ.store(this->accelerations.z + iVec * mipp::N<T>());
+
 		if(!this->dtConstant)
-			mipp::store<T>(this->closestNeighborDist + iVec * mipp::N<T>(), rclosNeighi);
+			rclosNeighi.store(this->closestNeighborDist + iVec * mipp::N<T>());
 	}
 }
 
@@ -184,73 +192,72 @@ void SimulationNBodyV1Intrinsics<float>::computeLocalBodiesAcceleration()
 
 // 19 flops
 template <typename T>
-void SimulationNBodyV1Intrinsics<T>::computeAccelerationBetweenTwoBodies(const mipp::reg &rG,
-                                                                         const mipp::reg &rqiX,
-                                                                         const mipp::reg &rqiY,
-                                                                         const mipp::reg &rqiZ,
-                                                                               mipp::reg &raiX,
-                                                                               mipp::reg &raiY,
-                                                                               mipp::reg &raiZ,
-                                                                               mipp::reg &rclosNeighi,
-                                                                         const mipp::reg &rmj,
-                                                                         const mipp::reg &rqjX,
-                                                                         const mipp::reg &rqjY,
-                                                                         const mipp::reg &rqjZ)
+void SimulationNBodyV1Intrinsics<T>::computeAccelerationBetweenTwoBodies(const mipp::Reg<T> &rG,
+                                                                         const mipp::Reg<T> &rqiX,
+                                                                         const mipp::Reg<T> &rqiY,
+                                                                         const mipp::Reg<T> &rqiZ,
+                                                                               mipp::Reg<T> &raiX,
+                                                                               mipp::Reg<T> &raiY,
+                                                                               mipp::Reg<T> &raiZ,
+                                                                               mipp::Reg<T> &rclosNeighi,
+                                                                         const mipp::Reg<T> &rmj,
+                                                                         const mipp::Reg<T> &rqjX,
+                                                                         const mipp::Reg<T> &rqjY,
+                                                                         const mipp::Reg<T> &rqjZ)
 {
-	mipp::reg rrijX = mipp::sub<T>(rqjX, rqiX); // 1 flop
-	mipp::reg rrijY = mipp::sub<T>(rqjY, rqiY); // 1 flop
-	mipp::reg rrijZ = mipp::sub<T>(rqjZ, rqiZ); // 1 flop
+	auto rrijX = rqjX - rqiX; // 1 flop
+	auto rrijY = rqjY - rqiY; // 1 flop
+	auto rrijZ = rqjZ - rqiZ; // 1 flop
 
-	mipp::reg rrijSquared = mipp::set1<T>((T)0);
-	rrijSquared = mipp::fmadd<T>(rrijX, rrijX, rrijSquared); // 2 flops
-	rrijSquared = mipp::fmadd<T>(rrijY, rrijY, rrijSquared); // 2 flops
-	rrijSquared = mipp::fmadd<T>(rrijZ, rrijZ, rrijSquared); // 2 flops
+	auto rrijSquared = mipp::Reg<T>((T)0);
+	rrijSquared = mipp::fmadd(rrijX, rrijX, rrijSquared); // 2 flops
+	rrijSquared = mipp::fmadd(rrijY, rrijY, rrijSquared); // 2 flops
+	rrijSquared = mipp::fmadd(rrijZ, rrijZ, rrijSquared); // 2 flops
 
-	mipp::reg rrij = mipp::sqrt<T>(rrijSquared); // 1 flop
+	auto rrij = mipp::sqrt(rrijSquared); // 1 flop
 
-	mipp::reg rai = mipp::div<T>(mipp::mul<T>(rG, rmj), mipp::mul<T>(rrij, rrijSquared)); // 3 flops
+	auto rai = (rG * rmj) / (rrij * rrijSquared); // 3 flops
 
-	raiX = mipp::fmadd<T>(rai, rrijX, raiX); // 2 flops
-	raiY = mipp::fmadd<T>(rai, rrijY, raiY); // 2 flops
-	raiZ = mipp::fmadd<T>(rai, rrijZ, raiZ); // 2 flops
+	raiX = mipp::fmadd(rai, rrijX, raiX); // 2 flops
+	raiY = mipp::fmadd(rai, rrijY, raiY); // 2 flops
+	raiZ = mipp::fmadd(rai, rrijZ, raiZ); // 2 flops
 
-	rclosNeighi = mipp::min<T>(rclosNeighi, rrij);
+	rclosNeighi = mipp::min(rclosNeighi, rrij);
 }
 
 // 20 flops
 template <>
-void SimulationNBodyV1Intrinsics<float>::computeAccelerationBetweenTwoBodies(const mipp::reg &rG,
-                                                                             const mipp::reg &rqiX,
-                                                                             const mipp::reg &rqiY,
-                                                                             const mipp::reg &rqiZ,
-                                                                                   mipp::reg &raiX,
-                                                                                   mipp::reg &raiY,
-                                                                                   mipp::reg &raiZ,
-                                                                                   mipp::reg &rclosNeighi,
-                                                                             const mipp::reg &rmj,
-                                                                             const mipp::reg &rqjX,
-                                                                             const mipp::reg &rqjY,
-                                                                             const mipp::reg &rqjZ)
+void SimulationNBodyV1Intrinsics<float>::computeAccelerationBetweenTwoBodies(const mipp::Reg<float> &rG,
+                                                                             const mipp::Reg<float> &rqiX,
+                                                                             const mipp::Reg<float> &rqiY,
+                                                                             const mipp::Reg<float> &rqiZ,
+                                                                                   mipp::Reg<float> &raiX,
+                                                                                   mipp::Reg<float> &raiY,
+                                                                                   mipp::Reg<float> &raiZ,
+                                                                                   mipp::Reg<float> &rclosNeighi,
+                                                                             const mipp::Reg<float> &rmj,
+                                                                             const mipp::Reg<float> &rqjX,
+                                                                             const mipp::Reg<float> &rqjY,
+                                                                             const mipp::Reg<float> &rqjZ)
 {
-	mipp::reg rrijX = mipp::sub<float>(rqjX, rqiX); // 1 flop
-	mipp::reg rrijY = mipp::sub<float>(rqjY, rqiY); // 1 flop
-	mipp::reg rrijZ = mipp::sub<float>(rqjZ, rqiZ); // 1 flop
+	auto rrijX = rqjX - rqiX; // 1 flop
+	auto rrijY = rqjY - rqiY; // 1 flop
+	auto rrijZ = rqjZ - rqiZ; // 1 flop
 
-	mipp::reg rrijSquared = mipp::set1<float>(0.f);
-	rrijSquared = mipp::fmadd<float>(rrijX, rrijX, rrijSquared); // 2 flops
-	rrijSquared = mipp::fmadd<float>(rrijY, rrijY, rrijSquared); // 2 flops
-	rrijSquared = mipp::fmadd<float>(rrijZ, rrijZ, rrijSquared); // 2 flops
+	auto rrijSquared = mipp::Reg<float>(0.f);
+	rrijSquared = mipp::fmadd(rrijX, rrijX, rrijSquared); // 2 flops
+	rrijSquared = mipp::fmadd(rrijY, rrijY, rrijSquared); // 2 flops
+	rrijSquared = mipp::fmadd(rrijZ, rrijZ, rrijSquared); // 2 flops
 
-	mipp::reg rrijInv = mipp::rsqrt<float>(rrijSquared); // 1 flop
+	auto rrijInv = mipp::rsqrt(rrijSquared); // 1 flop
 
 	// || ai || = G * mj / (rij   * rij   * rij  ) <=>
 	// || ai || = G * mj * (1/rij * 1/rij * 1/rij)
-	mipp::reg rai = mipp::mul<float>(mipp::mul<float>(rG, rmj),
-	                                 mipp::mul<float>(mipp::mul<float>(rrijInv, rrijInv), rrijInv)); // 4 flops
+	auto rai = rG * rmj * rrijInv * rrijInv * rrijInv; // 4 flops
 
-	raiX = mipp::fmadd<float>(rai, rrijX, raiX); // 2 flops
-	raiY = mipp::fmadd<float>(rai, rrijY, raiY); // 2 flops
-	raiZ = mipp::fmadd<float>(rai, rrijZ, raiZ); // 2 flops
+	raiX = mipp::fmadd(rai, rrijX, raiX); // 2 flops
+	raiY = mipp::fmadd(rai, rrijY, raiY); // 2 flops
+	raiZ = mipp::fmadd(rai, rrijZ, raiZ); // 2 flops
 
-	rclosNeighi = mipp::max<float>(rclosNeighi, rrijInv);
+	rclosNeighi = mipp::max(rclosNeighi, rrijInv);
 }

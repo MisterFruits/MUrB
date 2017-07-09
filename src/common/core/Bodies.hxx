@@ -5,7 +5,7 @@
  * \date    2014
  *
  * \section LICENSE
- * This file is under CC BY-NC-ND license (http://creativecommons.org/licenses/by-nc-nd/4.0/legalcode).
+ * This file is under MIT license (https://opensource.org/licenses/MIT).
  */
 #include <cmath>
 #include <limits>
@@ -109,110 +109,57 @@ void Bodies<T>::hardCopy(const Bodies<T>& bodies)
 template <typename T>
 void Bodies<T>::allocateBuffers()
 {
-#ifdef __ARM_NEON__
-	this->masses = new T[this->n + this->padding];
+	this->masses   = mipp::malloc<T>(this->n + this->padding);
+	this->radiuses = mipp::malloc<T>(this->n + this->padding);
 
-	this->radiuses = new T[this->n + this->padding];
+	this->positions.x = mipp::malloc<T>(this->n + this->padding);
+	this->positions.y = mipp::malloc<T>(this->n + this->padding);
+	this->positions.z = mipp::malloc<T>(this->n + this->padding);
 
-	this->positions.x = new T[this->n + this->padding];
-	this->positions.y = new T[this->n + this->padding];
-	this->positions.z = new T[this->n + this->padding];
+	this->velocities.x = mipp::malloc<T>(this->n + this->padding);
+	this->velocities.y = mipp::malloc<T>(this->n + this->padding);
+	this->velocities.z = mipp::malloc<T>(this->n + this->padding);
 
-	this->velocities.x = new T[this->n + this->padding];
-	this->velocities.y = new T[this->n + this->padding];
-	this->velocities.z = new T[this->n + this->padding];
-#else
-	this->masses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
-
-	this->radiuses = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
-
-	this->positions.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
-	this->positions.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
-	this->positions.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
-
-	this->velocities.x = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
-	this->velocities.y = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
-	this->velocities.z = (T*)_mm_malloc((this->n + this->padding) * sizeof(T), mipp::RequiredAlignment);
-#endif
-
-	this->allocatedBytes = (this->n + this->padding) * sizeof(T) * 11;
+	this->allocatedBytes = (this->n + this->padding) * sizeof(T) * 8;
 }
 
 template <typename T>
 Bodies<T>::~Bodies() {
-#ifdef __ARM_NEON__
 	if(this->masses != nullptr) {
-		delete[] this->masses;
+		mipp::free(this->masses);
 		this->masses = nullptr;
 	}
 
 	if(this->radiuses != nullptr) {
-		delete[] this->radiuses;
+		mipp::free(this->radiuses);
 		this->radiuses = nullptr;
 	}
 
 	if(this->positions.x != nullptr) {
-		delete[] this->positions.x;
+		mipp::free(this->positions.x);
 		this->positions.x = nullptr;
 	}
 	if(this->positions.y != nullptr) {
-		delete[] this->positions.y;
+		mipp::free(this->positions.y);
 		this->positions.y = nullptr;
 	}
 	if(this->positions.z != nullptr) {
-		delete[] this->positions.z;
+		mipp::free(this->positions.z);
 		this->positions.z = nullptr;
 	}
 
 	if(this->velocities.x != nullptr) {
-		delete[] this->velocities.x;
+		mipp::free(this->velocities.x);
 		this->velocities.x = nullptr;
 	}
 	if(this->velocities.y != nullptr) {
-		delete[] this->velocities.y;
+		mipp::free(this->velocities.y);
 		this->velocities.y = nullptr;
 	}
 	if(this->velocities.z != nullptr) {
-		delete[] this->velocities.z;
+		mipp::free(this->velocities.z);
 		this->velocities.z = nullptr;
 	}
-#else
-	if(this->masses != nullptr) {
-		_mm_free(this->masses);
-		this->masses = nullptr;
-	}
-
-	if(this->radiuses != nullptr) {
-		_mm_free(this->radiuses);
-		this->radiuses = nullptr;
-	}
-
-	if(this->positions.x != nullptr) {
-		_mm_free(this->positions.x);
-		this->positions.x = nullptr;
-	}
-	if(this->positions.y != nullptr) {
-		_mm_free(this->positions.y);
-		this->positions.y = nullptr;
-	}
-	if(this->positions.z != nullptr) {
-		_mm_free(this->positions.z);
-		this->positions.z = nullptr;
-	}
-
-	if(this->velocities.x != nullptr) {
-		_mm_free(this->velocities.x);
-		this->velocities.x = nullptr;
-	}
-	if(this->velocities.y != nullptr) {
-		_mm_free(this->velocities.y);
-		this->velocities.y = nullptr;
-	}
-	if(this->velocities.z != nullptr) {
-		_mm_free(this->velocities.z);
-		this->velocities.z = nullptr;
-	}
-#endif
 }
 
 template <typename T>
