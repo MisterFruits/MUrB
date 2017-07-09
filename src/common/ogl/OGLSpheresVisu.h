@@ -10,6 +10,7 @@
  * \section DESCRIPTION
  * This is the traditional entry file for the code execution.
  */
+#ifdef VISU
 #ifndef OGL_SPHERES_VISU_H_
 #define OGL_SPHERES_VISU_H_
 
@@ -76,3 +77,4 @@ protected:
 };
 
 #endif /* OGL_SPHERES_VISU_H_ */
+#endif
