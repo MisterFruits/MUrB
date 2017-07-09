@@ -82,6 +82,7 @@ else ()
 endif ()
 
 if (LINK_VISU)
+    message(STATUS "Link with OpenGL libraries")
 #   find_package (OpenGL REQUIRED)
     if (OPENGL_FOUND)
         include_directories (${OPENGL_INCLUDE_DIR})
@@ -115,6 +116,7 @@ if ((ENABLE_MURB_MPI) AND (ENABLE_MURB))
 
     find_package (MPI REQUIRED)
     if (MPI_CXX_FOUND)
+        message(STATUS "MPI found")
         include_directories (${MPI_CXX_INCLUDE_PATH})
         murb_link_libraries ("${MPI_CXX_LIBRARIES}")
 
