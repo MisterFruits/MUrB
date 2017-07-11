@@ -23,7 +23,7 @@ MUrB depends on some other Git repositories (or submodules). It is highly recomm
 
 ## Other dependencies
 
-MUrB comes with a realy cool real time display engine, to get it, you have to install some dependencies: `OpenGL >= 2.0`, `GLEW >= 1.11.0`, `GLM >= 0.9.5.4` and `GLFW >= 3.0.4` libraries are required.
+MUrB comes with a realy cool real time display engine, to get it, you have to install some dependencies: `OpenGL >= 3.0`, `GLEW >= 1.11.0`, `GLM >= 0.9.5.4` and `GLFW >= 3.0.4` libraries are required.
 If one on these libraries is missing on your system, then MUrB will be compiled in console mode only.
 
 ## Exemple of a Makefile project generation (with the C++ GNU compiler)
