@@ -32,9 +32,12 @@ OGLSpheresVisuInst<T>::OGLSpheresVisuInst(const std::string winName,
                                           const T *positionsX,
                                           const T *positionsY,
                                           const T *positionsZ,
+                                          const T *accelerationsX,
+                                          const T *accelerationsY,
+                                          const T *accelerationsZ,
                                           const T *radius,
                                           const unsigned long nSpheres)
-	: OGLSpheresVisu<T>(winName, winWidth, winHeight, positionsX, positionsY, positionsZ, radius, nSpheres),
+	: OGLSpheresVisu<T>(winName, winWidth, winHeight, positionsX, positionsY, positionsZ, accelerationsX, accelerationsX ? accelerationsY : nullptr, accelerationsX ? accelerationsZ : nullptr, radius, nSpheres),
 	  vertexModelSize((this->nPointsPerCircle +1) * ((this->nPointsPerCircle / 2) +1) * 3),
 	  vertexModel      (NULL),
 	  modelBufferRef   ((GLuint) 0)
@@ -65,8 +68,8 @@ OGLSpheresVisuInst<T>::OGLSpheresVisuInst(const std::string winName,
 		// specify shaders path and compile them
 		std::vector<GLenum> shadersType(2);
 		std::vector<std::string> shadersFiles(2);
-		shadersType[0] = GL_VERTEX_SHADER;   shadersFiles[0] = "../src/common/ogl/shaders/vertex130.glsl";
-		shadersType[1] = GL_FRAGMENT_SHADER; shadersFiles[1] = "../src/common/ogl/shaders/fragment130.glsl";
+		shadersType[0] = GL_VERTEX_SHADER;   shadersFiles[0] = accelerationsX ? "../src/common/ogl/shaders/vertex130_color.glsl"   : "../src/common/ogl/shaders/vertex130.glsl";
+		shadersType[1] = GL_FRAGMENT_SHADER; shadersFiles[1] = accelerationsX ? "../src/common/ogl/shaders/fragment130_color.glsl" : "../src/common/ogl/shaders/fragment130.glsl";
 
 		this->compileShaders(shadersType, shadersFiles);
 	}
@@ -121,7 +124,23 @@ void OGLSpheresVisuInst<T>::refreshDisplay()
 			);
 		}
 
-		// 3rd attribute buffer : radius
+		// 3rd attribute buffer : vertex accelerations
+		if (this->accelerationsX != nullptr)
+			for(int i = 0; i < 3; i++)
+			{
+				glEnableVertexAttribArray(iBufferIndex);
+				glBindBuffer(GL_ARRAY_BUFFER, this->accelerationBufferRef[i]);
+				glVertexAttribPointer(
+						iBufferIndex++, // attribute. No particular reason for 0, but must match the layout in the shader.
+						1,              // size
+						GL_FLOAT,       // type
+						GL_FALSE,       // normalized?
+						0,              // stride
+						(void*)0        // array buffer offset
+				);
+			}
+
+		// 4rd attribute buffer : radius
 		glEnableVertexAttribArray(iBufferIndex);
 		glBindBuffer(GL_ARRAY_BUFFER, this->radiusBufferRef);
 		glVertexAttribPointer(
@@ -148,7 +167,15 @@ void OGLSpheresVisuInst<T>::refreshDisplay()
 		glVertexAttribDivisor(1, 1); // positionsX : one per sphere (its center) -> 1
 		glVertexAttribDivisor(2, 1); // positionsY : one per sphere (its center) -> 1
 		glVertexAttribDivisor(3, 1); // positionsZ : one per sphere (its center) -> 1
-		glVertexAttribDivisor(4, 1); // radius     : one per sphere -> 1
+		if (this->accelerationsX != nullptr)
+		{
+			glVertexAttribDivisor(4, 1); // accelerationsX : one per sphere (its center) -> 1
+			glVertexAttribDivisor(5, 1); // accelerationsY : one per sphere (its center) -> 1
+			glVertexAttribDivisor(6, 1); // accelerationsZ : one per sphere (its center) -> 1
+			glVertexAttribDivisor(7, 1); // radius      : one per sphere -> 1
+		}
+		else
+			glVertexAttribDivisor(4, 1); // radius     : one per sphere -> 1
 
 		// Draw the particles !
 		// This draws many times a small line_strip (which looks like a sphere).
@@ -162,6 +189,12 @@ void OGLSpheresVisuInst<T>::refreshDisplay()
 		glDisableVertexAttribArray(2);
 		glDisableVertexAttribArray(3);
 		glDisableVertexAttribArray(4);
+		if (this->accelerationsX != nullptr)
+		{
+			glDisableVertexAttribArray(5);
+			glDisableVertexAttribArray(6);
+			glDisableVertexAttribArray(7);
+		}
 
 		// Swap front and back buffers
 		glfwSwapBuffers(this->window);

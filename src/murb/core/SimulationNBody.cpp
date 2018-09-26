@@ -85,6 +85,24 @@ const Bodies<T>* SimulationNBody<T>::getBodies() const
 }
 
 template <typename T>
+const T* SimulationNBody<T>::getAccelerationsX() const
+{
+	return this->accelerations.x;
+}
+
+template <typename T>
+const T* SimulationNBody<T>::getAccelerationsY() const
+{
+	return this->accelerations.y;
+}
+
+template <typename T>
+const T* SimulationNBody<T>::getAccelerationsZ() const
+{
+	return this->accelerations.z;
+}
+
+template <typename T>
 void SimulationNBody<T>::setDtConstant(T dtVal)
 {
 	this->dtConstant = true;

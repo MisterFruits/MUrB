@@ -253,7 +253,7 @@ void Bodies<T>::setBody(const unsigned long &iBody,
 	this->velocities.z[iBody] = viZ;
 }
 
-/* create a galaxy...
+/* create a galaxy...*/
 template <typename T>
 void Bodies<T>::initRandomly(const unsigned long randInit)
 {
@@ -278,8 +278,8 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		}
 		else
 		{
-			mi = ((rand() / (T) RAND_MAX) * 0.1e20);
-			ri = mi * 5.0e-15;
+			mi = ((rand() / (T) RAND_MAX) * 5e20);
+			ri = mi * 2.5e-15;
 
 			T horizontalAngle = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2.0 * M_PI;
 			T verticalAngle   = ((RAND_MAX - rand()) / (T) (RAND_MAX)) * 2.0 * M_PI;
@@ -313,50 +313,49 @@ void Bodies<T>::initRandomly(const unsigned long randInit)
 		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
 	}
 }
-*/
 
 /* real random */
-template <typename T>
-void Bodies<T>::initRandomly(const unsigned long randInit)
-{
-	this->allocateBuffers();
+// template <typename T>
+// void Bodies<T>::initRandomly(const unsigned long randInit)
+// {
+// 	this->allocateBuffers();
 
-	srand(randInit);
-	for(unsigned long iBody = 0; iBody < this->n; iBody++)
-	{
-		T mi, ri, qiX, qiY, qiZ, viX, viY, viZ;
+// 	srand(randInit);
+// 	for(unsigned long iBody = 0; iBody < this->n; iBody++)
+// 	{
+// 		T mi, ri, qiX, qiY, qiZ, viX, viY, viZ;
 
-		mi = ((rand() / (T) RAND_MAX) * 5.0e21);
+// 		mi = ((rand() / (T) RAND_MAX) * 5.0e21);
 
-		ri = mi * 0.5e-14;
+// 		ri = mi * 0.5e-14;
 
-		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+// 		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+// 		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+// 		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
 
-		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+// 		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+// 		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+// 		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
-		this->setBody(iBody, mi, ri, qiX, qiY, qiZ, viX, viY, viZ);
-	}
+// 		this->setBody(iBody, mi, ri, qiX, qiY, qiZ, viX, viY, viZ);
+// 	}
 
-	// fill the bodies in the padding zone
-	for(unsigned long iBody = this->n; iBody < this->n + this->padding; iBody++)
-	{
-		T qiX, qiY, qiZ, viX, viY, viZ;
+// 	// fill the bodies in the padding zone
+// 	for(unsigned long iBody = this->n; iBody < this->n + this->padding; iBody++)
+// 	{
+// 		T qiX, qiY, qiZ, viX, viY, viZ;
 
-		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
-		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
-		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
+// 		qiX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * (5.0e8 * 1.33);
+// 		qiY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8;
+// 		qiZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 5.0e8 -10.0e8;
 
-		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
-		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+// 		viX = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+// 		viY = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
+// 		viZ = ((rand() - RAND_MAX/2) / (T) (RAND_MAX/2)) * 1.0e2;
 
-		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
-	}
-}
+// 		this->setBody(iBody, 0, 0, qiX, qiY, qiZ, viX, viY, viZ);
+// 	}
+// }
 
 template <typename T>
 bool Bodies<T>::initFromFile(const std::string inputFileName)

@@ -28,8 +28,8 @@ template <typename T = double>
 class OGLSpheresVisuInst :  public OGLSpheresVisu<T> {
 private:
 	const float          PI               = 3.1415926;
-	const unsigned long  nPointsPerCircle = 22;
-	//const unsigned long  nPointsPerCircle = 8;
+	// const unsigned long  nPointsPerCircle = 22;
+	const unsigned long  nPointsPerCircle = 8;
 	unsigned long        vertexModelSize;
 	GLfloat             *vertexModel;
 	GLuint               modelBufferRef;
@@ -41,6 +41,9 @@ public:
 	                   const T *positionsX,
 	                   const T *positionsY,
 	                   const T *positionsZ,
+	                   const T *accelerationsX,
+	                   const T *accelerationsY,
+	                   const T *accelerationsZ,
 	                   const T *radius,
 	                   const unsigned long nSpheres);
 

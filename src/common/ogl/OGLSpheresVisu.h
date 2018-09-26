@@ -37,6 +37,12 @@ protected:
 	float   *positionsYBuffer;
 	const T *positionsZ;
 	float   *positionsZBuffer;
+	const T *accelerationsX;
+	float   *accelerationsXBuffer;
+	const T *accelerationsY;
+	float   *accelerationsYBuffer;
+	const T *accelerationsZ;
+	float   *accelerationsZBuffer;
 	const T *radius;
 	float   *radiusBuffer;
 
@@ -44,6 +50,7 @@ protected:
 
 	GLuint vertexArrayRef;
 	GLuint positionBufferRef[3];
+	GLuint accelerationBufferRef[3];
 	GLuint radiusBufferRef;
 	GLuint mvpRef;
 	GLuint shaderProgramRef;
@@ -59,6 +66,9 @@ protected:
 	               const T *positionsX,
 	               const T *positionsY,
 	               const T *positionsZ,
+	               const T *accelerationsX,
+	               const T *accelerationsY,
+	               const T *accelerationsZ,
 	               const T *radius,
 	               const unsigned long nSpheres);
 	OGLSpheresVisu();

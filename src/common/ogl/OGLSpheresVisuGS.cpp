@@ -35,7 +35,7 @@ OGLSpheresVisuGS<T>::OGLSpheresVisuGS(const std::string winName,
                                       const T *positionsZ,
                                       const T *radius,
                                       const unsigned long nSpheres)
-	: OGLSpheresVisu<T>(winName, winWidth, winHeight, positionsX, positionsY, positionsZ, radius, nSpheres)
+	: OGLSpheresVisu<T>(winName, winWidth, winHeight, positionsX, positionsY, positionsZ, nullptr, nullptr, nullptr, radius, nSpheres)
 {
 	if(this->window)
 	{

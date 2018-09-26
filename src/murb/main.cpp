@@ -425,6 +425,11 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 		const T *positionsX = simu->getBodies()->getPositionsX();
 		const T *positionsY = simu->getBodies()->getPositionsY();
 		const T *positionsZ = simu->getBodies()->getPositionsZ();
+
+		const T *accelerationsX = simu->getAccelerationsX();
+		const T *accelerationsY = simu->getAccelerationsY();
+		const T *accelerationsZ = simu->getAccelerationsZ();
+
 		const T *radiuses   = simu->getBodies()->getRadiuses();
 
 		if(GSEnable) // geometry shader = better performances on dedicated GPUs
@@ -435,6 +440,7 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 		else
 			visu = new OGLSpheresVisuInst<T>("MUrB n-body (instancing)", WinWidth, WinHeight,
 			                                 positionsX, positionsY, positionsZ,
+			                                 accelerationsX, accelerationsY, accelerationsZ,
 			                                 radiuses,
 			                                 NBodies);
 		cout << endl;

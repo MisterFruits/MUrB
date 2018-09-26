@@ -143,6 +143,7 @@ SpheresVisu* selectImplementationAndAllocateVisu(Bodies<T> *bodies)
 	else
 		visu = new OGLSpheresVisuInst<T>("MUrB reader (instancing)", WinWidth, WinHeight,
 		                                 positionsX, positionsY, positionsZ,
+		                                 nullptr, nullptr, nullptr,
 		                                 radiuses,
 		                                 bodies->getN());
 	cout << endl;

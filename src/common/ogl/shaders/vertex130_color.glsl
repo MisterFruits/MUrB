@@ -18,8 +18,17 @@ in float positionXPerVertex;
 in float positionYPerVertex;
 in float positionZPerVertex;
 
+in float accXPerVertex;
+in float accYPerVertex;
+in float accZPerVertex;
+
 // Input radius
 in float radiusPerVertex;
+
+// Output color
+out float colorRPerVertex;
+out float colorGPerVertex;
+out float colorBPerVertex;
 
 // Values that stay constant for the whole mesh.
 uniform mat4 MVP;
@@ -39,4 +48,18 @@ void main()
 		                         1.0e-8f * positionYPerVertex + (scale * modelPerVertex.y),
 		                         1.0e-8f * positionZPerVertex + (scale * modelPerVertex.z),
 		                         1);
+
+	float norm = accXPerVertex * accXPerVertex + accYPerVertex * accYPerVertex + accZPerVertex * accZPerVertex;
+
+	float normX = accXPerVertex * accXPerVertex;
+	float normY = accYPerVertex * accYPerVertex;
+	float normZ = accZPerVertex * accZPerVertex;
+
+	// colorRPerVertex = normX * normY * normZ * 1.75e5f;
+	// colorGPerVertex = radiusPerVertex * 9.0e-7f;
+	// colorBPerVertex = norm;
+
+	colorRPerVertex = normX * 1.75e5f;
+	colorGPerVertex = normY * 1.75e5f;
+	colorBPerVertex = normZ * 1.75e5f;
 }

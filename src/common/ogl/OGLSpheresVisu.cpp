@@ -33,26 +33,36 @@ OGLSpheresVisu<T>::OGLSpheresVisu(const std::string winName,
                                   const T *positionsX,
                                   const T *positionsY,
                                   const T *positionsZ,
+                                  const T *accelerationsX,
+                                  const T *accelerationsY,
+                                  const T *accelerationsZ,
                                   const T *radius,
                                   const unsigned long nSpheres)
 	: SpheresVisu(),
-	  window           (NULL),
-	  positionsX       (positionsX),
-	  positionsXBuffer (NULL),
-	  positionsY       (positionsY),
-	  positionsYBuffer (NULL),
-	  positionsZ       (positionsZ),
-	  positionsZBuffer (NULL),
-	  radius           (radius),
-	  radiusBuffer     (NULL),
-	  nSpheres         (nSpheres),
-	  vertexArrayRef   ((GLuint) 0),
-	  positionBufferRef{(GLuint) 0, (GLuint) 0, (GLuint) 0},
-	  radiusBufferRef  ((GLuint) 0),
-	  mvpRef           ((GLuint) 0),
-	  shaderProgramRef ((GLuint) 0),
-	  mvp              (glm::mat4(1.0f)),
-	  control          (NULL)
+	  window               (NULL),
+	  positionsX           (positionsX),
+	  positionsXBuffer     (NULL),
+	  positionsY           (positionsY),
+	  positionsYBuffer     (NULL),
+	  positionsZ           (positionsZ),
+	  positionsZBuffer     (NULL),
+	  accelerationsX       (accelerationsX),
+	  accelerationsXBuffer (NULL),
+	  accelerationsY       (accelerationsY),
+	  accelerationsYBuffer (NULL),
+	  accelerationsZ       (accelerationsZ),
+	  accelerationsZBuffer (NULL),
+	  radius               (radius),
+	  radiusBuffer         (NULL),
+	  nSpheres             (nSpheres),
+	  vertexArrayRef       ((GLuint) 0),
+	  positionBufferRef    {(GLuint) 0, (GLuint) 0, (GLuint) 0},
+	  accelerationBufferRef{(GLuint) 0, (GLuint) 0, (GLuint) 0},
+	  radiusBufferRef      ((GLuint) 0),
+	  mvpRef               ((GLuint) 0),
+	  shaderProgramRef     ((GLuint) 0),
+	  mvp                  (glm::mat4(1.0f)),
+	  control              (NULL)
 {
 	assert(winWidth > 0);
 	assert(winHeight > 0);
@@ -64,18 +74,24 @@ OGLSpheresVisu<T>::OGLSpheresVisu(const std::string winName,
 	if(sizeof(T) == sizeof(float))
 	{
 #ifndef NBODY_DOUBLE //TODO: delete this define, this is just a patch to compile when using double
-		this->positionsXBuffer = const_cast<T*>(positionsX); //TODO: do not use const_cast !
-		this->positionsYBuffer = const_cast<T*>(positionsY); //TODO: do not use const_cast !
-		this->positionsZBuffer = const_cast<T*>(positionsZ); //TODO: do not use const_cast !
-		this->radiusBuffer     = const_cast<T*>(radius);     //TODO: do not use const_cast !
+		this->positionsXBuffer     = const_cast<T*>(positionsX);  //TODO: do not use const_cast !
+		this->positionsYBuffer     = const_cast<T*>(positionsY);  //TODO: do not use const_cast !
+		this->positionsZBuffer     = const_cast<T*>(positionsZ);  //TODO: do not use const_cast !
+		this->accelerationsXBuffer = const_cast<T*>(accelerationsX); //TODO: do not use const_cast !
+		this->accelerationsYBuffer = const_cast<T*>(accelerationsY); //TODO: do not use const_cast !
+		this->accelerationsZBuffer = const_cast<T*>(accelerationsZ); //TODO: do not use const_cast !
+		this->radiusBuffer         = const_cast<T*>(radius);      //TODO: do not use const_cast !
 #endif
 	}
 	else
 	{
-		this->positionsXBuffer = new float[this->nSpheres];
-		this->positionsYBuffer = new float[this->nSpheres];
-		this->positionsZBuffer = new float[this->nSpheres];
-		this->radiusBuffer     = new float[this->nSpheres];
+		this->positionsXBuffer     = new float[this->nSpheres];
+		this->positionsYBuffer     = new float[this->nSpheres];
+		this->positionsZBuffer     = new float[this->nSpheres];
+		this->accelerationsXBuffer = new float[this->nSpheres];
+		this->accelerationsYBuffer = new float[this->nSpheres];
+		this->accelerationsZBuffer = new float[this->nSpheres];
+		this->radiusBuffer         = new float[this->nSpheres];
 
 		for(unsigned long iVertex = 0; iVertex < this->nSpheres; iVertex++)
 			this->radiusBuffer[iVertex] = (float) this->radius[iVertex];
@@ -92,7 +108,12 @@ OGLSpheresVisu<T>::OGLSpheresVisu(const std::string winName,
 		glGenBuffers(1, &this->positionBufferRef[0]); // can change over iterations, so binding is in refreshDisplay()
 		glGenBuffers(1, &this->positionBufferRef[1]); // can change over iterations, so binding is in refreshDisplay()
 		glGenBuffers(1, &this->positionBufferRef[2]); // can change over iterations, so binding is in refreshDisplay()
-
+		if (this->accelerationsX != nullptr)
+		{
+			glGenBuffers(1, &this->accelerationBufferRef[0]); // can change over iterations, so binding is in refreshDisplay()
+			glGenBuffers(1, &this->accelerationBufferRef[1]); // can change over iterations, so binding is in refreshDisplay()
+			glGenBuffers(1, &this->accelerationBufferRef[2]); // can change over iterations, so binding is in refreshDisplay()
+		}
 		glGenBuffers(1, &(this->radiusBufferRef));
 		glBindBuffer(GL_ARRAY_BUFFER, this->radiusBufferRef);
 		glBufferData(GL_ARRAY_BUFFER, this->nSpheres * sizeof(GLfloat), this->radiusBuffer, GL_STATIC_DRAW);
@@ -114,23 +135,30 @@ OGLSpheresVisu<T>::OGLSpheresVisu(const std::string winName,
 template <typename T>
 OGLSpheresVisu<T>::OGLSpheresVisu()
 	: SpheresVisu(),
-	  window           (NULL),
-	  positionsX       (NULL),
-	  positionsXBuffer (NULL),
-	  positionsY       (NULL),
-	  positionsYBuffer (NULL),
-	  positionsZ       (NULL),
-	  positionsZBuffer (NULL),
-	  radius           (NULL),
-	  radiusBuffer     (NULL),
-	  nSpheres         (0),
-	  vertexArrayRef   ((GLuint) 0),
-	  positionBufferRef{(GLuint) 0, (GLuint) 0, (GLuint) 0},
-	  radiusBufferRef  ((GLuint) 0),
-	  mvpRef           ((GLuint) 0),
-	  shaderProgramRef ((GLuint) 0),
-	  mvp              (glm::mat4(1.0f)),
-	  control          (NULL)
+	  window               (NULL),
+	  positionsX           (NULL),
+	  positionsXBuffer     (NULL),
+	  positionsY           (NULL),
+	  positionsYBuffer     (NULL),
+	  positionsZ           (NULL),
+	  positionsZBuffer     (NULL),
+	  accelerationsX       (NULL),
+	  accelerationsXBuffer (NULL),
+	  accelerationsY       (NULL),
+	  accelerationsYBuffer (NULL),
+	  accelerationsZ       (NULL),
+	  accelerationsZBuffer (NULL),
+	  radius               (NULL),
+	  radiusBuffer         (NULL),
+	  nSpheres             (0),
+	  vertexArrayRef       ((GLuint) 0),
+	  positionBufferRef    {(GLuint) 0, (GLuint) 0, (GLuint) 0},
+	  accelerationBufferRef{(GLuint) 0, (GLuint) 0, (GLuint) 0},
+	  radiusBufferRef      ((GLuint) 0),
+	  mvpRef               ((GLuint) 0),
+	  shaderProgramRef     ((GLuint) 0),
+	  mvp                  (glm::mat4(1.0f)),
+	  control              (NULL)
 {
 }
 
@@ -159,6 +187,21 @@ OGLSpheresVisu<T>::~OGLSpheresVisu()
 		{
 			delete[] this->positionsZBuffer;
 			this->positionsZBuffer = nullptr;
+		}
+		if(this->accelerationsXBuffer != nullptr)
+		{
+			delete[] this->accelerationsXBuffer;
+			this->accelerationsXBuffer = nullptr;
+		}
+		if(this->accelerationsYBuffer != nullptr)
+		{
+			delete[] this->accelerationsYBuffer;
+			this->accelerationsYBuffer = nullptr;
+		}
+		if(this->accelerationsZBuffer != nullptr)
+		{
+			delete[] this->accelerationsZBuffer;
+			this->accelerationsZBuffer = nullptr;
 		}
 		if(this->radiusBuffer != nullptr)
 		{
@@ -206,12 +249,24 @@ void OGLSpheresVisu<T>::updatePositions()
 {
 	// convert positions in float (if necessary)
 	if(sizeof(T) != sizeof(float))
+	{
 		for(unsigned long iVertex = 0; iVertex < this->nSpheres; iVertex++)
 		{
-			this->positionsXBuffer[iVertex] = (float) this->positionsX[iVertex];
-			this->positionsYBuffer[iVertex] = (float) this->positionsY[iVertex];
-			this->positionsZBuffer[iVertex] = (float) this->positionsZ[iVertex];
+			this->positionsXBuffer [iVertex] = (float) this->positionsX [iVertex];
+			this->positionsYBuffer [iVertex] = (float) this->positionsY [iVertex];
+			this->positionsZBuffer [iVertex] = (float) this->positionsZ [iVertex];
+
 		}
+		if (this->accelerationsX != nullptr)
+			for(unsigned long iVertex = 0; iVertex < this->nSpheres; iVertex++)
+				this->accelerationsXBuffer[iVertex] = (float) this->accelerationsX[iVertex];
+		if (this->accelerationsY != nullptr)
+			for(unsigned long iVertex = 0; iVertex < this->nSpheres; iVertex++)
+				this->accelerationsYBuffer[iVertex] = (float) this->accelerationsY[iVertex];
+		if (this->accelerationsZ != nullptr)
+			for(unsigned long iVertex = 0; iVertex < this->nSpheres; iVertex++)
+				this->accelerationsZBuffer[iVertex] = (float) this->accelerationsZ[iVertex];
+	}
 
 	// bind position buffers to GPU
 	glBindBuffer(GL_ARRAY_BUFFER, this->positionBufferRef[0]);
@@ -220,6 +275,16 @@ void OGLSpheresVisu<T>::updatePositions()
 	glBufferData(GL_ARRAY_BUFFER, this->nSpheres * sizeof(GLfloat), this->positionsYBuffer, GL_STATIC_DRAW);
 	glBindBuffer(GL_ARRAY_BUFFER, this->positionBufferRef[2]);
 	glBufferData(GL_ARRAY_BUFFER, this->nSpheres * sizeof(GLfloat), this->positionsZBuffer, GL_STATIC_DRAW);
+
+	if (this->accelerationsX != nullptr)
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, this->accelerationBufferRef[0]);
+		glBufferData(GL_ARRAY_BUFFER, this->nSpheres * sizeof(GLfloat), this->accelerationsXBuffer, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, this->accelerationBufferRef[1]);
+		glBufferData(GL_ARRAY_BUFFER, this->nSpheres * sizeof(GLfloat), this->accelerationsYBuffer, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, this->accelerationBufferRef[2]);
+		glBufferData(GL_ARRAY_BUFFER, this->nSpheres * sizeof(GLfloat), this->accelerationsZBuffer, GL_STATIC_DRAW);
+	}
 }
 
 template <typename T>

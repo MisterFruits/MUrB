@@ -61,6 +61,12 @@ public:
 	 */
 	const Bodies<T>* getBodies() const;
 
+	const T* getAccelerationsX() const;
+
+	const T* getAccelerationsY() const;
+
+	const T* getAccelerationsZ() const;
+
 	/*!
 	 *  \brief DtConstant setter.
 	 *
