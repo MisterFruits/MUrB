@@ -31,12 +31,27 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #include "SimulationNBodyMPI.h"
 
+MPIRank get_rank()
+{
+	MPIRank rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank)
+	return rank;
+}
+MPISize get_size()
+{
+	MPISize size;
+	MPI_Comm_size(MPI_COMM_WORLD, &size)
+	return size;
+}
+
+
+
 template <typename T>
 SimulationNBodyMPI<T>::SimulationNBodyMPI(const unsigned long nBodies)
-	: SimulationNBody<T>(new Bodies<T>(nBodies, MPI_COMM_WORLD.Get_rank() * nBodies +1)),
+	: SimulationNBody<T>(new Bodies<T>(nBodies, get_rank() * nBodies +1)),
 	  neighborBodies    (NULL),
-	  MPISize           (MPI_COMM_WORLD.Get_size()),
-	  MPIRank           (MPI_COMM_WORLD.Get_rank()),
+	  MPISize           (get_size()),
+	  MPIRank           (get_rank()),
 	  MPIBodiesBuffers  {this->bodies->getN(), this->bodies->getN()}
 {
 	this->init();
@@ -46,8 +61,8 @@ template <typename T>
 SimulationNBodyMPI<T>::SimulationNBodyMPI(const std::string inputFileName)
 	: SimulationNBody<T>(new Bodies<T>(inputFileName)),
 	  neighborBodies    (NULL),
-	  MPISize           (MPI_COMM_WORLD.Get_size()),
-	  MPIRank           (MPI_COMM_WORLD.Get_rank()),
+	  MPISize           (get_size()),
+	  MPIRank           (get_rank()),
 	  MPIBodiesBuffers  {this->bodies->getN(), this->bodies->getN()}
 {
 	this->init();
@@ -182,7 +197,7 @@ void SimulationNBodyMPI<T>::findTimeStep()
 		for(unsigned long iBody = 0; iBody < this->bodies->getN(); iBody++)
 			localDt = std::min(localDt, this->computeTimeStep(iBody));
 
-		MPI_COMM_WORLD.Allreduce(&localDt, &this->dt, 1, ToMPIDatatype<T>::value(), MPI_MIN);
+		MPI_Allreduce(&localDt, &this->dt, 1, ToMPIDatatype<T>::value(), MPI_MIN, MPI_COMM_WORLD);
 
 		if(this->dt < this->minDt)
 			this->dt = this->minDt;
