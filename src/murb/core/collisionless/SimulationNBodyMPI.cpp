@@ -31,16 +31,16 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #include "SimulationNBodyMPI.h"
 
-MPIRank get_rank()
+int get_rank()
 {
-	MPIRank rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank)
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 	return rank;
 }
-MPISize get_size()
+int get_size()
 {
-	MPISize size;
-	MPI_Comm_size(MPI_COMM_WORLD, &size)
+	int size;
+	MPI_Comm_size(MPI_COMM_WORLD, &size);
 	return size;
 }
 
@@ -158,20 +158,20 @@ void SimulationNBodyMPI<T>::computeOneIteration()
 	this->initIteration();
 
 	// compute bodies acceleration ------------------------------------------------------------------------------------
-	MPI_Prequest::Startall(2*9, this->MPIRequests[0]);
+	MPI_Startall(2*9, this->MPIRequests[0]);
 
 	this->computeLocalBodiesAcceleration();
  
 	for(int iStep = 1; iStep < this->MPISize; ++iStep)
 	{
-		MPI_Request::Waitall(2*9, this->MPIRequests[(iStep -1) % 2]);
+		MPI_Waitall(2*9, this->MPIRequests[(iStep -1) % 2], MPI_STATUSES_IGNORE);
 
 		this->neighborBodies = &this->MPIBodiesBuffers[iStep % 2];
 
 		this->computeNeighborBodiesAcceleration();
 
 		if(iStep < this->MPISize -1)
-			MPI_Prequest::Startall(2*9, this->MPIRequests[iStep % 2]);
+			MPI_Startall(2*9, this->MPIRequests[iStep % 2]);
 	}
 	// ----------------------------------------------------------------------------------------------------------------
 
