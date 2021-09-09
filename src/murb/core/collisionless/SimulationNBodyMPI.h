@@ -34,7 +34,7 @@ protected:
 
 private:
 	Bodies<T>     MPIBodiesBuffers[2];
-	MPI::Prequest MPIRequests[2][2*9];
+	MPI_Prequest MPIRequests[2][2*9];
 
 protected:
 	SimulationNBodyMPI(const unsigned long nBodies);

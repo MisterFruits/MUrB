@@ -18,26 +18,26 @@
 template<typename T>
 class ToMPIDatatype {
 public:
-	static inline MPI::Datatype value();
+	static inline MPI_Datatype value();
 };
 
 template<>
-inline MPI::Datatype ToMPIDatatype<double>::value() {
+inline MPI_Datatype ToMPIDatatype<double>::value() {
 	return MPI_DOUBLE;
 }
 
 template<>
-inline MPI::Datatype ToMPIDatatype<float>::value() {
+inline MPI_Datatype ToMPIDatatype<float>::value() {
 	return MPI_FLOAT;
 }
 
 template<>
-inline MPI::Datatype ToMPIDatatype<long>::value() {
+inline MPI_Datatype ToMPIDatatype<long>::value() {
 	return MPI_LONG;
 }
 
 template<>
-inline MPI::Datatype ToMPIDatatype<int>::value() {
+inline MPI_Datatype ToMPIDatatype<int>::value() {
 	return MPI_INTEGER;
 }
 
