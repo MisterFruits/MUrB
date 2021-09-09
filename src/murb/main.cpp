@@ -72,10 +72,18 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #else
 #ifndef NO_MPI
 #define NO_MPI
-static inline int  MPI_get_rank (       ) { return 0;  };
-static inline int  MPI_get_size (       ) { return 1;  };
-static inline int  MPI_Barrier  (MPI_Comm comm)         {            };
-static inline int  MPI_Abort    (MPI_Comm comm int val) { exit(val); };
+class MPI_Comm {
+public:
+                          MPI_Comm     (       ) {            };
+       virtual            ~MPI_Comm    (       ) {            };
+};
+static MPI_Comm MPI_COMM_WORLD;
+static inline void MPI_Init(** argc, ***argv)            {}
+static inline void Finalize(                )            {}
+static inline int  MPI_get_rank (       )                { return 0;  };
+static inline int  MPI_get_size (       )                { return 1;  };
+static inline int  MPI_Barrier  (MPI_Comm comm)          {            };
+static inline int  MPI_Abort    (MPI_Comm comm, int val) { exit(val); };
 #endif
 #endif
 
