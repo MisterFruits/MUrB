@@ -68,7 +68,7 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #include <mpi.h>
 #include "core/collisionless/v1/mpi/SimulationNBodyMPIV1.h"
 #include "core/collisionless/v1/mpi/SimulationNBodyMPIV1Intrinsics.h"
-#include "../common/utils/ToMPIDataType.h"
+#include "../common/utils/ToMPIDatatype.h"
 #else
 #ifndef NO_MPI
 #define NO_MPI
@@ -466,7 +466,7 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 
 		for(unsigned long iRank = 0; iRank < (unsigned long)MPI_get_size(); iRank++)
 		{
-			if(iRank == (unsigned longgI_COMM_WORLD.Get_rank())
+			if(iRank == (unsigned long)MPI_get_rank())
 				if(!simu->getBodies()->writeIntoFileMPIBinary(outputFileName, MPINBodies))
 					MPI_Abort(MPI_COMM_WORLD, 1);
 
@@ -498,7 +498,7 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
  */
 int main(int argc, char** argv)
 {
-	MPI_Init();
+	MPI_Init(&argc, &argv);
 
 	// read arguments from the command line
 	// usage: ./nbody -f fileName -i nIterations [-v] [-w] ...
