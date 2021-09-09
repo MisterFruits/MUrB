@@ -66,25 +66,25 @@ void SimulationNBodyMPI<T>::init()
 	Bodies<T> *bBuffs[] = {&this->MPIBodiesBuffers[0], &this->MPIBodiesBuffers[1]};
 
 	// send number of bodies
-	MPI_Send_init(&bBuffs[0]->n,            1, MPI_LONG, MPINextRank, 0), MPI_COMM_WORLD, &this->MPIRequests[0][0];
-	MPI_Send_init(&bBuffs[1]->n,            1, MPI_LONG, MPINextRank, 1), MPI_COMM_WORLD, &this->MPIRequests[1][0];
+	MPI_Send_init(&bBuffs[0]->n,            1, MPI_LONG, MPINextRank, 0, MPI_COMM_WORLD, &this->MPIRequests[0][0]);
+	MPI_Send_init(&bBuffs[1]->n,            1, MPI_LONG, MPINextRank, 1, MPI_COMM_WORLD, &this->MPIRequests[1][0]);
 	// receive number of bodies
-	MPI_Recv_init(&bBuffs[1]->n,            1, MPI_LONG, MPIPrevRank, 0), MPI_COMM_WORLD, &this->MPIRequests[0][1];
-	MPI_Recv_init(&bBuffs[0]->n,            1, MPI_LONG, MPIPrevRank, 1), MPI_COMM_WORLD, &this->MPIRequests[1][1];
+	MPI_Recv_init(&bBuffs[1]->n,            1, MPI_LONG, MPIPrevRank, 0, MPI_COMM_WORLD, &this->MPIRequests[0][1]);
+	MPI_Recv_init(&bBuffs[0]->n,            1, MPI_LONG, MPIPrevRank, 1, MPI_COMM_WORLD, &this->MPIRequests[1][1]);
 
 	// send masses
-	MPI_Send_init(bBuffs[0]->masses,        n, MPIType,  MPINextRank, 2), MPI_COMM_WORLD, &this->MPIRequests[0][2];
-	MPI_Send_init(bBuffs[1]->masses,        n, MPIType,  MPINextRank, 3), MPI_COMM_WORLD, &this->MPIRequests[1][2];
+	MPI_Send_init(bBuffs[0]->masses,        n, MPIType,  MPINextRank, 2, MPI_COMM_WORLD, &this->MPIRequests[0][2]);
+	MPI_Send_init(bBuffs[1]->masses,        n, MPIType,  MPINextRank, 3, MPI_COMM_WORLD, &this->MPIRequests[1][2]);
 	// receive masses
-	MPI_Recv_init(bBuffs[1]->masses,        n, MPIType,  MPIPrevRank, 2), MPI_COMM_WORLD, &this->MPIRequests[0][3];
-	MPI_Recv_init(bBuffs[0]->masses,        n, MPIType,  MPIPrevRank, 3), MPI_COMM_WORLD, &this->MPIRequests[1][3];
+	MPI_Recv_init(bBuffs[1]->masses,        n, MPIType,  MPIPrevRank, 2, MPI_COMM_WORLD, &this->MPIRequests[0][3]);
+	MPI_Recv_init(bBuffs[0]->masses,        n, MPIType,  MPIPrevRank, 3, MPI_COMM_WORLD, &this->MPIRequests[1][3]);
 
 	// send radiuses
-	MPI_Send_init(bBuffs[0]->radiuses,      n, MPIType,  MPINextRank, 4), MPI_COMM_WORLD, &this->MPIRequests[0][4];
-	MPI_Send_init(bBuffs[1]->radiuses,      n, MPIType,  MPINextRank, 5), MPI_COMM_WORLD, &this->MPIRequests[1][4];
+	MPI_Send_init(bBuffs[0]->radiuses,      n, MPIType,  MPINextRank, 4, MPI_COMM_WORLD, &this->MPIRequests[0][4]);
+	MPI_Send_init(bBuffs[1]->radiuses,      n, MPIType,  MPINextRank, 5, MPI_COMM_WORLD, &this->MPIRequests[1][4]);
 	// receive radiuses
-	MPI_Recv_init(bBuffs[1]->radiuses,      n, MPIType,  MPIPrevRank, 4), MPI_COMM_WORLD, &this->MPIRequests[0][5];
-	MPI_Recv_init(bBuffs[0]->radiuses,      n, MPIType,  MPIPrevRank, 5), MPI_COMM_WORLD, &this->MPIRequests[1][5];
+	MPI_Recv_init(bBuffs[1]->radiuses,      n, MPIType,  MPIPrevRank, 4, MPI_COMM_WORLD, &this->MPIRequests[0][5]);
+	MPI_Recv_init(bBuffs[0]->radiuses,      n, MPIType,  MPIPrevRank, 5, MPI_COMM_WORLD, &this->MPIRequests[1][5]);
 
 	// send positions.x
 	MPI_Send_init(bBuffs[0]->positions.x,   n, MPIType,  MPINextRank, 6, MPI_COMM_WORLD, &this->MPIRequests[0][6]);
