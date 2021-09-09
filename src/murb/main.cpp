@@ -68,26 +68,14 @@ inline int  omp_get_thread_num (   ) { return 0; }
 #include <mpi.h>
 #include "core/collisionless/v1/mpi/SimulationNBodyMPIV1.h"
 #include "core/collisionless/v1/mpi/SimulationNBodyMPIV1Intrinsics.h"
+#include "../common/utils/ToMPIDataType.h"
 #else
 #ifndef NO_MPI
 #define NO_MPI
-namespace MPI
-{
-	inline void Init()     {}
-	inline void Finalize() {}
-
-	class Comm {
-	public:
-		                   Comm     (       ) {            };
-		virtual            ~Comm    (       ) {            };
-		static inline int  Get_rank (       ) { return 0;  };
-		static inline int  Get_size (       ) { return 1;  };
-		static inline void Barrier  (       ) {            };
-		static inline void Abort    (int val) { exit(val); };
-	};
-
-	Comm COMM_WORLD;
-}
+static inline int  MPI_get_rank (       ) { return 0;  };
+static inline int  MPI_get_size (       ) { return 1;  };
+static inline int  MPI_Barrier  (MPI_Comm comm)         {            };
+static inline int  MPI_Abort    (MPI_Comm comm int val) { exit(val); };
 #endif
 #endif
 
@@ -159,7 +147,7 @@ void argsReader(int argc, char** argv)
 
 	if(argsReader.parse_arguments(reqArgs1, faculArgs))
 	{
-		NBodies           = stoi(argsReader.get_argument("n")) / MPI_COMM_WORLD.Get_size();
+		NBodies           = stoi(argsReader.get_argument("n")) / MPI_get_size();
 		NIterations       = stoi(argsReader.get_argument("i"));
 		RootInputFileName = "";
 	}
@@ -265,12 +253,12 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 {
 	SimulationNBody<floatType> *simu = nullptr;
 
-	string inputFileName = RootInputFileName + ".p" + to_string(MPI_COMM_WORLD.Get_rank()) + ".dat";
+	string inputFileName = RootInputFileName + ".p" + to_string(MPI_get_rank()) + ".dat";
 
 	switch(ImplId)
 	{
 		case 10:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V1 - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV1<T>(NBodies);
@@ -278,7 +266,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV1<T>(inputFileName);
 			break;
 		case 11:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V1 + cache blocking - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV1CB<T>(NBodies);
@@ -286,7 +274,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV1CB<T>(inputFileName);
 			break;
 		case 12:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V1 + vectors - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV1Vectors<T>(NBodies);
@@ -294,7 +282,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV1Vectors<T>(inputFileName);
 			break;
 		case 13:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V1 + intrinsics - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV1Intrinsics<T>(NBodies);
@@ -302,7 +290,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV1Intrinsics<T>(inputFileName);
 			break;
 		case 14:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V1 + collisions - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyCollisionV1<T>(NBodies);
@@ -310,7 +298,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyCollisionV1<T>(inputFileName);
 			break;
 		case 20:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V2 - O(n²/2)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV2<T>(NBodies);
@@ -318,7 +306,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2<T>(inputFileName);
 			break;
 		case 21:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V2 + cache blocking - O(n²/2)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV2CB<T>(NBodies);
@@ -326,7 +314,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2CB<T>(inputFileName);
 			break;
 		case 22:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V2 + vectors - O(n²/2)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV2Vectors<T>(NBodies);
@@ -341,7 +329,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV2Intrinsics<T>(inputFileName);
 			break;
 		case 30:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V3 (softening factor) - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV3<T>(NBodies, Softening);
@@ -349,7 +337,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV3<T>(inputFileName, Softening);
 			break;
 		case 33:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V3 (softening factor) + intrinsics - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV3Intrinsics<T>(NBodies, Softening);
@@ -357,7 +345,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyV3Intrinsics<T>(inputFileName, Softening);
 			break;
 		case 34:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V3 (softening factor) + intrinsics Black Hole - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyV3IntrinsicsBH<T>(NBodies, Softening);
@@ -366,7 +354,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 			break;
 #ifndef NO_MPI
 		case 100:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V1 MPI - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyMPIV1<T>(NBodies);
@@ -374,7 +362,7 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 				simu = new SimulationNBodyMPIV1<T>(inputFileName);
 			break;
 		case 103:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "Selected implementation: V1 MPI + intrinsics - O(n²)" << endl << endl;
 			if(RootInputFileName.empty())
 				simu = new SimulationNBodyMPIV1Intrinsics<T>(NBodies);
@@ -383,16 +371,16 @@ SimulationNBody<T>* selectImplementationAndAllocateSimulation()
 			break;
 #endif
 		default:
-			if(!MPI_COMM_WORLD.Get_rank())
+			if(!MPI_get_rank())
 				cout << "This code implementation does not exist... Exiting." << endl;
 			MPI_Finalize();
 			exit(-1);
 			break;
 	}
 
-	if(ImplId < 100 && MPI_COMM_WORLD.Get_size() > 1)
+	if(ImplId < 100 && MPI_get_size() > 1)
 	{
-		if(!MPI_COMM_WORLD.Get_rank())
+		if(!MPI_get_rank())
 			cout << "Implementation n°" << ImplId << " is not an MPI implementation... Exiting." << endl;
 		MPI_Finalize();
 		exit(-1);
@@ -417,7 +405,7 @@ SpheresVisu* selectImplementationAndAllocateVisu(SimulationNBody<T> *simu)
 
 #ifdef VISU
 	// only the MPI proc 0 can display the bodies
-	if(MPI_COMM_WORLD.Get_rank())
+	if(MPI_get_rank())
 		VisuEnable = false;
 
 	if(VisuEnable)
@@ -473,26 +461,26 @@ void writeBodies(SimulationNBody<T> *simu, const unsigned long &iIte)
 		outputFileName = tmpFileName + ".p0.dat";
 
 		unsigned long MPINBodies = 0;
-		if(!MPI_COMM_WORLD.Get_rank())
-			MPINBodies = simu->getBodies()->getN() * MPI_COMM_WORLD.Get_size();
+		if(!MPI_get_rank())
+			MPINBodies = simu->getBodies()->getN() * MPI_get_size();
 
-		for(unsigned long iRank = 0; iRank < (unsigned long)MPI_COMM_WORLD.Get_size(); iRank++)
+		for(unsigned long iRank = 0; iRank < (unsigned long)MPI_get_size(); iRank++)
 		{
-			if(iRank == (unsigned long)MPI_COMM_WORLD.Get_rank())
+			if(iRank == (unsigned longgI_COMM_WORLD.Get_rank())
 				if(!simu->getBodies()->writeIntoFileMPIBinary(outputFileName, MPINBodies))
-					MPI_COMM_WORLD.Abort(-1);
+					MPI_Abort(MPI_COMM_WORLD, 1);
 
-			MPI_COMM_WORLD.Barrier();
+			MPI_Barrier(MPI_COMM_WORLD);
 		}
 	}
 	else // each process MPI writes its bodies in separate files
 	{
 		tmpFileName = RootOutputFileName + ".i" + to_string(iIte);
-		outputFileName = tmpFileName + ".p" + to_string(MPI_COMM_WORLD.Get_rank()) + ".dat";
+		outputFileName = tmpFileName + ".p" + to_string(MPI_get_rank()) + ".dat";
 		simu->getBodies()->writeIntoFileBinary(outputFileName);
 	}
 
-	if(Verbose && !MPI_COMM_WORLD.Get_rank())
+	if(Verbose && !MPI_get_rank())
 	{
 		tmpFileName = tmpFileName + ".p*.dat";
 		cout << "   Writing iteration n°" << iIte << " into \"" << tmpFileName << "\" file(s)." << endl;
@@ -526,7 +514,7 @@ int main(int argc, char** argv)
 	float Mbytes = simu->getAllocatedBytes() / 1024.f / 1024.f;
 
 	// display simulation configuration
-	if(!MPI_COMM_WORLD.Get_rank())
+	if(!MPI_get_rank())
 	{
 		cout << "n-body simulation configuration:" << endl;
 		cout << "--------------------------------" << endl;
@@ -536,7 +524,7 @@ int main(int argc, char** argv)
 			cout << "  -> random mode           : enable" << endl;
 		if(!RootOutputFileName.empty())
 			cout << "  -> output file name(s)   : " << RootOutputFileName << ".i*.p*.dat" << endl;
-		cout << "  -> total nb. of bodies   : " << NBodies * MPI_COMM_WORLD.Get_size() << endl;
+		cout << "  -> total nb. of bodies   : " << NBodies * MPI_get_size() << endl;
 		cout << "  -> nb. of bodies per proc: " << NBodies << endl;
 		cout << "  -> nb. of iterations     : " << NIterations << endl;
 		cout << "  -> verbose mode          : " << ((Verbose) ? "enable" : "disable") << endl;
@@ -546,14 +534,14 @@ int main(int argc, char** argv)
 		cout << "  -> time step             : " << ((DtVariable) ? "variable" : to_string(Dt) + " sec") << endl;
 		if (ImplId >= 30 && ImplId <= 39)
 		cout << "  -> softening factor      : " << Softening << endl;
-		cout << "  -> nb. of MPI procs      : " << MPI_COMM_WORLD.Get_size() << endl;
+		cout << "  -> nb. of MPI procs      : " << MPI_get_size() << endl;
 		cout << "  -> nb. of threads        : " << omp_get_max_threads() << endl << endl;
 	}
 
 	// initialize visualization of bodies (with spheres in space)
 	SpheresVisu *visu = selectImplementationAndAllocateVisu<floatType>(simu);
 
-	if(!MPI_COMM_WORLD.Get_rank())
+	if(!MPI_get_rank())
 		cout << "Simulation started..." << endl;
 
 	// write initial bodies into file
@@ -585,7 +573,7 @@ int main(int argc, char** argv)
 		physicTime += simu->getDt();
 
 		// display the status of this iteration
-		if(Verbose && !MPI_COMM_WORLD.Get_rank())
+		if(Verbose && !MPI_get_rank())
 			cout << "Iteration n°" << setw(4) << iIte << " took "
 			     << setprecision(3) << std::fixed << setw(5) << perfIte.getElapsedTime() << " ms ("
 			     << setprecision(3) << std::fixed << setw(5) << perfIte.getGflops(simu->getFlopsPerIte())
@@ -595,13 +583,13 @@ int main(int argc, char** argv)
 		if(!RootOutputFileName.empty())
 			writeBodies<floatType>(simu, iIte);
 	}
-	if(Verbose && !MPI_COMM_WORLD.Get_rank())
+	if(Verbose && !MPI_get_rank())
 		cout << endl;
 
-	if(!MPI_COMM_WORLD.Get_rank())
+	if(!MPI_get_rank())
 		cout << "Simulation ended." << endl << endl;
 
-	if(!MPI_COMM_WORLD.Get_rank())
+	if(!MPI_get_rank())
 		cout << "Entire simulation took " << perfTotal.getElapsedTime() << " ms "
 		     << "(" << perfTotal.getGflops(simu->getFlopsPerIte() * (iIte -1)) << " Gflop/s)" << endl;
 
@@ -610,7 +598,7 @@ int main(int argc, char** argv)
 	delete simu;
 
 	if(NIterations > (iIte +1))
-		MPI_COMM_WORLD.Abort(0);
+		MPI_Abort(MPI_COMM_WORLD, 0);
 
 	MPI_Finalize();
 

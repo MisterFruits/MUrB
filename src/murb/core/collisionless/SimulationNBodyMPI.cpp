@@ -31,27 +31,13 @@ inline int  omp_get_thread_num (   ) { return 0; }
 
 #include "SimulationNBodyMPI.h"
 
-int get_rank()
-{
-	int rank;
-	MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-	return rank;
-}
-int get_size()
-{
-	int size;
-	MPI_Comm_size(MPI_COMM_WORLD, &size);
-	return size;
-}
-
-
 
 template <typename T>
 SimulationNBodyMPI<T>::SimulationNBodyMPI(const unsigned long nBodies)
-	: SimulationNBody<T>(new Bodies<T>(nBodies, get_rank() * nBodies +1)),
+	: SimulationNBody<T>(new Bodies<T>(nBodies, MPI_get_rank() * nBodies +1)),
 	  neighborBodies    (NULL),
-	  MPISize           (get_size()),
-	  MPIRank           (get_rank()),
+	  MPISize           (MPI_get_size()),
+	  MPIRank           (MPI_get_rank()),
 	  MPIBodiesBuffers  {this->bodies->getN(), this->bodies->getN()}
 {
 	this->init();
@@ -61,8 +47,8 @@ template <typename T>
 SimulationNBodyMPI<T>::SimulationNBodyMPI(const std::string inputFileName)
 	: SimulationNBody<T>(new Bodies<T>(inputFileName)),
 	  neighborBodies    (NULL),
-	  MPISize           (get_size()),
-	  MPIRank           (get_rank()),
+	  MPISize           (MPI_get_size()),
+	  MPIRank           (MPI_get_rank()),
 	  MPIBodiesBuffers  {this->bodies->getN(), this->bodies->getN()}
 {
 	this->init();

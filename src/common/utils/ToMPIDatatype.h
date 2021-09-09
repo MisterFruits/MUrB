@@ -15,6 +15,19 @@
 
 #include <mpi.h>
 
+inline int MPI_get_rank()
+{
+	int rank;
+	MPI_Comm_rank(MPI_COMM_WORLD, &rank)
+	return rank;
+}
+inline int MPI_get_size()
+{
+	int size;
+	MPI_Comm_size(MPI_COMM_WORLD, &size)
+	return size;
+}
+
 template<typename T>
 class ToMPIDatatype {
 public:
